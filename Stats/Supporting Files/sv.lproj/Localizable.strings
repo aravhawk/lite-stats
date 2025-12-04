@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Patrik Persson on 04/01/2025.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Stats-installation";
+"Lite Stats Setup" = "Lite Stats-installation";
 "Previous" = "Föregående";
 "Previous page" = "Föregående sida";
 "Next" = "Nästa";
 "Next page" = "Nästa sida";
 "Finish" = "Avsluta";
 "Finish setup" = "Avsluta installationen";
-"Welcome to Stats" = "Välkommen till Stats";
-"welcome_message" = "Tack för att du använder Stats, ett gratis och öppen källkod macOS-systemövervakningsverktyg för din menyrad.";
+"Welcome to Lite Stats" = "Välkommen till Lite Stats";
+"welcome_message" = "Tack för att du använder Lite Stats, ett gratis och öppen källkod macOS-systemövervakningsverktyg för din menyrad.";
 "Start the application automatically when starting your Mac" = "Starta applikationen automatiskt när du startar din Mac";
 "Do not start the application automatically when starting your Mac" = "Starta inte applikationen automatiskt när du startar din Mac";
 "Do everything silently in the background (recommended)" = "Gör allt tyst i bakgrunden (rekommenderas)";
@@ -123,20 +123,20 @@
 "Share anonymous telemetry data" = "Dela anonym telemetridata";
 "Do not share anonymous telemetry data" = "Dela inte anonym telemetridata";
 "The configuration is completed" = "Konfigurationen är slutförd";
-"finish_setup_message" = "Allt är inställt! \n Stats är ett verktyg med öppen källkod, det är gratis och kommer alltid att vara det. \n Om du gillar det kan du stödja projektet, det uppskattas alltid!";
+"finish_setup_message" = "Allt är inställt! \n Lite Stats är ett verktyg med öppen källkod, det är gratis och kommer alltid att vara det. \n Om du gillar det kan du stödja projektet, det uppskattas alltid!";
 
 // Alerts
 "New version available" = "Ny version tillgänglig";
-"Click to install the new version of Stats" = "Klicka för att installera den nya versionen av Stats";
+"Click to install the new version of Lite Stats" = "Klicka för att installera den nya versionen av Lite Stats";
 "Successfully updated" = "Uppdateringen lyckades";
-"Stats was updated to v" = "Stats uppdaterades till v%0";
+"Lite Stats was updated to v" = "Lite Stats uppdaterades till v%0";
 "Reset settings text" = "Alla programinställningar kommer att återställas och programmet startas om. Är du säker på att du vill göra detta?";
-"Support text" = "Tack för att du använder Stats!\n\n Att underhålla och förbättra detta projekt med öppen källkod tar tid och resurser. Ditt stöd hjälper oss att fortsätta tillhandahålla en gratis och tillförlitlig applikation för alla.\n\nOm du tycker att Stats är användbart kan du överväga att ge ett bidrag. Varje liten bit hjälper!";
+"Support text" = "Tack för att du använder Lite Stats!\n\n Att underhålla och förbättra detta projekt med öppen källkod tar tid och resurser. Ditt stöd hjälper oss att fortsätta tillhandahålla en gratis och tillförlitlig applikation för alla.\n\nOm du tycker att Lite Stats är användbart kan du överväga att ge ett bidrag. Varje liten bit hjälper!";
 
 // Settings
 "Open Activity Monitor" = "Öppna Aktivitetsövervakaren";
 "Report a bug" = "Rapportera en bugg";
-"Support the application" = "Stöd Stats";
+"Support the application" = "Stöd Lite Stats";
 "Close application" = "Stäng applikationen";
 "Open application settings" = "Öppna applikationsinställningar";
 "Open dashboard" = "Öppna instrumentpanelen";
@@ -159,8 +159,8 @@
 "Import settings" = "Importera inställningar";
 "Export settings" = "Exportera inställningar";
 "Reset settings" = "Återställ inställningar";
-"Pause the Stats" = "Pausa Stats";
-"Resume the Stats" = "Återuppta Stats";
+"Pause the Lite Stats" = "Pausa Lite Stats";
+"Resume the Lite Stats" = "Återuppta Lite Stats";
 "Combined modules" = "Kombinerade moduler";
 "Combined details" = "Kombinerade detaljer";
 "Spacing" = "Mellanrum";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Den senaste versionen av Stats är installerad";
+"The latest version of Lite Stats installed" = "Den senaste versionen av Lite Stats är installerad";
 "Downloading..." = "Laddar ner...";
 "Current version: " = "Nuvarande version:  ";
 "Latest version: " = "Senaste version:    ";

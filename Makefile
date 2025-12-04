@@ -1,5 +1,5 @@
-APP = Stats
-BUNDLE_ID = eu.exelban.$(APP)
+APP = Lite Stats
+BUNDLE_ID = eu.exelban.LiteStats
 
 BUILD_PATH = $(PWD)/build
 APP_PATH = "$(BUILD_PATH)/$(APP).app"
@@ -13,93 +13,93 @@ build: clean next-version archive notarize sign prepare-dmg prepare-dSYM open
 # --- MAIN WORLFLOW FUNCTIONS --- #
 
 archive: clean
-	osascript -e 'display notification "Exporting application archive..." with title "Build the Stats"'
-	echo "Exporting application archive..."
+        osascript -e 'display notification "Exporting application archive..." with title "Build Lite Stats"'
+        echo "Exporting application archive..."
 
-	xcodebuild \
-  		-scheme $(APP) \
-  		-destination 'platform=OS X,arch=x86_64' \
-  		-configuration Release archive \
-  		-archivePath $(BUILD_PATH)/$(APP).xcarchive
+        xcodebuild \
+                -scheme "$(APP)" \
+                -destination 'platform=OS X,arch=x86_64' \
+                -configuration Release archive \
+                -archivePath "$(BUILD_PATH)/$(APP).xcarchive"
 
 	echo "Application built, starting the export archive..."
 
-	xcodebuild -exportArchive \
-  		-exportOptionsPlist "$(PWD)/exportOptions.plist" \
-  		-archivePath $(BUILD_PATH)/$(APP).xcarchive \
-  		-exportPath $(BUILD_PATH)
+        xcodebuild -exportArchive \
+                -exportOptionsPlist "$(PWD)/exportOptions.plist" \
+                -archivePath "$(BUILD_PATH)/$(APP).xcarchive" \
+                -exportPath "$(BUILD_PATH)"
 
-	ditto -c -k --keepParent $(APP_PATH) $(ZIP_PATH)
+        ditto -c -k --keepParent $(APP_PATH) $(ZIP_PATH)
 
 	echo "Project archived successfully"
 
 notarize:
-	osascript -e 'display notification "Submitting app for notarization..." with title "Build the Stats"'
-	echo "Submitting app for notarization..."
+        osascript -e 'display notification "Submitting app for notarization..." with title "Build Lite Stats"'
+        echo "Submitting app for notarization..."
 
 	xcrun notarytool submit --keychain-profile "AC_PASSWORD" --wait $(ZIP_PATH)
 
-	echo "Stats successfully notarized"
+        echo "Lite Stats successfully notarized"
 
 sign:
-	osascript -e 'display notification "Stampling the Stats..." with title "Build the Stats"'
-	echo "Going to staple an application..."
+        osascript -e 'display notification "Stampling Lite Stats..." with title "Build Lite Stats"'
+        echo "Going to staple an application..."
 
-	xcrun stapler staple $(APP_PATH)
-	spctl -a -t exec -vvv $(APP_PATH)
+        xcrun stapler staple $(APP_PATH)
+        spctl -a -t exec -vvv $(APP_PATH)
 
-	osascript -e 'display notification "Stats successfully stapled" with title "Build the Stats"'
-	echo "Stats successfully stapled"
+        osascript -e 'display notification "Lite Stats successfully stapled" with title "Build Lite Stats"'
+        echo "Lite Stats successfully stapled"
 
 prepare-dmg:
 	if [ ! -d $(PWD)/create-dmg ]; then \
 	    git clone https://github.com/create-dmg/create-dmg; \
 	fi
 
-	./create-dmg/create-dmg \
-	    --volname $(APP) \
-	    --background "./Stats/Supporting Files/background.png" \
-	    --window-pos 200 120 \
-	    --window-size 500 320 \
-	    --icon-size 80 \
-	    --icon "Stats.app" 125 175 \
-	    --hide-extension "Stats.app" \
-	    --app-drop-link 375 175 \
-	    --no-internet-enable \
-	    $(PWD)/$(APP).dmg \
-	    $(APP_PATH)
+        ./create-dmg/create-dmg \
+            --volname $(APP) \
+            --background "./Stats/Supporting Files/background.png" \
+            --window-pos 200 120 \
+            --window-size 500 320 \
+            --icon-size 80 \
+            --icon "$(APP).app" 125 175 \
+            --hide-extension "$(APP).app" \
+            --app-drop-link 375 175 \
+            --no-internet-enable \
+            "$(PWD)/$(APP).dmg" \
+            $(APP_PATH)
 
 	rm -rf ./create-dmg
 
 prepare-dSYM:
-	echo "Zipping dSYMs..."
-	cd $(BUILD_PATH)/Stats.xcarchive/dSYMs && zip -r $(PWD)/dSYMs.zip .
-	echo "Created zip with dSYMs"
+        echo "Zipping dSYMs..."
+        cd "$(BUILD_PATH)/$(APP).xcarchive/dSYMs" && zip -r $(PWD)/dSYMs.zip .
+        echo "Created zip with dSYMs"
 
 # --- HELPERS --- #
 
 clean:
-	rm -rf $(BUILD_PATH)
-	if [ -a $(PWD)/dSYMs.zip ]; then rm $(PWD)/dSYMs.zip; fi;
-	if [ -a $(PWD)/Stats.dmg ]; then rm $(PWD)/Stats.dmg; fi;
+        rm -rf $(BUILD_PATH)
+        if [ -a $(PWD)/dSYMs.zip ]; then rm $(PWD)/dSYMs.zip; fi;
+        if [ -a "$(PWD)/$(APP).dmg" ]; then rm "$(PWD)/$(APP).dmg"; fi;
 
 next-version:
-	versionNumber=$$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$(PWD)/Stats/Supporting Files/Info.plist") ;\
-	echo "Actual version is: $$versionNumber" ;\
-	versionNumber=$$((versionNumber + 1)) ;\
-	echo "Next version is: $$versionNumber" ;\
-	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $$versionNumber" "$(PWD)/Stats/Supporting Files/Info.plist" ;\
+        versionNumber=$$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$(PWD)/Stats/Supporting Files/Info.plist") ;\
+        echo "Actual version is: $$versionNumber" ;\
+        versionNumber=$$((versionNumber + 1)) ;\
+        echo "Next version is: $$versionNumber" ;\
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $$versionNumber" "$(PWD)/Stats/Supporting Files/Info.plist" ;\
 
 check:
-	xcrun notarytool log 2d0045cc-8f0d-4f4c-ba6f-728895fd064a --keychain-profile "AC_PASSWORD"
+        xcrun notarytool log 2d0045cc-8f0d-4f4c-ba6f-728895fd064a --keychain-profile "AC_PASSWORD"
 
 history:
-	xcrun notarytool history --keychain-profile "AC_PASSWORD"
+        xcrun notarytool history --keychain-profile "AC_PASSWORD"
 
 open:
-	osascript -e 'display notification "Stats signed and ready for distribution" with title "Build the Stats"'
-	echo "Opening working folder..."
-	open $(PWD)
+        osascript -e 'display notification "Lite Stats signed and ready for distribution" with title "Build Lite Stats"'
+        echo "Opening working folder..."
+        open $(PWD)
 
 smc:
 	$(MAKE) --directory=./smc

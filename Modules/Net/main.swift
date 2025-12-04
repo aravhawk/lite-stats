@@ -139,8 +139,8 @@ public class Network: Module {
     private var processReader: ProcessReader? = nil
     private var connectivityReader: ConnectivityReader? = nil
     
-    private let ipUpdater = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.Network.IP")
-    private let usageReseter = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.Network.Usage")
+    private let ipUpdater = NSBackgroundActivityScheduler(identifier: "eu.exelban.LiteStats.Network.IP")
+    private let usageReseter = NSBackgroundActivityScheduler(identifier: "eu.exelban.LiteStats.Network.Usage")
     
     private var widgetActivationThresholdState: Bool {
         Store.shared.bool(key: "\(self.config.name)_widgetActivationThresholdState", defaultValue: false)

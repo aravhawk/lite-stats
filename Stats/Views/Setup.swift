@@ -34,7 +34,7 @@ internal class SetupWindow: NSWindow, NSWindowDelegate {
         self.animationBehavior = .default
         self.titlebarAppearsTransparent = true
         self.delegate = self
-        self.title = localizedString("Stats Setup")
+        self.title = localizedString("Lite Stats Setup")
         
         self.positionCenter()
         self.setIsVisible(false)
@@ -180,8 +180,8 @@ private class SetupView_1: NSStackView {
         let title: NSTextField = TextView()
         title.alignment = .center
         title.font = NSFont.systemFont(ofSize: 20, weight: .semibold)
-        title.stringValue = localizedString("Welcome to Stats")
-        title.toolTip = localizedString("Welcome to Stats")
+        title.stringValue = localizedString("Welcome to Lite Stats")
+        title.toolTip = localizedString("Welcome to Lite Stats")
         title.isSelectable = false
         
         let icon: NSImageView = NSImageView(image: NSImage(named: NSImage.Name("AppIcon"))!)

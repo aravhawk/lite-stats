@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by postylem on 2023/07/26.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Stats Seadistamine";
+"Lite Stats Setup" = "Lite Stats Seadistamine";
 "Previous" = "Eelmine";
 "Previous page" = "Eelmine leht";
 "Next" = "Järgmine";
 "Next page" = "Järgmine leht";
 "Finish" = "Lõpeta";
 "Finish setup" = "Lõpeta seadistamine";
-"Welcome to Stats" = "Tere tulemast Statsi";
-"welcome_message" = "Täname, et kasutate Statsi, tasuta avatud lähtekoodiga macOS-i süsteemimonitor menüüriba jaoks.";
+"Welcome to Lite Stats" = "Tere tulemast Lite Statsi";
+"welcome_message" = "Täname, et kasutate Lite Statsi, tasuta avatud lähtekoodiga macOS-i süsteemimonitor menüüriba jaoks.";
 "Start the application automatically when starting your Mac" = "Käivita rakendus automaatselt Maci käivitamisel";
 "Do not start the application automatically when starting your Mac" = "Ära käivita rakendus automaatselt Maci käivitamisel";
 "Do everything silently in the background (recommended)" = "Tee kõike vaikselt taustal (soovitatav)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Jaga anonüümseid telemeetriaandmeid";
 "Do not share anonymous telemetry data" = "Ära jaga anonüümseid telemeetriaandmeid";
 "The configuration is completed" = "Seadistamine on lõpetatud";
-"finish_setup_message" = "Kõik on paika pandud! \n Stats on avatud lähtekoodiga tööriist, see on tasuta ja jääb alati tasuta. \n Kui teile meeldib, saate projekti toetada, see on alati teretulnud!";
+"finish_setup_message" = "Kõik on paika pandud! \n Lite Stats on avatud lähtekoodiga tööriist, see on tasuta ja jääb alati tasuta. \n Kui teile meeldib, saate projekti toetada, see on alati teretulnud!";
 
 // Alerts
 "New version available" = "Uus versioon saadaval";
-"Click to install the new version of Stats" = "Klõpsa Statsi uue versiooni installimiseks";
+"Click to install the new version of Lite Stats" = "Klõpsa Lite Statsi uue versiooni installimiseks";
 "Successfully updated" = "Edukalt värskendatud";
-"Stats was updated to v" = "Stats värskendati versioonile %0";
+"Lite Stats was updated to v" = "Lite Stats värskendati versioonile %0";
 "Reset settings text" = "Kõik rakenduse seaded lähtestatakse ja rakendus taaskäivitatakse. Kas olete kindel, et soovite seda teha?";
-"Support text" = "Täname teid statistika kasutamise eest!\n\n Selle avatud lähtekoodiga projekti hooldamine ja täiustamine nõuab aega ja ressursse. Teie toetus aitab meil jätkuvalt pakkuda kõigile tasuta ja usaldusväärset rakendust.\n\nJa kui Stats on teie arvates kasulik, siis palun kaaluge panuse andmist. Iga väike summa aitab!";
+"Support text" = "Täname teid statistika kasutamise eest!\n\n Selle avatud lähtekoodiga projekti hooldamine ja täiustamine nõuab aega ja ressursse. Teie toetus aitab meil jätkuvalt pakkuda kõigile tasuta ja usaldusväärset rakendust.\n\nJa kui Lite Stats on teie arvates kasulik, siis palun kaaluge panuse andmist. Iga väike summa aitab!";
 
 // Settings
 "Open Activity Monitor" = "Ava aktiivsusmonitor";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Lähtesta seaded";
-"Pause the Stats" = "Peata Statsi";
-"Resume the Stats" = "Jätka Statsi";
+"Pause the Lite Stats" = "Peata Lite Statsi";
+"Resume the Lite Stats" = "Jätka Lite Statsi";
 "Combined modules" = "Kombineeritud moodulid";
 "Combined details" = "Combined details";
 "Spacing" = "Vahekaugus";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Uusim versioon on installitud";
+"The latest version of Lite Stats installed" = "Uusim versioon on installitud";
 "Downloading..." = "Allalaadimine...";
 "Current version: " = "Praegune versioon:  ";
 "Latest version: " = "Uusim version:    ";

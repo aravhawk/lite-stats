@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,14 +102,14 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "आँकड़े सेटअप";
+"Lite Stats Setup" = "आँकड़े सेटअप";
 "Previous" = "पिछला";
 "Previous page" = "पिछला पृष्ठ";
 "Next" = "अगला";
 "Next page" = "अगला पृष्ठ";
 "Finish" = "समाप्त";
 "Finish setup" = "सेटअप खत्म करें";
-"Welcome to Stats" = "आँकड़ों में आपका स्वागत है";
+"Welcome to Lite Stats" = "आँकड़ों में आपका स्वागत है";
 "welcome_message" = "स्टैट्स का उपयोग करने के लिए धन्यवाद, आपके मेनू बार के लिए एक मुफ्त ओपन सोर्स मैकओएस सिस्टम मॉनिटर।";
 "Start the application automatically when starting your Mac" = "अपना मैक शुरू करते समय एप्लिकेशन को स्वचालित रूप से शुरू करें";
 "Do not start the application automatically when starting your Mac" = "अपना मैक शुरू करते समय एप्लिकेशन को स्वचालित रूप से शुरू न करें";
@@ -127,11 +127,11 @@
 
 // Alerts
 "New version available" = "नया संस्करण उपलब्ध है";
-"Click to install the new version of Stats" = "आँकड़े के नए संस्करण को स्थापित करने के लिए क्लिक करें";
+"Click to install the new version of Lite Stats" = "आँकड़े के नए संस्करण को स्थापित करने के लिए क्लिक करें";
 "Successfully updated" = "सफलतापूर्वक अपडेट किया गया";
-"Stats was updated to v" = "आँकड़े v पर अपडेट किए गए थे";
+"Lite Stats was updated to v" = "आँकड़े v पर अपडेट किए गए थे";
 "Reset settings text" = "Aसभी एप्लिकेशन सेटिंग्स रीसेट हो जाएंगी और एप्लिकेशन को पुनरारंभ किया जाएगा। क्या आप वाकई ऐसा करना चाहते हैं?";
-"Support text" = "Stats का उपयोग करने के लिए धन्यवाद!\n\n इस ओपन-सोर्स प्रोजेक्ट को बनाए रखने और सुधारने में समय और संसाधन लगते हैं। आपका समर्थन हमें सभी के लिए एक निःशुल्क और विश्वसनीय एप्लिकेशन प्रदान करना जारी रखने में मदद करता है.\n\nयदि आपको Stats मददगार लगता है, तो कृपया योगदान देने पर विचार करें। हर छोटी-छोटी मदद मददगार होती है!";
+"Support text" = "Lite Stats का उपयोग करने के लिए धन्यवाद!\n\n इस ओपन-सोर्स प्रोजेक्ट को बनाए रखने और सुधारने में समय और संसाधन लगते हैं। आपका समर्थन हमें सभी के लिए एक निःशुल्क और विश्वसनीय एप्लिकेशन प्रदान करना जारी रखने में मदद करता है.\n\nयदि आपको Lite Stats मददगार लगता है, तो कृपया योगदान देने पर विचार करें। हर छोटी-छोटी मदद मददगार होती है!";
 
 // Settings
 "Open Activity Monitor" = "ओपन एक्टिविटी मॉनिटर";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "सेटिंग्स रीसेट करें";
-"Pause the Stats" = "आँकड़ों को रोकें";
-"Resume the Stats" = "आँकड़े फिर से शुरू करें";
+"Pause the Lite Stats" = "आँकड़ों को रोकें";
+"Resume the Lite Stats" = "आँकड़े फिर से शुरू करें";
 "Combined modules" = "संयुक्त मॉड्यूल";
 "Combined details" = "Combined details";
 "Spacing" = "स्पेसिंग";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "आँकड़े का नवीनतम संस्करण स्थापित है";
+"The latest version of Lite Stats installed" = "आँकड़े का नवीनतम संस्करण स्थापित है";
 "Downloading..." = "डाउनलोडिंग ...";
 "Current version: " = "वर्तमान संस्करण: ";
 "Latest version: " = "नवीनतम संस्करण: ";

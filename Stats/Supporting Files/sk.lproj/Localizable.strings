@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Martin Bernat on 02/03/2023.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Nastavenie Stats";
+"Lite Stats Setup" = "Nastavenie Lite Stats";
 "Previous" = "Späť";
 "Previous page" = "Predchádzajúca strana";
 "Next" = "Ďalej";
 "Next page" = "Ďalšia strana";
 "Finish" = "Dokončiť";
 "Finish setup" = "Dokončiť nastavenie";
-"Welcome to Stats" = "Vitajte v Stats";
-"welcome_message" = "Ďakujeme, že používate Stats, bezplatný open source monitor systému macOS.";
+"Welcome to Lite Stats" = "Vitajte v Lite Stats";
+"welcome_message" = "Ďakujeme, že používate Lite Stats, bezplatný open source monitor systému macOS.";
 "Start the application automatically when starting your Mac" = "Automaticky spustiť aplikáciu pri štarte systému";
 "Do not start the application automatically when starting your Mac" = "Nespúšťať aplikáciu automaticky pri štarte systému";
 "Do everything silently in the background (recommended)" = "Vykonávať všetko v tichosti na pozadí (odoporúčané)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "Konfigurácia je dokončená";
-"finish_setup_message" = "Všetko je pripravené! \n Stats je open source nástroj, který je zadarmo a vždy bude. \n Ak sa vám páči, môžete projekt podporiť, ceníme si to!";
+"finish_setup_message" = "Všetko je pripravené! \n Lite Stats je open source nástroj, který je zadarmo a vždy bude. \n Ak sa vám páči, môžete projekt podporiť, ceníme si to!";
 
 // Alerts
 "New version available" = "Je k dispozícii nová verzia";
-"Click to install the new version of Stats" = "Inštalovať novú verziu Stats";
+"Click to install the new version of Lite Stats" = "Inštalovať novú verziu Lite Stats";
 "Successfully updated" = "Úspešne aktualizované";
-"Stats was updated to v" = "Stats bol aktualizovaný na v%0";
+"Lite Stats was updated to v" = "Lite Stats bol aktualizovaný na v%0";
 "Reset settings text" = "Všetky nastavenia aplikácie budú zresetované a aplikácia bude reštartovaná. Ste si istý, že chcete pokračovať?";
-"Support text" = "Ďakujeme, že používate Stats!\n\n Udržiavanie a zlepšovanie tohto open-source projektu si vyžaduje čas a zdroje. Vaša podpora nám pomáha pokračovať v poskytovaní bezplatnej a spoľahlivej aplikácie pre každého.\n\nAk považujete Stats za užitočné, zvážte prosím možnosť prispieť. Každý malý kúsok pomôže!";
+"Support text" = "Ďakujeme, že používate Lite Stats!\n\n Udržiavanie a zlepšovanie tohto open-source projektu si vyžaduje čas a zdroje. Vaša podpora nám pomáha pokračovať v poskytovaní bezplatnej a spoľahlivej aplikácie pre každého.\n\nAk považujete Lite Stats za užitočné, zvážte prosím možnosť prispieť. Každý malý kúsok pomôže!";
 
 // Settings
 "Open Activity Monitor" = "Otvoriť Monitor aktivity";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Obnoviť nastavenia";
-"Pause the Stats" = "Pozastaviť Stats";
-"Resume the Stats" = "Obnoviť Stats";
+"Pause the Lite Stats" = "Pozastaviť Lite Stats";
+"Resume the Lite Stats" = "Obnoviť Lite Stats";
 "Combined modules" = "Kombinovať moduly";
 "Combined details" = "Combined details";
 "Spacing" = "Spacing";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Bola nainštalovaná najnovšia verzia Stats";
+"The latest version of Lite Stats installed" = "Bola nainštalovaná najnovšia verzia Lite Stats";
 "Downloading..." = "Sťahovanie...";
 "Current version: " = "Aktuálna verzia: ";
 "Latest version: " = "Najnovšia verzia: ";

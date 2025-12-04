@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 сек";
 
 // Setup
-"Stats Setup" = "Настройки Stats";
+"Lite Stats Setup" = "Настройки Lite Stats";
 "Previous" = "Назад";
 "Previous page" = "Предыдущая страница";
 "Next" = "Вперёд";
 "Next page" = "Следующая страница";
 "Finish" = "Завершить";
 "Finish setup" = "Завершить настройку";
-"Welcome to Stats" = "Добро пожаловать в Stats";
-"welcome_message" = "Спасибо за использование Stats, бесплатного системного монитора macOS с открытым исходным кодом для системного меню.";
+"Welcome to Lite Stats" = "Добро пожаловать в Lite Stats";
+"welcome_message" = "Спасибо за использование Lite Stats, бесплатного системного монитора macOS с открытым исходным кодом для системного меню.";
 "Start the application automatically when starting your Mac" = "Запуск приложения автоматически при запуске Mac";
 "Do not start the application automatically when starting your Mac" = "Не запускать приложение автоматически при запуске Mac";
 "Do everything silently in the background (recommended)" = "Делать все тихо в фоновом режиме (рекомендуется)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Делится анонимными данными телеметрии";
 "Do not share anonymous telemetry data" = "Не передавайте анонимные данные телеметрии";
 "The configuration is completed" = "Настройка завершена";
-"finish_setup_message" = "Все готово! \n Stats — это инструмент с открытым исходным кодом, он бесплатный и всегда будет бесплатным. \n Если вам нравится, вы можете поддержать проект, это всегда ценно!";
+"finish_setup_message" = "Все готово! \n Lite Stats — это инструмент с открытым исходным кодом, он бесплатный и всегда будет бесплатным. \n Если вам нравится, вы можете поддержать проект, это всегда ценно!";
 
 // Alerts
 "New version available" = "Доступна новая версия";
-"Click to install the new version of Stats" = "Нажмите, чтобы установить новую версию Stats";
+"Click to install the new version of Lite Stats" = "Нажмите, чтобы установить новую версию Lite Stats";
 "Successfully updated" = "Успешно обновлено";
-"Stats was updated to v" = "Stats обновлено до v%0";
+"Lite Stats was updated to v" = "Lite Stats обновлено до v%0";
 "Reset settings text" = "Все настройки приложения будут сброшены, и приложение будет перезапущено. Вы уверены, что хотите это сделать?";
-"Support text" = "Спасибо за использование Stats.\n\n Поддержание и улучшение этого проекта с открытым исходным кодом требует времени и ресурсов. Ваша поддержка помогает нам продолжать предоставлять бесплатное и надежное приложение для всех.\n\nЕсли вы находите Stats полезным, пожалуйста, подумайте о том, чтобы сделать взнос. Каждый маленький кусочек помогает!";
+"Support text" = "Спасибо за использование Lite Stats.\n\n Поддержание и улучшение этого проекта с открытым исходным кодом требует времени и ресурсов. Ваша поддержка помогает нам продолжать предоставлять бесплатное и надежное приложение для всех.\n\nЕсли вы находите Lite Stats полезным, пожалуйста, подумайте о том, чтобы сделать взнос. Каждый маленький кусочек помогает!";
 
 // Settings
 "Open Activity Monitor" = "Открыть Мониторинг системы";
@@ -159,8 +159,8 @@
 "Import settings" = "Импортировать настройки";
 "Export settings" = "Экспортировать настройки";
 "Reset settings" = "Сбросить настройки";
-"Pause the Stats" = "Приостановить Stats";
-"Resume the Stats" = "Возобновить Stats";
+"Pause the Lite Stats" = "Приостановить Lite Stats";
+"Resume the Lite Stats" = "Возобновить Lite Stats";
 "Combined modules" = "Комбинированные модули";
 "Combined details" = "Комбинированные детали";
 "Spacing" = "Интервал";
@@ -181,7 +181,7 @@
 "Display" = "Монитор";
 
 // Update
-"The latest version of Stats installed" = "Установлена последняя версия";
+"The latest version of Lite Stats installed" = "Установлена последняя версия";
 "Downloading..." = "Скачивание...";
 "Current version: " = "Текущая версия:      ";
 "Latest version: " = "Последняя версия:  ";

@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 秒";
 
 // Setup
-"Stats Setup" = "Stats 设置";
+"Lite Stats Setup" = "Lite Stats 设置";
 "Previous" = "上一步";
 "Previous page" = "上一页";
 "Next" = "下一步";
 "Next page" = "下一页";
 "Finish" = "完成";
 "Finish setup" = "完成设置";
-"Welcome to Stats" = "欢迎使用 Stats";
-"welcome_message" = "感谢你使用 Stats，一个免费的开源 macOS 菜单栏系统监视器。";
+"Welcome to Lite Stats" = "欢迎使用 Lite Stats";
+"welcome_message" = "感谢你使用 Lite Stats，一个免费的开源 macOS 菜单栏系统监视器。";
 "Start the application automatically when starting your Mac" = "在启动你的 Mac 时自动开启应用程序";
 "Do not start the application automatically when starting your Mac" = "在启动你的 Mac 时不要自动开启应用程序";
 "Do everything silently in the background (recommended)" = "在后台静默运行（推荐）";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "分享匿名诊断数据";
 "Do not share anonymous telemetry data" = "不分享匿名诊断数据";
 "The configuration is completed" = "配置完成";
-"finish_setup_message" = "设置完成！Stats 是一个开源且永远免费的工具。如果你喜欢它，你可以支持这个项目，非常感谢!";
+"finish_setup_message" = "设置完成！Lite Stats 是一个开源且永远免费的工具。如果你喜欢它，你可以支持这个项目，非常感谢!";
 
 // Alerts
 "New version available" = "新版本可用";
-"Click to install the new version of Stats" = "点击安装 Stats 的新版本";
+"Click to install the new version of Lite Stats" = "点击安装 Lite Stats 的新版本";
 "Successfully updated" = "更新成功";
-"Stats was updated to v" = "Stats 已更新到 v%0";
+"Lite Stats was updated to v" = "Lite Stats 已更新到 v%0";
 "Reset settings text" = "应用程序的所有设置将会被重置，应用程序也将重新启动。你确定要这么做吗？";
-"Support text" = "感谢您使用 Stats！\n\n 维护和改进这个开源项目需要花费时间和资源。您的支持能帮助我们继续给每个人提供这样免费且可靠的应用程序。\n\n如果您觉得 Stats 对您有帮助，请考虑给我们一份捐助。即使是一点一滴都有很大的帮助！";
+"Support text" = "感谢您使用 Lite Stats！\n\n 维护和改进这个开源项目需要花费时间和资源。您的支持能帮助我们继续给每个人提供这样免费且可靠的应用程序。\n\n如果您觉得 Lite Stats 对您有帮助，请考虑给我们一份捐助。即使是一点一滴都有很大的帮助！";
 
 // Settings
 "Open Activity Monitor" = "打开活动监视器";
@@ -159,8 +159,8 @@
 "Import settings" = "导入设置";
 "Export settings" = "导出设置";
 "Reset settings" = "初始化所有设置";
-"Pause the Stats" = "暂停 Stats";
-"Resume the Stats" = "恢复 Stats";
+"Pause the Lite Stats" = "暂停 Lite Stats";
+"Resume the Lite Stats" = "恢复 Lite Stats";
 "Combined modules" = "合并模块";
 "Combined details" = "合并详情";
 "Spacing" = "间距";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "已安装最新版 Stats";
+"The latest version of Lite Stats installed" = "已安装最新版 Lite Stats";
 "Downloading..." = "下载中...";
 "Current version: " = "当前版本：";
 "Latest version: " = "最新版本：";

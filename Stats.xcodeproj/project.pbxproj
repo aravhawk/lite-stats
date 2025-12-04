@@ -78,7 +78,7 @@
 		5CF2211B2B1F8CEF006C583F /* notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF2211A2B1F8CEF006C583F /* notifications.swift */; };
 		5CFE492A29264DF1000F2856 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE492929264DF1000F2856 /* main.swift */; };
 		5CFE493929265055000F2856 /* protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE493829265055000F2856 /* protocol.swift */; };
-		5CFE493D2926513E000F2856 /* eu.exelban.Stats.SMC.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 5CFE492729264DF1000F2856 /* eu.exelban.Stats.SMC.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		5CFE493D2926513E000F2856 /* eu.exelban.LiteStats.SMC.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 5CFE492729264DF1000F2856 /* eu.exelban.LiteStats.SMC.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5CFE494229265418000F2856 /* uninstall.sh in Resources */ = {isa = PBXBuildFile; fileRef = 5CFE494129265418000F2856 /* uninstall.sh */; };
 		5CFE494429265421000F2856 /* changelog.py in Resources */ = {isa = PBXBuildFile; fileRef = 5CFE494329265421000F2856 /* changelog.py */; };
 		5EC1B2E52E2FEAFB007042A6 /* UnitedWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EC1B2E42E2FEAFB007042A6 /* UnitedWidget.swift */; };
@@ -427,7 +427,7 @@
 			dstPath = Contents/Library/LaunchServices;
 			dstSubfolderSpec = 1;
 			files = (
-				5CFE493D2926513E000F2856 /* eu.exelban.Stats.SMC.Helper in Copy Files */,
+				5CFE493D2926513E000F2856 /* eu.exelban.LiteStats.SMC.Helper in Copy Files */,
 			);
 			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -562,7 +562,7 @@
 		5CF221162B1F4ACB006C583F /* notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = notifications.swift; sourceTree = "<group>"; };
 		5CF221182B1F8B90006C583F /* notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = notifications.swift; sourceTree = "<group>"; };
 		5CF2211A2B1F8CEF006C583F /* notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = notifications.swift; sourceTree = "<group>"; };
-		5CFE492729264DF1000F2856 /* eu.exelban.Stats.SMC.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eu.exelban.Stats.SMC.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		5CFE492729264DF1000F2856 /* eu.exelban.LiteStats.SMC.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = eu.exelban.LiteStats.SMC.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
 		5CFE492929264DF1000F2856 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		5CFE493829265055000F2856 /* protocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = protocol.swift; sourceTree = "<group>"; };
 		5CFE493A292650BD000F2856 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -586,7 +586,7 @@
 		9A11AAF3266FD7A7000C1C05 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		9A11AB25266FD828000C1C05 /* config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = config.plist; sourceTree = "<group>"; };
 		9A11AB35266FD9F4000C1C05 /* readers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = readers.swift; sourceTree = "<group>"; };
-		9A1410F5229E721100D29793 /* Stats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Stats.app; sourceTree = BUILT_PRODUCTS_DIR; };
+            9A1410F5229E721100D29793 /* Lite Stats.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lite Stats.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A141101229E721200D29793 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9A27D4A925389EFD001BB651 /* Stats.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Stats.entitlements; sourceTree = "<group>"; };
 		9A2846F72666A9CC00EC1F6D /* Kit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Kit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -971,7 +971,7 @@
 		9A1410F6229E721100D29793 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9A1410F5229E721100D29793 /* Stats.app */,
+                            9A1410F5229E721100D29793 /* Lite Stats.app */,
 				9A343527243E26A0006B19F9 /* LaunchAtLogin.app */,
 				9A81C7562449A41400825D92 /* RAM.framework */,
 				9AF9EE0224648751005D2270 /* Disk.framework */,
@@ -984,7 +984,7 @@
 				9A2846F72666A9CC00EC1F6D /* Kit.framework */,
 				9A11AACF266FD77F000C1C05 /* Bluetooth.framework */,
 				9AAC5E2A280ACC120043D892 /* Tests.xctest */,
-				5CFE492729264DF1000F2856 /* eu.exelban.Stats.SMC.Helper */,
+				5CFE492729264DF1000F2856 /* eu.exelban.LiteStats.SMC.Helper */,
 				5C22299D29CCB3C400F00E69 /* Clock.framework */,
 				5CE7E78A2C318512006BC92C /* WidgetsExtension.appex */,
 			);
@@ -1440,7 +1440,7 @@
 			);
 			name = Helper;
 			productName = Helper;
-			productReference = 5CFE492729264DF1000F2856 /* eu.exelban.Stats.SMC.Helper */;
+			productReference = 5CFE492729264DF1000F2856 /* eu.exelban.LiteStats.SMC.Helper */;
 			productType = "com.apple.product-type.tool";
 		};
 		9A11AACE266FD77F000C1C05 /* Bluetooth */ = {
@@ -1493,12 +1493,12 @@
 				5C2229A229CCB3C400F00E69 /* PBXTargetDependency */,
 				5CE7E79B2C318513006BC92C /* PBXTargetDependency */,
 			);
-			name = Stats;
-			packageProductDependencies = (
-			);
-			productName = Stats;
-			productReference = 9A1410F5229E721100D29793 /* Stats.app */;
-			productType = "com.apple.product-type.application";
+                        name = Stats;
+                        packageProductDependencies = (
+                        );
+                        productName = "Lite Stats";
+                        productReference = 9A1410F5229E721100D29793 /* Lite Stats.app */;
+                        productType = "com.apple.product-type.application";
 		};
 		9A2846F62666A9CC00EC1F6D /* Kit */ = {
 			isa = PBXNativeTarget;
@@ -2452,7 +2452,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Clock;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Clock;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -2490,7 +2490,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Clock;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Clock;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -2595,7 +2595,7 @@
 					"\"$(SRCROOT)/SMC/Helper/Launchd.plist\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.aravhawk.lite-stats.SMC.Helper";
-				PRODUCT_NAME = eu.exelban.Stats.SMC.Helper;
+				PRODUCT_NAME = eu.exelban.LiteStats.SMC.Helper;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -2625,7 +2625,7 @@
 					"\"$(SRCROOT)/SMC/Helper/Launchd.plist\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.aravhawk.lite-stats.SMC.Helper";
-				PRODUCT_NAME = eu.exelban.Stats.SMC.Helper;
+				PRODUCT_NAME = eu.exelban.LiteStats.SMC.Helper;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -2655,7 +2655,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Bluetooth;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Bluetooth;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -2689,7 +2689,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Bluetooth;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Bluetooth;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -2924,7 +2924,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-w";
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Kit;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Kit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -2961,7 +2961,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-w";
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Kit;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Kit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3048,7 +3048,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Net;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Net;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3082,7 +3082,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Net;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Net;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3115,7 +3115,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.RAM;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.RAM;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3149,7 +3149,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.RAM;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.RAM;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3183,7 +3183,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.GPU;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.GPU;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3218,7 +3218,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.GPU;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.GPU;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3256,7 +3256,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.CPU;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.CPU;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3297,7 +3297,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.CPU;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.CPU;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3329,7 +3329,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Stats.app/Contents/MacOS/Stats";
+                           TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lite Stats.app/Contents/MacOS/Lite Stats";
 			};
 			name = Debug;
 		};
@@ -3353,7 +3353,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Stats.app/Contents/MacOS/Stats";
+                           TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lite Stats.app/Contents/MacOS/Lite Stats";
 			};
 			name = Release;
 		};
@@ -3380,7 +3380,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Battery;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Battery;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3414,7 +3414,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Battery;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Battery;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3491,7 +3491,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Sensors;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Sensors;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3526,7 +3526,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Sensors;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Sensors;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3561,7 +3561,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Disk;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Disk;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -3597,7 +3597,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.Stats.Disk;
+				PRODUCT_BUNDLE_IDENTIFIER = eu.exelban.LiteStats.Disk;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;

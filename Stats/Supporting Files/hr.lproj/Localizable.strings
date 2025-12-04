@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Postavljanje programa Stats";
+"Lite Stats Setup" = "Postavljanje programa Lite Stats";
 "Previous" = "Prethodna";
 "Previous page" = "Prethodna stranica";
 "Next" = "Sljedeća";
 "Next page" = "Sljedeća stranica";
 "Finish" = "Završi";
 "Finish setup" = "Završi postavljanje";
-"Welcome to Stats" = "Stats dobrodošlica";
-"welcome_message" = "Hvala što koristiš Stats, besplatni program otvorenog koda za praćenje macOS sustava u traci izbornika.";
+"Welcome to Lite Stats" = "Lite Stats dobrodošlica";
+"welcome_message" = "Hvala što koristiš Lite Stats, besplatni program otvorenog koda za praćenje macOS sustava u traci izbornika.";
 "Start the application automatically when starting your Mac" = "Pokreni program automatski pri pokretanju računala";
 "Do not start the application automatically when starting your Mac" = "Nemoj pokrenuti program automatski pri pokretanju računala";
 "Do everything silently in the background (recommended)" = "Obavi sve tiho u pozadini (preporučuje se)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "Konfiguracija je završena";
-"finish_setup_message" = "Sve je postavljeno! \n Stats je alat otvorenog koda, besplatan je i uvijek će takav biti. \n Ako ti se program sviđa, možeš podržati projekt. Zahvalni smo za svaku vrstu podrške!!";
+"finish_setup_message" = "Sve je postavljeno! \n Lite Stats je alat otvorenog koda, besplatan je i uvijek će takav biti. \n Ako ti se program sviđa, možeš podržati projekt. Zahvalni smo za svaku vrstu podrške!!";
 
 // Alerts
 "New version available" = "Dostupna je nova verzija";
-"Click to install the new version of Stats" = "Pritisni za instaliranje nove verzije programa Stats";
+"Click to install the new version of Lite Stats" = "Pritisni za instaliranje nove verzije programa Lite Stats";
 "Successfully updated" = "Aktualiziranje je uspjelo";
-"Stats was updated to v" = "Stats je aktualiziran na v%0";
+"Lite Stats was updated to v" = "Lite Stats je aktualiziran na v%0";
 "Reset settings text" = "Sve postavke programa će se resetirati i program će se ponovo pokrenuti. Stvarno to želiš učiniti?";
-"Support text" = "Hvala vam što koristite Stats!\n\n Održavanje i poboljšanje ovog projekta otvorenog koda zahtijeva vrijeme i resurse. Vaša nam podrška pomaže da nastavimo pružati besplatnu i pouzdanu aplikaciju za sve.\n\nAko smatrate da je statistika korisna, razmislite o davanju doprinosa. Svako malo pomaže!";
+"Support text" = "Hvala vam što koristite Lite Stats!\n\n Održavanje i poboljšanje ovog projekta otvorenog koda zahtijeva vrijeme i resurse. Vaša nam podrška pomaže da nastavimo pružati besplatnu i pouzdanu aplikaciju za sve.\n\nAko smatrate da je statistika korisna, razmislite o davanju doprinosa. Svako malo pomaže!";
 
 // Settings
 "Open Activity Monitor" = "Otvori program „Praćenje aktivnosti”";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Resetiraj postavke";
-"Pause the Stats" = "Pause the Stats";
-"Resume the Stats" = "Resume the Stats";
+"Pause the Lite Stats" = "Pause the Lite Stats";
+"Resume the Lite Stats" = "Resume the Lite Stats";
 "Combined modules" = "Combined modules";
 "Combined details" = "Combined details";
 "Spacing" = "Spacing";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Instalirana je najnovija verzija programa Stats";
+"The latest version of Lite Stats installed" = "Instalirana je najnovija verzija programa Lite Stats";
 "Downloading..." = "Preuzimanje …";
 "Current version: " = "Trenutačna verzija:  ";
 "Latest version: " = "Najnovija verzija:    ";

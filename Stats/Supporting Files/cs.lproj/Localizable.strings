@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by @mpl75 on 11/01/2021.
 //
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Nastavení Stats";
+"Lite Stats Setup" = "Nastavení Lite Stats";
 "Previous" = "Zpět";
 "Previous page" = "Předchozí strana";
 "Next" = "Dále";
 "Next page" = "Další strana";
 "Finish" = "Dokončit";
 "Finish setup" = "Dokončit nastavení";
-"Welcome to Stats" = "Vítejte ve Stats";
-"welcome_message" = "Děkujeme, že používáte Stats, bezplatný open source monitor systému macOS pro nástrojovou lištu.";
+"Welcome to Lite Stats" = "Vítejte ve Lite Stats";
+"welcome_message" = "Děkujeme, že používáte Lite Stats, bezplatný open source monitor systému macOS pro nástrojovou lištu.";
 "Start the application automatically when starting your Mac" = "Automatické spuštění aplikace při startu počítače Mac";
 "Do not start the application automatically when starting your Mac" = "Nespouštějte aplikaci automaticky při spuštění Macu";
 "Do everything silently in the background (recommended)" = "Provádět vše tiše na pozadí (doporučeno)";
@@ -127,11 +127,11 @@
 
 // Alerts
 "New version available" = "Nová verze k dispozici";
-"Click to install the new version of Stats" = "Klikněte pro instalaci nové verze Stats";
+"Click to install the new version of Lite Stats" = "Klikněte pro instalaci nové verze Lite Stats";
 "Successfully updated" = "Úspěšně aktualizováno";
-"Stats was updated to v" = "Stats byly aktualizovány na v%0";
+"Lite Stats was updated to v" = "Lite Stats byly aktualizovány na v%0";
 "Reset settings text" = "Všechna nastavení aplikace budou resetována a aplikace bude restartována. Jste si jisti, že to chcete udělat?";
-"Support text" = "Děkujeme, že používáte Stats!\n\n Udržování a zlepšování tohoto open-source projektu vyžaduje čas a zdroje. Vaše podpora nám pomáhá nadále poskytovat bezplatnou a spolehlivou aplikaci pro každého.\n\nPokud vám Stats pomáhají, zvažte prosím možnost přispět. Každý malý kousek pomůže!";
+"Support text" = "Děkujeme, že používáte Lite Stats!\n\n Udržování a zlepšování tohoto open-source projektu vyžaduje čas a zdroje. Vaše podpora nám pomáhá nadále poskytovat bezplatnou a spolehlivou aplikaci pro každého.\n\nPokud vám Lite Stats pomáhají, zvažte prosím možnost přispět. Každý malý kousek pomůže!";
 
 // Settings
 "Open Activity Monitor" = "Otevřít Monitor aktivity";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Obnovit nastavení";
-"Pause the Stats" = "Pozastavit Stats";
-"Resume the Stats" = "Obnovit Stats";
+"Pause the Lite Stats" = "Pozastavit Lite Stats";
+"Resume the Lite Stats" = "Obnovit Lite Stats";
 "Combined modules" = "Kombinace modulů";
 "Combined details" = "Combined details";
 "Spacing" = "Odsazení";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Byla nainstalována nejnovější verze Stats";
+"The latest version of Lite Stats installed" = "Byla nainstalována nejnovější verze Lite Stats";
 "Downloading..." = "Stahování...";
 "Current version: " = "Aktuální verze: ";
 "Latest version: " = "Nejnovější verze: ";

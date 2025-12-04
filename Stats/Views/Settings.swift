@@ -61,7 +61,7 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
         sidebarViewController.addSplitViewItem(sidebarItem)
         sidebarViewController.addSplitViewItem(contentItem)
         
-        let newToolbar = NSToolbar(identifier: "eu.exelban.Stats.Settings.Toolbar")
+        let newToolbar = NSToolbar(identifier: "eu.exelban.LiteStats.Settings.Toolbar")
         newToolbar.allowsUserCustomization = false
         newToolbar.autosavesConfiguration = true
         newToolbar.displayMode = .default
@@ -350,7 +350,7 @@ private class SidebarView: NSStackView {
         additionalButtons.alignment = .centerY
         additionalButtons.spacing = 0
         
-        let pauseButton = self.makeButton(title: localizedString("Pause the Stats"), image: self.pauseState ? self.resumeIcon : self.pauseIcon, action: #selector(togglePause))
+        let pauseButton = self.makeButton(title: localizedString("Pause the Lite Stats"), image: self.pauseState ? self.resumeIcon : self.pauseIcon, action: #selector(togglePause))
         self.pauseButton = pauseButton
         
         additionalButtons.addArrangedSubview(self.makeButton(title: localizedString("Settings"), image: self.settingsIcon, action: #selector(openSettings)))
@@ -473,13 +473,13 @@ private class SidebarView: NSStackView {
     
     @objc private func togglePause() {
         self.pauseState = !self.pauseState
-        self.pauseButton?.toolTip = localizedString(self.pauseState ? "Resume the Stats" : "Pause the Stats")
+        self.pauseButton?.toolTip = localizedString(self.pauseState ? "Resume the Lite Stats" : "Pause the Lite Stats")
         self.pauseButton?.image = self.pauseState ? self.resumeIcon : self.pauseIcon
         NotificationCenter.default.post(name: .pause, object: nil, userInfo: ["state": self.pauseState])
     }
     
     @objc func listenForPause() {
-        self.pauseButton?.toolTip = localizedString(self.pauseState ? "Resume the Stats" : "Pause the Stats")
+        self.pauseButton?.toolTip = localizedString(self.pauseState ? "Resume the Lite Stats" : "Pause the Lite Stats")
         self.pauseButton?.image = self.pauseState ? self.resumeIcon : self.pauseIcon
     }
 }

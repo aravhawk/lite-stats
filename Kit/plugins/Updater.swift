@@ -168,7 +168,7 @@ public class Updater {
     public func install(path: String, completion: @escaping (_ error: String?) -> Void) {
         let pwd = Bundle.main.bundleURL.absoluteString
             .replacingOccurrences(of: "file://", with: "")
-            .replacingOccurrences(of: "Stats.app", with: "")
+            .replacingOccurrences(of: "Lite Stats.app", with: "")
             .replacingOccurrences(of: "//", with: "/")
         let dmg = path.replacingOccurrences(of: "file://", with: "")
         
@@ -189,19 +189,19 @@ public class Updater {
         
         print("Started new version installation...")
         
-        _ = syncShell("mkdir /tmp/Stats") // make sure that directory exist
-        let res = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen") // mount the dmg
+        _ = syncShell("mkdir '/tmp/Lite Stats'") // make sure that directory exist
+        let res = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint '/tmp/Lite Stats' -noverify -nobrowse -noautoopen") // mount the dmg
         
         print("DMG is mounted")
         
         if res.contains("is busy") { // dmg can be busy, if yes, unmount it and mount again
             print("DMG is busy, remounting")
             
-            _ = syncShell("/usr/bin/hdiutil detach $TMPDIR/Stats")
-            _ = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen")
+            _ = syncShell("/usr/bin/hdiutil detach '/tmp/Lite Stats'")
+            _ = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint '/tmp/Lite Stats' -noverify -nobrowse -noautoopen")
         }
-        
-        _ = syncShell("cp -rf /tmp/Stats/Stats.app/Contents/Resources/Scripts/updater.sh $TMPDIR/updater.sh") // copy updater script to tmp folder
+
+        _ = syncShell("cp -rf '/tmp/Lite Stats/Lite Stats.app/Contents/Resources/Scripts/updater.sh' $TMPDIR/updater.sh") // copy updater script to tmp folder
         
         print("Script is copied to $TMPDIR/updater.sh")
         
