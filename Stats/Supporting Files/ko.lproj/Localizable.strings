@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Stats 설정";
+"Lite Stats Setup" = "Lite Stats 설정";
 "Previous" = "이전";
 "Previous page" = "이전 페이지";
 "Next" = "다음";
 "Next page" = "다음 페이지";
 "Finish" = "완료";
 "Finish setup" = "설정 완료";
-"Welcome to Stats" = "Stats에 오신 것을 환영합니다";
-"welcome_message" = "당신의 메뉴 바를 위한 무료 오픈 소스 macOS 시스템 모니터, Stats를 사용해 주셔서 감사합니다.";
+"Welcome to Lite Stats" = "Lite Stats에 오신 것을 환영합니다";
+"welcome_message" = "당신의 메뉴 바를 위한 무료 오픈 소스 macOS 시스템 모니터, Lite Stats를 사용해 주셔서 감사합니다.";
 "Start the application automatically when starting your Mac" = "Mac 시동 시 애플리케이션 자동 시작";
 "Do not start the application automatically when starting your Mac" = "Mac 시동 시 애플리케이션 자동 시작 안함";
 "Do everything silently in the background (recommended)" = "모든 것을 백그라운드에서 조용하게 처리 (권장)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "익명 사용정보를 공유합니다";
 "Do not share anonymous telemetry data" = "익명 사용정보를 공유하지 않습니다";
 "The configuration is completed" = "설정이 완료되었습니다";
-"finish_setup_message" = "모든 것이 설정되었습니다! \n Stats는 무료 오픈 소스 도구이며 앞으로도 그럴 것입니다. \n 이 애플리케이션이 마음에 드셨다면 프로젝트를 후원 하실 수 있습니다. 늘 감사합니다!";
+"finish_setup_message" = "모든 것이 설정되었습니다! \n Lite Stats는 무료 오픈 소스 도구이며 앞으로도 그럴 것입니다. \n 이 애플리케이션이 마음에 드셨다면 프로젝트를 후원 하실 수 있습니다. 늘 감사합니다!";
 
 // Alerts
 "New version available" = "새로운 버전을 이용할 수 있습니다";
-"Click to install the new version of Stats" = "클릭하여 새 버전의 Stats 설치";
+"Click to install the new version of Lite Stats" = "클릭하여 새 버전의 Lite Stats 설치";
 "Successfully updated" = "성공적으로 업데이트되었습니다";
-"Stats was updated to v" = "Stats가 v%0 버전으로 업데이트되었습니다";
+"Lite Stats was updated to v" = "Lite Stats가 v%0 버전으로 업데이트되었습니다";
 "Reset settings text" = "모든 애플리케이션 설정이 재설정되고 다시 시작됩니다. 계속 진행하시겠습니까?";
-"Support text" = "Stats를 사용해 주셔서 감사합니다!\n\n 이 오픈 소스 프로젝트를 유지 관리하고 개선하는 데는 시간과 리소스가 필요합니다. 여러분의 지원은 모든 사람에게 신뢰할 수 있는 무료 애플리케이션을 계속 제공하는 데 도움이 됩니다.\n\nStats가 도움이 된다면 기여를 고려해 주세요. 여러분의 작은 도움이 큰 힘이 됩니다!";
+"Support text" = "Lite Stats를 사용해 주셔서 감사합니다!\n\n 이 오픈 소스 프로젝트를 유지 관리하고 개선하는 데는 시간과 리소스가 필요합니다. 여러분의 지원은 모든 사람에게 신뢰할 수 있는 무료 애플리케이션을 계속 제공하는 데 도움이 됩니다.\n\nLite Stats가 도움이 된다면 기여를 고려해 주세요. 여러분의 작은 도움이 큰 힘이 됩니다!";
 
 // Settings
 "Open Activity Monitor" = "활동 모니터 열기";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "설정 초기화";
-"Pause the Stats" = "Stats 일시정지";
-"Resume the Stats" = "Stats 재개";
+"Pause the Lite Stats" = "Lite Stats 일시정지";
+"Resume the Lite Stats" = "Lite Stats 재개";
 "Combined modules" = "모듈 병합";
 "Combined details" = "Combined details";
 "Spacing" = "간격";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "최신 버전의 Stats가 설치되어 있습니다";
+"The latest version of Lite Stats installed" = "최신 버전의 Lite Stats가 설치되어 있습니다";
 "Downloading..." = "다운로드 중...";
 "Current version: " = "현재 버전:  ";
 "Latest version: " = "최신 버전:    ";

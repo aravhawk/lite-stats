@@ -71,7 +71,7 @@ public struct drive: Codable {
 }
 
 public class Disks: Codable, RemoteType {
-    private var queue: DispatchQueue = DispatchQueue(label: "eu.exelban.Stats.Disk.SynchronizedArray")
+    private var queue: DispatchQueue = DispatchQueue(label: "eu.exelban.LiteStats.Disk.SynchronizedArray")
     private var _array: [drive] = []
     public var array: [drive] {
         get { self.queue.sync { self._array } }

@@ -28,7 +28,7 @@ internal class UpdateWindow: NSWindow, NSWindowDelegate {
             defer: true
         )
         
-        self.title = "Stats"
+        self.title = "Lite Stats"
         self.contentViewController = self.viewController
         self.titlebarAppearsTransparent = true
         self.positionCenter()
@@ -196,7 +196,7 @@ private class UpdateView: NSView {
         let title: NSTextField = TextView(frame: NSRect(x: 0, y: ((view.frame.height - 18)/2), width: view.frame.width, height: 34))
         title.font = NSFont.systemFont(ofSize: 14, weight: .light)
         title.alignment = .center
-        title.stringValue = localizedString("The latest version of Stats installed")
+        title.stringValue = localizedString("The latest version of Lite Stats installed")
         
         let button: NSButton = NSButton(frame: NSRect(x: 0, y: 0, width: view.frame.width, height: 26))
         button.title = localizedString("Close")
@@ -286,7 +286,7 @@ private class UpdateView: NSView {
     @objc private func install() {
         updater.install(path: self.path) { error in
             if let error {
-                showAlert("Error update Stats", error, .critical)
+                showAlert("Error update Lite Stats", error, .critical)
             }
         }
     }

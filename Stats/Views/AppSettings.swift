@@ -243,7 +243,7 @@ class ApplicationSettings: NSStackView {
         let statsName: NSTextField = TextView(frame: NSRect(x: 0, y: 0, width: view.frame.width, height: 22))
         statsName.alignment = .center
         statsName.font = NSFont.systemFont(ofSize: 20, weight: .regular)
-        statsName.stringValue = "Stats"
+        statsName.stringValue = "Lite Stats"
         statsName.isSelectable = true
         
         let versionNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
@@ -362,7 +362,7 @@ class ApplicationSettings: NSStackView {
     
     @objc private func exportSettings() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "Stats.plist"
+        panel.nameFieldStringValue = "Lite Stats.plist"
         panel.showsTagField = false
         panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.modalPanelWindow)))
         panel.begin { (result) in

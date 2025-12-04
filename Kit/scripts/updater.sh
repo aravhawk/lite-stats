@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DMG_PATH="$HOME/Downloads/Stats.dmg"
-MOUNT_PATH="/tmp/Stats"
+DMG_PATH="$HOME/Downloads/Lite Stats.dmg"
+MOUNT_PATH="/tmp/Lite Stats"
 APPLICATION_PATH="/Applications/"
 
 STEP=""
@@ -15,10 +15,10 @@ while [[ "$#" > 0 ]]; do case $1 in
 esac; shift; done
 
 if [[ "$STEP" == "2" ]]; then
-    rm -rf $APPLICATION_PATH/Stats.app
-    cp -rf $MOUNT_PATH/Stats.app $APPLICATION_PATH/Stats.app
+    rm -rf "$APPLICATION_PATH/Lite Stats.app"
+    cp -rf "$MOUNT_PATH/Lite Stats.app" "$APPLICATION_PATH/Lite Stats.app"
 
-    $APPLICATION_PATH/Stats.app/Contents/MacOS/Stats --dmg "$DMG_PATH"
+    "$APPLICATION_PATH/Lite Stats.app/Contents/MacOS/Lite Stats" --dmg "$DMG_PATH"
 
     echo "New version started"
 elif [[ "$STEP" == "3" ]]; then
@@ -28,10 +28,10 @@ elif [[ "$STEP" == "3" ]]; then
 
     echo "Done"
 else
-    rm -rf $APPLICATION_PATH/Stats.app
-    cp -rf $MOUNT_PATH/Stats.app $APPLICATION_PATH/Stats.app
+    rm -rf "$APPLICATION_PATH/Lite Stats.app"
+    cp -rf "$MOUNT_PATH/Lite Stats.app" "$APPLICATION_PATH/Lite Stats.app"
 
-    $APPLICATION_PATH/Stats.app/Contents/MacOS/Stats --dmg-path "$DMG_PATH" --mount-path "$MOUNT_PATH"
+    "$APPLICATION_PATH/Lite Stats.app/Contents/MacOS/Lite Stats" --dmg-path "$DMG_PATH" --mount-path "$MOUNT_PATH"
 
     echo "New version started"
 fi

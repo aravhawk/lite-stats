@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Marcelo Chaves on 11/11/2020, updated by Pedro Serigatto (@pedroserigatto) on 03/03/2023, updated by Paulo Albuquerque (@paulora2405) on 23/10/2023, updated by Rodrigo Schneider (@SCHrodrigo) on 13/06/2024
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Configurar Stats";
+"Lite Stats Setup" = "Configurar Lite Stats";
 "Previous" = "Anterior";
 "Previous page" = "Página anterior";
 "Next" = "Próxima";
 "Next page" = "Próxima página";
 "Finish" = "Finalizar";
 "Finish setup" = "Finalizar configuração";
-"Welcome to Stats" = "Bem-vindo ao Stats";
-"welcome_message" = "Obrigado por usar o Stats, um monitor de sistema para macOS, de código aberto e gratuito, para sua barra de menu.";
+"Welcome to Lite Stats" = "Bem-vindo ao Lite Stats";
+"welcome_message" = "Obrigado por usar o Lite Stats, um monitor de sistema para macOS, de código aberto e gratuito, para sua barra de menu.";
 "Start the application automatically when starting your Mac" = "Iniciar o aplicativo automaticamente ao iniciar seu Mac";
 "Do not start the application automatically when starting your Mac" = "Não iniciar o aplicativo automaticamente ao iniciar seu Mac";
 "Do everything silently in the background (recommended)" = "Faça tudo silenciosamente em segundo plano (recomendado)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Compartilhar dados de telemetria anônimos";
 "Do not share anonymous telemetry data" = "Não compartilhar dados de telemetria anônimos";
 "The configuration is completed" = "A configuração está concluída";
-"finish_setup_message" = "Tudo pronto! \n O Stats é uma ferramenta de código aberto, é gratuita e sempre será. \n Se você gostou, você pode apoiar o projeto, sua ajuda sempre será bem vinda!";
+"finish_setup_message" = "Tudo pronto! \n O Lite Stats é uma ferramenta de código aberto, é gratuita e sempre será. \n Se você gostou, você pode apoiar o projeto, sua ajuda sempre será bem vinda!";
 
 // Alerts
 "New version available" = "Nova versão disponível";
-"Click to install the new version of Stats" = "Clique para instalar a nova versão do Stats";
+"Click to install the new version of Lite Stats" = "Clique para instalar a nova versão do Lite Stats";
 "Successfully updated" = "Atualizado com sucesso";
-"Stats was updated to v" = "Stats foi atualizado para v%0";
+"Lite Stats was updated to v" = "Lite Stats foi atualizado para v%0";
 "Reset settings text" = "Todas as configurações do aplicativo serão redefinidas e o aplicativo será reiniciado. Tem certeza de que deseja fazer isso?";
-"Support text" = "Obrigado por usar o Stats!\n\nA manutenção e o aprimoramento deste projeto de código aberto exigem tempo e recursos. Seu apoio nos ajuda a continuar fornecendo um aplicativo gratuito e confiável para todos.\n\nSe você acha o Stats útil, considere fazer uma contribuição. Cada pedacinho ajuda!";
+"Support text" = "Obrigado por usar o Lite Stats!\n\nA manutenção e o aprimoramento deste projeto de código aberto exigem tempo e recursos. Seu apoio nos ajuda a continuar fornecendo um aplicativo gratuito e confiável para todos.\n\nSe você acha o Lite Stats útil, considere fazer uma contribuição. Cada pedacinho ajuda!";
 
 // Settings
 "Open Activity Monitor" = "Abrir Monitor de Atividades";
@@ -159,8 +159,8 @@
 "Import settings" = "Importar configurações";
 "Export settings" = "Exportar configurações";
 "Reset settings" = "Redefinir configurações";
-"Pause the Stats" = "Pausar o Stats";
-"Resume the Stats" = "Retomar o Stats";
+"Pause the Lite Stats" = "Pausar o Lite Stats";
+"Resume the Lite Stats" = "Retomar o Lite Stats";
 "Combined modules" = "Combinar módulos";
 "Combined details" = "Combinar detalhes";
 "Spacing" = "Espaçamento";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "A versão mais recente do Stats está instalada";
+"The latest version of Lite Stats installed" = "A versão mais recente do Lite Stats está instalada";
 "Downloading..." = "Baixando...";
 "Current version: " = "Versão atual: ";
 "Latest version: " = "Última versão: ";

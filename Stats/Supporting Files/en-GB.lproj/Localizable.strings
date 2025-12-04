@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Translated with <3 by Coopydood
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Stats Setup";
+"Lite Stats Setup" = "Lite Stats Setup";
 "Previous" = "Previous";
 "Previous page" = "Previous page";
 "Next" = "Next";
 "Next page" = "Next page";
 "Finish" = "Finish";
 "Finish setup" = "Finish setup";
-"Welcome to Stats" = "Welcome to Stats";
-"welcome_message" = "Thanks for using Stats, a free open source macOS system monitor for your menu bar.";
+"Welcome to Lite Stats" = "Welcome to Lite Stats";
+"welcome_message" = "Thanks for using Lite Stats, a free open source macOS system monitor for your menu bar.";
 "Start the application automatically when starting your Mac" = "Start the application automatically when starting your Mac";
 "Do not start the application automatically when starting your Mac" = "Do not start the application automatically when starting your Mac";
 "Do everything silently in the background (recommended)" = "Do everything silently in the background (recommended)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "The configuration is completed";
-"finish_setup_message" = "Everything is set up! \n The Stats is an open source tool, it's free and always will be. \n If you enjoy it you can support a project, it's always appreciated!";
+"finish_setup_message" = "Everything is set up! \n The Lite Stats is an open source tool, it's free and always will be. \n If you enjoy it you can support a project, it's always appreciated!";
 
 // Alerts
 "New version available" = "New version available";
-"Click to install the new version of Stats" = "Click to install the new version of Stats";
+"Click to install the new version of Lite Stats" = "Click to install the new version of Lite Stats";
 "Successfully updated" = "Successfully updated";
-"Stats was updated to v" = "Stats was updated to v%0";
+"Lite Stats was updated to v" = "Lite Stats was updated to v%0";
 "Reset settings text" = "All application settings will be reset and the application will be restarted. Are you sure you want to do this?";
-"Support text" = "Thank you for using Stats!\n\n Maintaining and improving this open-source project takes time and resources. Your support helps us continue to provide a free and reliable application for everyone.\n\nIf you find Stats helpful, please consider making a contribution. Every little bit helps!";
+"Support text" = "Thank you for using Lite Stats!\n\n Maintaining and improving this open-source project takes time and resources. Your support helps us continue to provide a free and reliable application for everyone.\n\nIf you find Lite Stats helpful, please consider making a contribution. Every little bit helps!";
 
 // Settings
 "Open Activity Monitor" = "Open Activity Monitor";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Reset settings";
-"Pause the Stats" = "Pause the Stats";
-"Resume the Stats" = "Resume the Stats";
+"Pause the Lite Stats" = "Pause the Lite Stats";
+"Resume the Lite Stats" = "Resume the Lite Stats";
 "Combined modules" = "Combined modules";
 "Combined details" = "Combined details";
 "Spacing" = "Spacing";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "The latest version of Stats is installed";
+"The latest version of Lite Stats installed" = "The latest version of Lite Stats is installed";
 "Downloading..." = "Downloading...";
 "Current version: " = "Current version:  ";
 "Latest version: " = "Latest version:    ";

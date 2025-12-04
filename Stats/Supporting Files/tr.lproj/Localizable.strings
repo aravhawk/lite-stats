@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Stats Kurulumu";
+"Lite Stats Setup" = "Lite Stats Kurulumu";
 "Previous" = "Önceki";
 "Previous page" = "Önceki sayfa";
 "Next" = "Sonraki";
 "Next page" = "Sonraki sayfa";
 "Finish" = "Bitir";
 "Finish setup" = "Kurulumu bitir";
-"Welcome to Stats" = "Stats'a hoş geldiniz";
-"welcome_message" = "Stats'ı kullandığınız için teşekkürler, Stats MacOS sistem monitörü açık kaynaklı menü bar uygulamasıdır";
+"Welcome to Lite Stats" = "Lite Stats'a hoş geldiniz";
+"welcome_message" = "Lite Stats'ı kullandığınız için teşekkürler, Lite Stats MacOS sistem monitörü açık kaynaklı menü bar uygulamasıdır";
 "Start the application automatically when starting your Mac" = "Mac'i açınca otomatik çalıştır";
 "Do not start the application automatically when starting your Mac" = "Mac'i açınca otomatik çalıştırma";
 "Do everything silently in the background (recommended)" = "Her şeyi arkada sessiz yap (önerilir)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Anonim telemetri verisi paylaş";
 "Do not share anonymous telemetry data" = "Anonim telemetri verisi paylaşma";
 "The configuration is completed" = "Konfigürasyon tamamlandı";
-"finish_setup_message" = "Her şey hazır! \n Stats açık kaynaklı bir araçtır, Ücretsiz ve hep öyle kalacak. \n Beğendiyseniz projeyi destekleyebilirsiniz, Teşekkürler!";
+"finish_setup_message" = "Her şey hazır! \n Lite Stats açık kaynaklı bir araçtır, Ücretsiz ve hep öyle kalacak. \n Beğendiyseniz projeyi destekleyebilirsiniz, Teşekkürler!";
 
 // Alerts
 "New version available" = "Yeni sürüm mevcut";
-"Click to install the new version of Stats" = "Stats'ın yeni sürümünü indirmek için tıklayın";
+"Click to install the new version of Lite Stats" = "Lite Stats'ın yeni sürümünü indirmek için tıklayın";
 "Successfully updated" = "Başarıyla güncellendi";
-"Stats was updated to v" = "Stats v%0 sürümüne güncellendi";
+"Lite Stats was updated to v" = "Lite Stats v%0 sürümüne güncellendi";
 "Reset settings text" = "Bütün uygulama ayarları sıfırlanacak ve uygulama yeniden başlatılacak. Bunu yapmak istediğinize emin misiniz?";
-"Support text" = "Stats'i kullandığınız için teşekkür ederiz.\n\n Bu açık kaynak projesini sürdürmek ve geliştirmek zaman ve kaynak gerektirir. Desteğiniz, herkes için ücretsiz ve güvenilir bir uygulama sağlamaya devam etmemize yardımcı olur.\n\nStats'ı yararlı buluyorsanız, lütfen katkıda bulunmayı düşünün. Her küçük parça yardımcı olur!";
+"Support text" = "Lite Stats'i kullandığınız için teşekkür ederiz.\n\n Bu açık kaynak projesini sürdürmek ve geliştirmek zaman ve kaynak gerektirir. Desteğiniz, herkes için ücretsiz ve güvenilir bir uygulama sağlamaya devam etmemize yardımcı olur.\n\nLite Stats'ı yararlı buluyorsanız, lütfen katkıda bulunmayı düşünün. Her küçük parça yardımcı olur!";
 
 // Settings
 "Open Activity Monitor" = "Etkinlik Monitörünü aç";
@@ -159,8 +159,8 @@
 "Import settings" = "Ayarları içe aktar";
 "Export settings" = "Ayarları dışa aktar";
 "Reset settings" = "Ayarları sıfırla";
-"Pause the Stats" = "Stats'ı Duraklat";
-"Resume the Stats" = "Stats'ı Sürdür";
+"Pause the Lite Stats" = "Lite Stats'ı Duraklat";
+"Resume the Lite Stats" = "Lite Stats'ı Sürdür";
 "Combined modules" = "Kombine modüller";
 "Combined details" = "Kombine ayrıntılar";
 "Spacing" = "Aralık";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Stats'ın son sürümü kurulu";
+"The latest version of Lite Stats installed" = "Lite Stats'ın son sürümü kurulu";
 "Downloading..." = "İndiriliyor...";
 "Current version: " = "Şu anki sürüm: ";
 "Latest version: " = "Son sürüm: ";

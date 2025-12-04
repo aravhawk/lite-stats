@@ -28,7 +28,7 @@ internal class SupportWindow: NSWindow, NSWindowDelegate {
             defer: true
         )
         
-        self.title = "Support Stats"
+        self.title = "Support Lite Stats"
         self.titleVisibility = .hidden
         self.contentViewController = self.viewController
         self.titlebarAppearsTransparent = true

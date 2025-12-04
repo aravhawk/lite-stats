@@ -19,7 +19,7 @@ public struct Network_entry: TimelineEntry {
     public static var snapshot: Network_entry = Network_entry(value: Network_Usage(
         bandwidth: Bandwidth(upload: 1_238_400, download: 18_732_000),
         raddr: Network_addr(v4: "192.168.0.1"),
-        interface: Network_interface(displayName: "Stats"),
+        interface: Network_interface(displayName: "Lite Stats"),
         status: true
     ))
     
@@ -33,7 +33,7 @@ public struct Network_entry: TimelineEntry {
 public struct Provider: TimelineProvider {
     public typealias Entry = Network_entry
     
-    private let userDefaults: UserDefaults? = UserDefaults(suiteName: "\(Bundle.main.object(forInfoDictionaryKey: "TeamId") as! String).eu.exelban.Stats.widgets")
+    private let userDefaults: UserDefaults? = UserDefaults(suiteName: "\(Bundle.main.object(forInfoDictionaryKey: "TeamId") as! String).eu.exelban.LiteStats.widgets")
     
     public func placeholder(in context: Context) -> Network_entry {
         Network_entry()

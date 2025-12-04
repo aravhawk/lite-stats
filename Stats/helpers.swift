@@ -71,7 +71,7 @@ extension AppDelegate {
             
             if updateInterval != .silent && isNewestVersion(currentVersion: prevVersion, latestVersion: currentVersion) {
                 let title: String = localizedString("Successfully updated")
-                let subtitle: String = localizedString("Stats was updated to v", currentVersion)
+                let subtitle: String = localizedString("Lite Stats was updated to v", currentVersion)
                 
                 let id = showNotification(title: title, subtitle: subtitle, delegate: self)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
@@ -168,7 +168,7 @@ extension AppDelegate {
                     updater.download(url, completion: { path in
                         updater.install(path: path) { error in
                             if let error {
-                                showAlert("Error update Stats", error, .critical)
+                                showAlert("Error update Lite Stats", error, .critical)
                             }
                         }
                     })
@@ -229,7 +229,7 @@ extension AppDelegate {
         debug("show update notification")
         _ = showNotification(
             title: localizedString("New version available"),
-            subtitle: localizedString("Click to install the new version of Stats"),
+            subtitle: localizedString("Click to install the new version of Lite Stats"),
             userInfo: ["url": version.url],
             delegate: self
         )
@@ -258,7 +258,7 @@ extension AppDelegate {
         if self.pauseState {
             self.menuBarItem = NSStatusBar.system.statusItem(withLength: AppIcon.size.width)
             DispatchQueue.main.async(execute: {
-                self.menuBarItem?.autosaveName = "Stats"
+                self.menuBarItem?.autosaveName = "Lite Stats"
             })
             self.menuBarItem?.button?.addSubview(AppIcon())
             

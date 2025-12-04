@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Εγκατάσταση Stats";
+"Lite Stats Setup" = "Εγκατάσταση Lite Stats";
 "Previous" = "Προηγούμενο";
 "Previous page" = "Προηγούμενη σελίδα";
 "Next" = "Επόμενο";
 "Next page" = "Επόμενη σελίδα";
 "Finish" = "Τέλος";
 "Finish setup" = "Τέλος εγκαταστασης";
-"Welcome to Stats" = "Καλώς ήρθες στο Stats";
-"welcome_message" = "Thanks for using Stats, a free open source macOS system monitor for your menu bar.";
+"Welcome to Lite Stats" = "Καλώς ήρθες στο Lite Stats";
+"welcome_message" = "Thanks for using Lite Stats, a free open source macOS system monitor for your menu bar.";
 "Start the application automatically when starting your Mac" = "Start the application automatically when starting your Mac";
 "Do not start the application automatically when starting your Mac" = "Do not start the application automatically when starting your Mac";
 "Do everything silently in the background (recommended)" = "Do everything silently in the background (recommended)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "The configuration is completed";
-"finish_setup_message" = "Everything is set up! \n The Stats is an open source tool, it's free and always will be. \n If you enjoy it you can support a project, it's always appreciated!";
+"finish_setup_message" = "Everything is set up! \n The Lite Stats is an open source tool, it's free and always will be. \n If you enjoy it you can support a project, it's always appreciated!";
 
 // Alerts
 "New version available" = "Νέα έκδοση διαθέσιμη";
-"Click to install the new version of Stats" = "Πάτησε εδώ για την εγκατάσταση της νέας έκδοσης του Stats";
+"Click to install the new version of Lite Stats" = "Πάτησε εδώ για την εγκατάσταση της νέας έκδοσης του Lite Stats";
 "Successfully updated" = "Επιτυχής ενημέρωση";
-"Stats was updated to v" = "Το Stats ενημερώθηκε στην ε%0";
+"Lite Stats was updated to v" = "Το Lite Stats ενημερώθηκε στην ε%0";
 "Reset settings text" = "Όλες οι ρυθμίσεις της εφαρμογής θα αρχικοποιηθούν και η εφαρμογή θα επανεκκινηθεί. Είστε σίγουροι;";
-"Support text" = "Σας ευχαριστούμε για τη χρήση των Stats!\n\n Η συντήρηση και η βελτίωση αυτού του έργου ανοιχτού κώδικα απαιτεί χρόνο και πόρους. Η υποστήριξή σας μας βοηθά να συνεχίσουμε να παρέχουμε μια δωρεάν και αξιόπιστη εφαρμογή για όλους.\n\nΕάν βρίσκετε το Stats χρήσιμο, παρακαλούμε σκεφτείτε να συνεισφέρετε. Κάθε μικρό ποσό βοηθάει!";
+"Support text" = "Σας ευχαριστούμε για τη χρήση των Lite Stats!\n\n Η συντήρηση και η βελτίωση αυτού του έργου ανοιχτού κώδικα απαιτεί χρόνο και πόρους. Η υποστήριξή σας μας βοηθά να συνεχίσουμε να παρέχουμε μια δωρεάν και αξιόπιστη εφαρμογή για όλους.\n\nΕάν βρίσκετε το Lite Stats χρήσιμο, παρακαλούμε σκεφτείτε να συνεισφέρετε. Κάθε μικρό ποσό βοηθάει!";
 
 // Settings
 "Open Activity Monitor" = "Άνοιγμα Παρακολούθησης Δραστηριότητας";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Επαναφορά ρυθμίσεων";
-"Pause the Stats" = "Παύση του Stats";
-"Resume the Stats" = "Ξαναρχίζω το Stats";
+"Pause the Lite Stats" = "Παύση του Lite Stats";
+"Resume the Lite Stats" = "Ξαναρχίζω το Lite Stats";
 "Combined modules" = "Συνένωση ενοτήτων";
 "Combined details" = "Combined details";
 "Spacing" = "Κενό";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Η τελευταία έκδοση του Stats είναι εγκατεστημένη";
+"The latest version of Lite Stats installed" = "Η τελευταία έκδοση του Lite Stats είναι εγκατεστημένη";
 "Downloading..." = "Λήψη...";
 "Current version: " = "Τρέχουσα έκδοση:  ";
 "Latest version: " = "Τελευταία έκδοση:    ";

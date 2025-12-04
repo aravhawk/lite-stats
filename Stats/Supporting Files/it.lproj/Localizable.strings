@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Serhiy Mytrovtsiy on 27/08/2020.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Configurazione Stats";
+"Lite Stats Setup" = "Configurazione Lite Stats";
 "Previous" = "Precedente";
 "Previous page" = "Pagina precedente";
 "Next" = "Successivo";
 "Next page" = "Pagina successiva";
 "Finish" = "Completa";
 "Finish setup" = "Completa configurazione";
-"Welcome to Stats" = "Stats ti dà il benvenuto";
-"welcome_message" = "Grazie per aver scelto Stats, un sistema di monitoraggio del sistema dalla menu bar gratuito e open source per macOS.";
+"Welcome to Lite Stats" = "Lite Stats ti dà il benvenuto";
+"welcome_message" = "Grazie per aver scelto Lite Stats, un sistema di monitoraggio del sistema dalla menu bar gratuito e open source per macOS.";
 "Start the application automatically when starting your Mac" = "Avvia l'applicazione automaticamente all'accensione del Mac";
 "Do not start the application automatically when starting your Mac" = "Non avviare l'applicazione automaticamente all'accensione del Mac";
 "Do everything silently in the background (recommended)" = "Gestisci autonomamente in background (consigliato)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Condividi dati anonimi di telemetria";
 "Do not share anonymous telemetry data" = "Non condividere dati anonimi di telemetria";
 "The configuration is completed" = "Configurazione completata";
-"finish_setup_message" = "È tutto pronto!\nStats è un software open source gratuito, e lo rimarrà per sempre.\nSe ti piace, dacci il tuo supporto: è sempre ben accetto!";
+"finish_setup_message" = "È tutto pronto!\nLite Stats è un software open source gratuito, e lo rimarrà per sempre.\nSe ti piace, dacci il tuo supporto: è sempre ben accetto!";
 
 // Alerts
 "New version available" = "Nuova versione disponibile";
-"Click to install the new version of Stats" = "Clicca per installare la nuova versione di Stats";
+"Click to install the new version of Lite Stats" = "Clicca per installare la nuova versione di Lite Stats";
 "Successfully updated" = "Aggiornato con successo";
-"Stats was updated to v" = "Stats è stato aggiornato alla v%0";
+"Lite Stats was updated to v" = "Lite Stats è stato aggiornato alla v%0";
 "Reset settings text" = "Tutte le impostazioni saranno resettate e l'applicazione sarà riavviata. Sei sicuro di volerlo fare?";
-"Support text" = "Grazie per aver usato Stats!\n\nIl mantenimento e il miglioramento di questo progetto open-source richiede tempo e risorse. Il vostro sostegno ci aiuta a continuare a fornire un'applicazione gratuita e affidabile per tutti.\n\nSe trovate Stats utile, prendete in considerazione l'idea di dare un contributo. Ogni piccolo contributo è utile!";
+"Support text" = "Grazie per aver usato Lite Stats!\n\nIl mantenimento e il miglioramento di questo progetto open-source richiede tempo e risorse. Il vostro sostegno ci aiuta a continuare a fornire un'applicazione gratuita e affidabile per tutti.\n\nSe trovate Lite Stats utile, prendete in considerazione l'idea di dare un contributo. Ogni piccolo contributo è utile!";
 
 // Settings
 "Open Activity Monitor" = "Apri Monitoraggio Attività";
@@ -159,8 +159,8 @@
 "Import settings" = "Importa impostazioni";
 "Export settings" = "Esporta impostazioni";
 "Reset settings" = "Resetta impostazioni";
-"Pause the Stats" = "Metti in pausa Stats";
-"Resume the Stats" = "Riprendi Stats";
+"Pause the Lite Stats" = "Metti in pausa Lite Stats";
+"Resume the Lite Stats" = "Riprendi Lite Stats";
 "Combined modules" = "Moduli combinati";
 "Combined details" = "Dettagli combinati";
 "Spacing" = "Spazio";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "L'ultima versione di Stats è installata";
+"The latest version of Lite Stats installed" = "L'ultima versione di Lite Stats è installata";
 "Downloading..." = "Download in corso...";
 "Current version: " = "Versione corrente: ";
 "Latest version: " = "Ultima versione: ";

@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Shayan Alizadeh on 17/11/2022.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "نصب Stats";
+"Lite Stats Setup" = "نصب Lite Stats";
 "Previous" = "قبلی";
 "Previous page" = "صفحه قبل";
 "Next" = "بعدی";
 "Next page" = "صفحه بعد";
 "Finish" = "پایان";
 "Finish setup" = "پایان نصب";
-"Welcome to Stats" = "به Stats خوش آمدید";
-"welcome_message" = "ممنون از اینکه از Stats که یک اپ مانیتور کردن سیستم برای منو بار مک‌او‌اس هست استفاده می کنید.";
+"Welcome to Lite Stats" = "به Lite Stats خوش آمدید";
+"welcome_message" = "ممنون از اینکه از Lite Stats که یک اپ مانیتور کردن سیستم برای منو بار مک‌او‌اس هست استفاده می کنید.";
 "Start the application automatically when starting your Mac" = "اجرای خودکار در زمان راه‌اندازی مک";
 "Do not start the application automatically when starting your Mac" = "اجرا نشدن خودکار در زمان راه‌اندازی مک";
 "Do everything silently in the background (recommended)" = "همه‌چیز در حالت سکوت در پس‌زمینه انجام شود (پیشنهاد شده)";
@@ -123,13 +123,13 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "پیکربندی کامل شد";
-"finish_setup_message" = "همه چیز آماده است! \n Stats یک ابزار متن باز رایگان است و همیشه رایگان خواهد بود \n اگر از این پروژه راضی بودید می‌توانید از ما حمایت کنید";
+"finish_setup_message" = "همه چیز آماده است! \n Lite Stats یک ابزار متن باز رایگان است و همیشه رایگان خواهد بود \n اگر از این پروژه راضی بودید می‌توانید از ما حمایت کنید";
 
 // Alerts
 "New version available" = "نسخه‌ی جدید در دسترس است";
-"Click to install the new version of Stats" = "برای نصب نسخه‌ی جدید Stats کلیک کنید";
+"Click to install the new version of Lite Stats" = "برای نصب نسخه‌ی جدید Lite Stats کلیک کنید";
 "Successfully updated" = "با موفقیت به‌روزرسانی شد";
-"Stats was updated to v" = "Stats به نسخه‌ی v%0 بروزسانی شد  ";
+"Lite Stats was updated to v" = "Lite Stats به نسخه‌ی v%0 بروزسانی شد  ";
 "Reset settings text" = "تمام تنظیمات اپلیکیشن ریست خواهد شد و اپ دوباره راه‌اندازی خواهد شد، آیا از این کار مطمئنید؟";
 "Support text" = "از اینکه از آمار استفاده می کنید متشکریم!\n\n نگهداری و بهبود این پروژه منبع باز زمان و منابع می طلبد. پشتیبانی شما به ما کمک می‌کند تا به ارائه یک برنامه رایگان و قابل اعتماد برای همه ادامه دهیم.\n\nاگر آمارها را مفید می‌دانید، لطفاً در نظر بگیرید. هر ذره کمک می کند!";
 
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "ریست تنظیمات";
-"Pause the Stats" = "متوقف کردن Stats";
-"Resume the Stats" = "ادامه‌ی کار Stats";
+"Pause the Lite Stats" = "متوقف کردن Lite Stats";
+"Resume the Lite Stats" = "ادامه‌ی کار Lite Stats";
 "Combined modules" = "Combined modules";
 "Combined details" = "Combined details";
 "Spacing" = "Spacing";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "آخرین نسخه‌ی Stats نصب شده است";
+"The latest version of Lite Stats installed" = "آخرین نسخه‌ی Lite Stats نصب شده است";
 "Downloading..." = "دانلود...";
 "Current version: " = "نسخه فعلی:  ";
 "Latest version: " = "آخرین نسخه:    ";

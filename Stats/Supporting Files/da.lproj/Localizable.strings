@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by Casper Sørensen (casperes1996) on 18/11/2021, updated by Aleksander Bang-Larsen (aleksanderbl29) on 11/06/2023, 28/06/2023 and 25/08/2023.
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "Stats opsætning";
+"Lite Stats Setup" = "Lite Stats opsætning";
 "Previous" = "Forrige";
 "Previous page" = "Forrige side";
 "Next" = "Næste";
 "Next page" = "Næste side";
 "Finish" = "Afslut";
 "Finish setup" = "Afslut opsætning";
-"Welcome to Stats" = "Velkommen til Stats";
-"welcome_message" = "Tak for, at du bruger Stats, det gratis, open source, program til at overvåge din Mac fra menulinjen.";
+"Welcome to Lite Stats" = "Velkommen til Lite Stats";
+"welcome_message" = "Tak for, at du bruger Lite Stats, det gratis, open source, program til at overvåge din Mac fra menulinjen.";
 "Start the application automatically when starting your Mac" = "Start programmet automatisk når din Mac tænder";
 "Do not start the application automatically when starting your Mac" = "Start ikke automatisk programmet når din Mac tænder";
 "Do everything silently in the background (recommended)" = "Foretag alle handlinger i baggrunden (anbefalet)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Del anonym data om brugen af programmet";
 "Do not share anonymous telemetry data" = "Del ikke anonym data om brugen af programmet";
 "The configuration is completed" = "Opsætning gennemført!";
-"finish_setup_message" = "Alting er opsat! \n Stats er et open source værktøj, det er gratis og vil altid være det. \n Hvis du nyder Stats er du meget velkommen til at støtte projektet!";
+"finish_setup_message" = "Alting er opsat! \n Lite Stats er et open source værktøj, det er gratis og vil altid være det. \n Hvis du nyder Lite Stats er du meget velkommen til at støtte projektet!";
 
 // Alerts
 "New version available" = "Ny udgave tilgængelig";
-"Click to install the new version of Stats" = "Klik for at installere den nye udgave af Stats";
+"Click to install the new version of Lite Stats" = "Klik for at installere den nye udgave af Lite Stats";
 "Successfully updated" = "Opdatering succesfuld";
-"Stats was updated to v" = "Stats er blevet opdateret til v%0";
+"Lite Stats was updated to v" = "Lite Stats er blevet opdateret til v%0";
 "Reset settings text" = "Alle programmets indstillinger vil blive nulstillet og programmet genstartes. Er du sikker på du vil fortsætte?";
-"Support text" = "Tak, fordi du bruger Stats!\n\n Det tager tid og ressourcer at vedligeholde og forbedre dette open source-projekt. Din støtte hjælper os med at fortsætte med at levere en gratis og pålidelig applikation til alle.\n\nHvis du finder Stats nyttigt, kan du overveje at give et bidrag. Hver eneste lille smule hjælper!";
+"Support text" = "Tak, fordi du bruger Lite Stats!\n\n Det tager tid og ressourcer at vedligeholde og forbedre dette open source-projekt. Din støtte hjælper os med at fortsætte med at levere en gratis og pålidelig applikation til alle.\n\nHvis du finder Lite Stats nyttigt, kan du overveje at give et bidrag. Hver eneste lille smule hjælper!";
 
 // Settings
 "Open Activity Monitor" = "Åben Aktivitetsmonitor";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Nulstil indstillinger";
-"Pause the Stats" = "Sæt Stats på pause";
-"Resume the Stats" = "Genoptag Stats";
+"Pause the Lite Stats" = "Sæt Lite Stats på pause";
+"Resume the Lite Stats" = "Genoptag Lite Stats";
 "Combined modules" = "Kombinerede moduler";
 "Combined details" = "Combined details";
 "Spacing" = "Mellemrum";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "Den nyeste udgave af Stats er installeret";
+"The latest version of Lite Stats installed" = "Den nyeste udgave af Lite Stats er installeret";
 "Downloading..." = "Downloader...";
 "Current version: " = "Nuværende version:  ";
 "Latest version: " = "Nyeste version:    ";

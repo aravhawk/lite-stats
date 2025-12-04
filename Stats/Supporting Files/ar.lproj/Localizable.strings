@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by postylem on 2023/07/26.
 //  Using Swift 5.0.
@@ -102,14 +102,14 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "إعدادات الإحصاءات";
+"Lite Stats Setup" = "إعدادات الإحصاءات";
 "Previous" = "السابق";
 "Previous page" = "الصفحة السابقة";
 "Next" = "التالي";
 "Next page" = "الصفحة التالية";
 "Finish" = "إنهاء";
 "Finish setup" = "إنهاء الإعداد";
-"Welcome to Stats" = "مرحبًا بك في الإحصاءات";
+"Welcome to Lite Stats" = "مرحبًا بك في الإحصاءات";
 "welcome_message" = "شكرًا لاستخدام الإحصاءات، أداة مراقبة نظام macOS المجانية ومفتوحة المصدر لشريط القوائم الخاص بك.";
 "Start the application automatically when starting your Mac" = "بدء تشغيل التطبيق تلقائيًا عند بدء تشغيل Mac الخاص بك";
 "Do not start the application automatically when starting your Mac" = "عدم بدء تشغيل التطبيق تلقائيًا عند بدء تشغيل Mac الخاص بك";
@@ -127,11 +127,11 @@
 
 // Alerts
 "New version available" = "إصدار جديد متاح";
-"Click to install the new version of Stats" = "انقر لتثبيت الإصدار الجديد من الإحصاءات";
+"Click to install the new version of Lite Stats" = "انقر لتثبيت الإصدار الجديد من الإحصاءات";
 "Successfully updated" = "تم التحديث بنجاح";
-"Stats was updated to v" = "تم تحديث الإحصاءات إلى الإصدار v%0";
+"Lite Stats was updated to v" = "تم تحديث الإحصاءات إلى الإصدار v%0";
 "Reset settings text" = "سيتم إعادة ضبط جميع إعدادات التطبيق وسيتم إعادة تشغيل التطبيق. هل تريد المتابعة؟";
-"Support text" = "شكرًا لك على استخدامك ل Stats! \n\nيستغرق الحفاظ على هذا المشروع مفتوح المصدر وتحسينه وقتًا وموارد. دعمكم يساعدنا على الاستمرار في توفير تطبيق مجاني وموثوق للجميع. كل جزء صغير يساعدنا!";
+"Support text" = "شكرًا لك على استخدامك ل Lite Stats! \n\nيستغرق الحفاظ على هذا المشروع مفتوح المصدر وتحسينه وقتًا وموارد. دعمكم يساعدنا على الاستمرار في توفير تطبيق مجاني وموثوق للجميع. كل جزء صغير يساعدنا!";
 
 // Settings
 "Open Activity Monitor" = "فتح مراقب النشاط";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "إعادة ضبط الإعدادات";
-"Pause the Stats" = "إيقاف الإحصاءات";
-"Resume the Stats" = "استئناف الإحصاءات";
+"Pause the Lite Stats" = "إيقاف الإحصاءات";
+"Resume the Lite Stats" = "استئناف الإحصاءات";
 "Combined modules" = "الوحدات المجتمعة";
 "Combined details" = "Combined details";
 "Spacing" = "التباعد";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "تم تثبيت أحدث إصدار من الإحصاءات";
+"The latest version of Lite Stats installed" = "تم تثبيت أحدث إصدار من الإحصاءات";
 "Downloading..." = "جار التحميل...";
 "Current version: " = "الإصدار الحالي:  ";
 "Latest version: " = "الإصدار الأحدث:    ";

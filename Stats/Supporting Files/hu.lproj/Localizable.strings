@@ -1,6 +1,6 @@
 //
 //  Localizable.strings
-//  Stats
+//  Lite Stats
 //
 //  Created by @moriczr on 22/01/2021, updated by András Oravecz (info@oandras.hu) on 06/01/2023
 //  Using Swift 5.0.
@@ -102,15 +102,15 @@
 "60 sec" = "60 sec";
 
 // Setup
-"Stats Setup" = "A Stats beállítása";
+"Lite Stats Setup" = "A Lite Stats beállítása";
 "Previous" = "Előző";
 "Previous page" = "Előző oldal";
 "Next" = "Következő";
 "Next page" = "Következő oldal";
 "Finish" = "Befejezés";
 "Finish setup" = "Beállítás befejezése";
-"Welcome to Stats" = "Üdvözlünk a Stats programban";
-"welcome_message" = "Köszönjük, hogy a Stats programot használod, ami egy ingyenes, nyílt forráskódú, macOS rendszer monitorozó alkalmazás a menüsorodba.";
+"Welcome to Lite Stats" = "Üdvözlünk a Lite Stats programban";
+"welcome_message" = "Köszönjük, hogy a Lite Stats programot használod, ami egy ingyenes, nyílt forráskódú, macOS rendszer monitorozó alkalmazás a menüsorodba.";
 "Start the application automatically when starting your Mac" = "Az alkalmazás indítása a rendszer indulásakor";
 "Do not start the application automatically when starting your Mac" = "Ne indítsa az alkalmazást a rendszer indulásakor";
 "Do everything silently in the background (recommended)" = "Végezzen mindent csendben a háttérben (ajánlott)";
@@ -123,15 +123,15 @@
 "Share anonymous telemetry data" = "Névtelen telemetriai adatok megosztása";
 "Do not share anonymous telemetry data" = "Ne osszon meg névtelen telemetriai adatokat";
 "The configuration is completed" = "A konfiguráció befejezve";
-"finish_setup_message" = "Minden beállítva!\nA Stats egy nyílt forráskódú eszköz, ami ingyenes és az is marad.\nHa hasznosnak találod, támogathatod a fejlesztését, mindig nagyra értékeljük!";
+"finish_setup_message" = "Minden beállítva!\nA Lite Stats egy nyílt forráskódú eszköz, ami ingyenes és az is marad.\nHa hasznosnak találod, támogathatod a fejlesztését, mindig nagyra értékeljük!";
 
 // Alerts
 "New version available" = "Új verzió érhető el";
-"Click to install the new version of Stats" = "Kattintson a Stats új verziójának telepítéséhez";
+"Click to install the new version of Lite Stats" = "Kattintson a Lite Stats új verziójának telepítéséhez";
 "Successfully updated" = "Sikeres frissítés";
-"Stats was updated to v" = "A Stats sikeresen frissítve lett a(z) v%0 verzióra";
+"Lite Stats was updated to v" = "A Lite Stats sikeresen frissítve lett a(z) v%0 verzióra";
 "Reset settings text" = "Minden alkalmazás beállítás alaphelyzetbe fog állni, és az alkalmazás újra fog indulni. Biztosan ezt szeretnéd?";
-"Support text" = "Köszönjük, hogy használja a Stats-t!\n\n A nyílt forráskódú projekt fenntartása és fejlesztése időt és erőforrásokat igényel. Az Ön támogatása segít nekünk abban, hogy továbbra is ingyenes és megbízható alkalmazást nyújtsunk mindenkinek.\n\nHa hasznosnak találja a Stats-t, kérjük, fontolja meg, hogy hozzájáruljon. Minden kis aprócska összeg segít!";
+"Support text" = "Köszönjük, hogy használja a Lite Stats-t!\n\n A nyílt forráskódú projekt fenntartása és fejlesztése időt és erőforrásokat igényel. Az Ön támogatása segít nekünk abban, hogy továbbra is ingyenes és megbízható alkalmazást nyújtsunk mindenkinek.\n\nHa hasznosnak találja a Lite Stats-t, kérjük, fontolja meg, hogy hozzájáruljon. Minden kis aprócska összeg segít!";
 
 // Settings
 "Open Activity Monitor" = "Tevékenységfigyelő megnyitása";
@@ -159,8 +159,8 @@
 "Import settings" = "Import settings";
 "Export settings" = "Export settings";
 "Reset settings" = "Beállítások alaphelyzetbe állítása";
-"Pause the Stats" = "Stats felfüggesztése";
-"Resume the Stats" = "Stats folytatása";
+"Pause the Lite Stats" = "Lite Stats felfüggesztése";
+"Resume the Lite Stats" = "Lite Stats folytatása";
 "Combined modules" = "Egyesített modulok";
 "Combined details" = "Combined details";
 "Spacing" = "Helyköz";
@@ -181,7 +181,7 @@
 "Display" = "Display";
 
 // Update
-"The latest version of Stats installed" = "A Stats legújabb verziója van telepítve";
+"The latest version of Lite Stats installed" = "A Lite Stats legújabb verziója van telepítve";
 "Downloading..." = "Letöltés...";
 "Current version: " = "Jelenlegi verzió:  ";
 "Latest version: " = "Legújabb verzió:    ";
