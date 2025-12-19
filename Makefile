@@ -1,5 +1,5 @@
 APP = Lite Stats
-BUNDLE_ID = eu.exelban.LiteStats
+BUNDLE_ID = com.aravhawk.lite-stats
 
 BUILD_PATH = $(PWD)/build
 APP_PATH = "$(BUILD_PATH)/$(APP).app"

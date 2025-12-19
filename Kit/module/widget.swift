@@ -17,10 +17,6 @@ public enum widget_t: String {
     case lineChart = "line_chart"
     case barChart = "bar_chart"
     case pieChart = "pie_chart"
-    case networkChart = "network_chart"
-    case speed = "speed"
-    case battery = "battery"
-    case batteryDetails = "battery_details"
     case stack = "sensors" // to replace
     case memory = "memory"
     case label = "label"
@@ -48,18 +44,6 @@ public enum widget_t: String {
         case .pieChart:
             preview = PieChart(title: module, config: widgetConfig, preview: true)
             item = PieChart(title: module, config: widgetConfig, preview: false)
-        case .networkChart:
-            preview = NetworkChart(title: module, config: widgetConfig, preview: true)
-            item = NetworkChart(title: module, config: widgetConfig, preview: false)
-        case .speed:
-            preview = SpeedWidget(title: module, config: widgetConfig, preview: true)
-            item = SpeedWidget(title: module, config: widgetConfig, preview: false)
-        case .battery:
-            preview = BatteryWidget(title: module, preview: true)
-            item = BatteryWidget(title: module, preview: false)
-        case .batteryDetails:
-            preview = BatteryDetailsWidget(title: module, preview: true)
-            item = BatteryDetailsWidget(title: module, preview: false)
         case .stack:
             preview = StackWidget(title: module, config: widgetConfig, preview: true)
             item = StackWidget(title: module, config: widgetConfig, preview: false)
@@ -86,11 +70,9 @@ public enum widget_t: String {
             
             switch preview {
             case is Mini:
-                if module == "Battery" {
-                    width = view.bounds.width + 3
-                }
+                break
             case is BarChart:
-                if module == "GPU" || module == "RAM" || module == "Disk" || module == "Battery" {
+                if module == "GPU" || module == "RAM" || module == "Disk" {
                     width = 11 + (Constants.Widget.margin.x*2)
                 } else if module == "Sensors" {
                     width = 22 + (Constants.Widget.margin.x*2)
@@ -100,13 +82,9 @@ public enum widget_t: String {
             case is StackWidget:
                 if module == "Sensors" {
                     width = 25
-                } else if module == "Clock" {
-                    width = 114
                 }
             case is MemoryWidget:
                 width = view.bounds.width + 8 + Constants.Widget.spacing*2
-            case is BatteryWidget:
-                width = view.bounds.width - 3
             default: width = view.bounds.width
             }
             
@@ -132,10 +110,6 @@ public enum widget_t: String {
         case .lineChart: return localizedString("Line chart widget")
         case .barChart: return localizedString("Bar chart widget")
         case .pieChart: return localizedString("Pie chart widget")
-        case .networkChart: return localizedString("Network chart widget")
-        case .speed: return localizedString("Speed widget")
-        case .battery: return localizedString("Battery widget")
-        case .batteryDetails: return localizedString("Battery details widget")
         case .stack: return localizedString("Stack widget")
         case .memory: return localizedString("Memory widget")
         case .label: return localizedString("Label widget")
@@ -167,7 +141,7 @@ open class WidgetWrapper: NSView, widget_p {
         self.type = type
         self.title = title
         self.shadowSize = frame.size
-        self.queue = DispatchQueue(label: "eu.exelban.LiteStats.WidgetWrapper.\(type.rawValue).\(title)")
+        self.queue = DispatchQueue(label: "com.aravhawk.lite-stats.WidgetWrapper.\(type.rawValue).\(title)")
         
         super.init(frame: frame)
     }
@@ -399,7 +373,7 @@ public class MenuBar {
     
     init(moduleName: String) {
         self.moduleName = moduleName
-        self.queue = DispatchQueue(label: "eu.exelban.LiteStats.MenuBar.\(moduleName)")
+        self.queue = DispatchQueue(label: "com.aravhawk.lite-stats.MenuBar.\(moduleName)")
         self.oneView = Store.shared.bool(key: "\(self.moduleName)_oneView", defaultValue: self.oneView)
         self.view.identifier = NSUserInterfaceItemIdentifier(rawValue: moduleName)
         

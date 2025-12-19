@@ -105,17 +105,7 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
                 state: self.removableState
             ))
         ]))
-        
-        if widgets.contains(where: { $0 == .speed }) {
-            self.addArrangedSubview(PreferencesSection([
-                PreferencesRow(localizedString("Base"), component: selectView(
-                    action: #selector(self.toggleBase),
-                    items: SpeedBase,
-                    selected: self.baseValue
-                ))
-            ]))
-        }
-        
+
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("SMART data"), component: switchView(
                 action: #selector(self.toggleSMART),

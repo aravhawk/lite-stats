@@ -39,27 +39,6 @@ public struct ColorValue: Equatable {
     // swiftlint:enable operator_whitespace
 }
 
-public enum AppUpdateInterval: String {
-    case silent = "Silent"
-    case atStart = "At start"
-    case separator1 = "separator_1"
-    case oncePerDay = "Once per day"
-    case oncePerWeek = "Once per week"
-    case oncePerMonth = "Once per month"
-    case separator2 = "separator_2"
-    case never = "Never"
-}
-public let AppUpdateIntervals: [KeyValue_t] = [
-    KeyValue_t(key: "Silent", value: AppUpdateInterval.silent.rawValue),
-    KeyValue_t(key: "At start", value: AppUpdateInterval.atStart.rawValue),
-    KeyValue_t(key: "separator_1", value: "separator_1"),
-    KeyValue_t(key: "Once per day", value: AppUpdateInterval.oncePerDay.rawValue),
-    KeyValue_t(key: "Once per week", value: AppUpdateInterval.oncePerWeek.rawValue),
-    KeyValue_t(key: "Once per month", value: AppUpdateInterval.oncePerMonth.rawValue),
-    KeyValue_t(key: "separator_2", value: "separator_2"),
-    KeyValue_t(key: "Never", value: AppUpdateInterval.never.rawValue)
-]
-
 public let TemperatureUnits: [KeyValue_t] = [
     KeyValue_t(key: "system", value: "System"),
     KeyValue_t(key: "separator", value: "separator"),
@@ -278,8 +257,6 @@ public extension Notification.Name {
     static let pause = Notification.Name("pause")
     static let toggleFanControl = Notification.Name("toggleFanControl")
     static let combinedModulesPopup = Notification.Name("combinedModulesPopup")
-    static let remoteLoginSuccess = Notification.Name("remoteLoginSuccess")
-    static let remoteState = Notification.Name("remoteState")
 }
 
 public var isARM: Bool {

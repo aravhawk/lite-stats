@@ -24,7 +24,7 @@ class Helper: NSObject, NSXPCListenerDelegate, HelperProtocol {
     private var smc: String? = nil
     
     override init() {
-        self.listener = NSXPCListener(machServiceName: "eu.exelban.LiteStats.SMC.Helper")
+        self.listener = NSXPCListener(machServiceName: "com.aravhawk.lite-stats.SMC.Helper")
         super.init()
         self.listener.delegate = self
     }
@@ -81,7 +81,7 @@ class Helper: NSObject, NSXPCListenerDelegate, HelperProtocol {
         let process = Process()
         process.launchPath = "/bin/launchctl"
         process.qualityOfService = QualityOfService.userInitiated
-        process.arguments = ["unload", "/Library/LaunchDaemons/eu.exelban.LiteStats.SMC.Helper.plist"]
+        process.arguments = ["unload", "/Library/LaunchDaemons/com.aravhawk.lite-stats.SMC.Helper.plist"]
         process.launch()
         process.waitUntilExit()
         
@@ -91,14 +91,14 @@ class Helper: NSObject, NSXPCListenerDelegate, HelperProtocol {
         NSLog("unloaded from launchctl")
         
         do {
-            try FileManager.default.removeItem(at: URL(fileURLWithPath: "/Library/LaunchDaemons/eu.exelban.LiteStats.SMC.Helper.plist"))
+            try FileManager.default.removeItem(at: URL(fileURLWithPath: "/Library/LaunchDaemons/com.aravhawk.lite-stats.SMC.Helper.plist"))
         } catch let err {
             NSLog("plist deletion: \(err)")
         }
         NSLog("property list deleted")
         
         do {
-            try FileManager.default.removeItem(at: URL(fileURLWithPath: "/Library/PrivilegedHelperTools/eu.exelban.LiteStats.SMC.Helper"))
+            try FileManager.default.removeItem(at: URL(fileURLWithPath: "/Library/PrivilegedHelperTools/com.aravhawk.lite-stats.SMC.Helper"))
         } catch let err {
             NSLog("helper deletion: \(err)")
         }
@@ -189,7 +189,7 @@ extension Helper {
     
     func uninstall() {
         let process = Process()
-        process.launchPath = "/Library/PrivilegedHelperTools/eu.exelban.LiteStats.SMC.Helper"
+        process.launchPath = "/Library/PrivilegedHelperTools/com.aravhawk.lite-stats.SMC.Helper"
         process.qualityOfService = QualityOfService.userInitiated
         process.arguments = ["uninstall", String(getpid())]
         process.launch()

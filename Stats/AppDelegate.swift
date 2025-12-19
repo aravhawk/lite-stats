@@ -14,34 +14,21 @@ import UserNotifications
 import CPU
 import RAM
 import Disk
-import Net
-import Battery
 import Sensors
 import GPU
-import Bluetooth
-import Clock
 
-let updater = Updater(github: "exelban/stats", url: "https://api.mac-stats.com/release/latest")
 var modules: [Module] = [
     CPU(),
     GPU(),
     RAM(),
     Disk(),
-    Sensors(),
-    Network(),
-    Battery(),
-    Bluetooth(),
-    Clock()
+    Sensors()
 ]
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     internal let settingsWindow: SettingsWindow = SettingsWindow()
-    internal let updateWindow: UpdateWindow = UpdateWindow()
     internal let setupWindow: SetupWindow = SetupWindow()
-    internal let supportWindow: SupportWindow = SupportWindow()
-    internal let updateActivity = NSBackgroundActivityScheduler(identifier: "eu.exelban.LiteStats.updateCheck")
-    internal let supportActivity = NSBackgroundActivityScheduler(identifier: "eu.exelban.LiteStats.support")
     internal var clickInNotification: Bool = false
     internal var menuBarItem: NSStatusItem? = nil
     internal var combinedView: CombinedView = CombinedView()
@@ -87,7 +74,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     
     func applicationWillTerminate(_ aNotification: Notification) {
         modules.forEach{ $0.terminate() }
-        Remote.shared.terminate()
     }
     
     deinit {
@@ -114,20 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         self.clickInNotification = true
-        
-        if let uri = response.notification.request.content.userInfo["url"] as? String {
-            debug("Downloading new version of app...")
-            if let url = URL(string: uri) {
-                updater.download(url, completion: { path in
-                    updater.install(path: path) { error in
-                        if let error {
-                            showAlert("Error update Lite Stats", error, .critical)
-                        }
-                    }
-                })
-            }
-        }
-        
+
         completionHandler()
     }
 }

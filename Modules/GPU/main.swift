@@ -11,7 +11,6 @@
 
 import Cocoa
 import Kit
-import WidgetKit
 
 public typealias GPU_type = String
 public enum GPU_types: GPU_type {
@@ -52,18 +51,10 @@ public struct GPU_Info: Codable {
         self.renderUtilization = render
         self.tilerUtilization = tiler
     }
-    
-    public func remote() -> String {
-        var id = self.id
-        if self.id.isEmpty {
-            id = "0"
-        }
-        return "\(id),1,\(self.utilization ?? 0),\(self.renderUtilization ?? 0),\(self.tilerUtilization ?? 0),,"
-    }
 }
 
-public class GPUs: Codable, RemoteType {
-    private var queue: DispatchQueue = DispatchQueue(label: "eu.exelban.LiteStats.GPU.SynchronizedArray")
+public class GPUs: Codable {
+    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.GPU.SynchronizedArray")
     
     private var _list: [GPU_Info] = []
     public var list: [GPU_Info] {
@@ -90,18 +81,6 @@ public class GPUs: Codable, RemoteType {
     internal func active() -> [GPU_Info] {
         return self.list.filter{ $0.state && $0.utilization != nil }.sorted{ $0.utilization ?? 0 > $1.utilization ?? 0 }
     }
-    
-    public func remote() -> Data? {
-        var string = "\(self.list.count),"
-        for (i, v) in self.list.enumerated() {
-            string += v.remote()
-            if i != self.list.count {
-                string += ","
-            }
-        }
-        string += "$"
-        return string.data(using: .utf8)
-    }
 }
 
 public class GPU: Module {
@@ -119,11 +98,7 @@ public class GPU: Module {
     private var showType: Bool {
         Store.shared.bool(key: "\(self.config.name)_showType", defaultValue: false)
     }
-    
-    private var systemWidgetsUpdatesState: Bool {
-        Store.shared.bool(key: "systemWidgetsUpdates_state", defaultValue: true)
-    }
-    
+
     public init() {
         self.popupView = Popup()
         self.settingsView = Settings(.GPU)
@@ -190,16 +165,6 @@ public class GPU: Module {
                     circle_segment(value: utilization, color: NSColor.systemBlue)
                 ])
             default: break
-            }
-        }
-        
-        if self.systemWidgetsUpdatesState {
-            if #available(macOS 11.0, *) {
-                if isWidgetActive(self.userDefaults, [GPU_entry.kind, "UnitedWidget"]), let blobData = try? JSONEncoder().encode(selectedGPU) {
-                    self.userDefaults?.set(blobData, forKey: "GPU@InfoReader")
-                }
-                WidgetCenter.shared.reloadTimelines(ofKind: GPU_entry.kind)
-                WidgetCenter.shared.reloadTimelines(ofKind: "UnitedWidget")
             }
         }
     }

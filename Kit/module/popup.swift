@@ -347,15 +347,9 @@ internal class HeaderView: NSStackView {
         activity.contentTintColor = .lightGray
         activity.isBordered = false
         activity.target = self
-        if module == .clock {
-            activity.action = #selector(self.openCalendar)
-            activity.image = Bundle(for: type(of: self)).image(forResource: "calendar")!
-            activity.toolTip = localizedString("Open Calendar")
-        } else {
-            activity.action = #selector(self.openActivityMonitor)
-            activity.image = Bundle(for: type(of: self)).image(forResource: "chart")!
-            activity.toolTip = localizedString("Open Activity Monitor")
-        }
+        activity.action = #selector(self.openActivityMonitor)
+        activity.image = Bundle(for: type(of: self)).image(forResource: "chart")!
+        activity.toolTip = localizedString("Open Activity Monitor")
         activity.focusRingType = .none
         self.activityButton = activity
         

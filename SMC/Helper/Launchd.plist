@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>eu.exelban.LiteStats.SMC.Helper</string>
+	<string>com.aravhawk.lite-stats.SMC.Helper</string>
 	<key>MachServices</key>
 	<dict>
-		<key>eu.exelban.LiteStats.SMC.Helper</key>
+		<key>com.aravhawk.lite-stats.SMC.Helper</key>
 		<true/>
 	</dict>
 </dict>

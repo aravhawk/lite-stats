@@ -15,7 +15,7 @@ public class Store {
     public static let shared = Store()
     private let defaults = UserDefaults.standard
     private var cache: [String: Any] = [:]
-    private let cacheQueue = DispatchQueue(label: "eu.exelban.LiteStats.Store.cache", attributes: .concurrent)
+    private let cacheQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Store.cache", attributes: .concurrent)
     
     public init() {
         self.loadCache()

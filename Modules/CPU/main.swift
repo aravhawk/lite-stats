@@ -8,37 +8,22 @@
 
 import Cocoa
 import Kit
-import WidgetKit
 
-public struct CPU_Load: Codable, RemoteType {
+public struct CPU_Load: Codable {
     public var totalUsage: Double = 0
     var usagePerCore: [Double] = []
     var usageECores: Double? = nil
     var usagePCores: Double? = nil
-    
+
     var systemLoad: Double = 0
     var userLoad: Double = 0
     var idleLoad: Double = 0
-    
-    public func remote() -> Data? {
-        var string = "1,1,\(self.totalUsage),\(self.usagePerCore.count),"
-        for c in self.usagePerCore {
-            string += "\(c),"
-        }
-        string += "$"
-        return string.data(using: .utf8)
-    }
 }
 
-public struct CPU_Frequency: Codable, RemoteType {
+public struct CPU_Frequency: Codable {
     var value: Double = 0
     var eCore: Double = 0
     var pCore: Double = 0
-    
-    public func remote() -> Data? {
-        let string = "1,1,\(self.value)$"
-        return string.data(using: .utf8)
-    }
 }
 
 public struct CPU_Limit: Codable {
@@ -47,15 +32,10 @@ public struct CPU_Limit: Codable {
     var speed: Int = 0
 }
 
-public struct CPU_AverageLoad: Codable, RemoteType {
+public struct CPU_AverageLoad: Codable {
     var load1: Double = 0
     var load5: Double = 0
     var load15: Double = 0
-    
-    public func remote() -> Data? {
-        let string = "1,1,\(self.load1),\(self.load5),\(self.load15)$"
-        return string.data(using: .utf8)
-    }
 }
 
 public class CPU: Module {
@@ -113,11 +93,7 @@ public class CPU: Module {
         }
         return color.additional as! NSColor
     }
-    
-    private var systemWidgetsUpdatesState: Bool {
-        Store.shared.bool(key: "systemWidgetsUpdates_state", defaultValue: true)
-    }
-    
+
     public init() {
         self.settingsView = Settings(.CPU)
         self.popupView = Popup(.CPU)
@@ -234,16 +210,6 @@ public class CPU: Module {
                     circle_segment(value: value.userLoad, color: self.userColor)
                 ])
             default: break
-            }
-        }
-        
-        if self.systemWidgetsUpdatesState {
-            if #available(macOS 11.0, *) {
-                if isWidgetActive(self.userDefaults, [CPU_entry.kind, "UnitedWidget"]), let blobData = try? JSONEncoder().encode(value) {
-                    self.userDefaults?.set(blobData, forKey: "CPU@LoadReader")
-                }
-                WidgetCenter.shared.reloadTimelines(ofKind: CPU_entry.kind)
-                WidgetCenter.shared.reloadTimelines(ofKind: "UnitedWidget")
             }
         }
     }

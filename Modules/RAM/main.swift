@@ -11,34 +11,28 @@
 
 import Cocoa
 import Kit
-import WidgetKit
 
-public struct RAM_Usage: Codable, RemoteType {
+public struct RAM_Usage: Codable {
     var total: Double
     var used: Double
     var free: Double
-    
+
     var active: Double
     var inactive: Double
     var wired: Double
     var compressed: Double
-    
+
     var app: Double
     var cache: Double
-    
+
     var swap: Swap
     var pressure: Pressure
-    
+
     var swapins: Int64
     var swapouts: Int64
-    
+
     public var usage: Double {
         get { Double((self.total - self.free) / self.total) }
-    }
-    
-    public func remote() -> Data? {
-        let string = "\(self.total),\(self.used),\(self.pressure.level),\(self.swap.used)$"
-        return string.data(using: .utf8)
     }
 }
 
@@ -93,11 +87,7 @@ public class RAM: Module {
     private var textValue: String {
         Store.shared.string(key: "\(self.name)_textWidgetValue", defaultValue: "$mem.used/$mem.total ($pressure.value)")
     }
-    
-    private var systemWidgetsUpdatesState: Bool {
-        Store.shared.bool(key: "systemWidgetsUpdates_state", defaultValue: true)
-    }
-    
+
     public init() {
         self.settingsView = Settings(.RAM)
         self.popupView = Popup(.RAM)
@@ -233,16 +223,6 @@ public class RAM: Module {
                 }
                 widget.setValue(text)
             default: break
-            }
-        }
-        
-        if self.systemWidgetsUpdatesState {
-            if #available(macOS 11.0, *) {
-                if isWidgetActive(self.userDefaults, [RAM_entry.kind, "UnitedWidget"]), let blobData = try? JSONEncoder().encode(value) {
-                    self.userDefaults?.set(blobData, forKey: "RAM@UsageReader")
-                }
-                WidgetCenter.shared.reloadTimelines(ofKind: RAM_entry.kind)
-                WidgetCenter.shared.reloadTimelines(ofKind: "UnitedWidget")
             }
         }
     }

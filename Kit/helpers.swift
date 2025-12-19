@@ -480,8 +480,16 @@ public func syncShell(_ args: String) -> String {
     
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)!
-    
+
     return output
+}
+
+internal struct Version {
+    var major: Int = 0
+    var minor: Int = 0
+    var patch: Int = 0
+
+    var beta: Int? = nil
 }
 
 public func isNewestVersion(currentVersion: String, latestVersion: String) -> Bool {
@@ -863,7 +871,7 @@ public class SMCHelper {
     public static let shared = SMCHelper()
     
     public var isInstalled: Bool {
-        syncShell("ls /Library/PrivilegedHelperTools/").contains("eu.exelban.LiteStats.SMC.Helper")
+        syncShell("ls /Library/PrivilegedHelperTools/").contains("com.aravhawk.lite-stats.SMC.Helper")
     }
     
     private var connection: NSXPCConnection? = nil
@@ -891,7 +899,7 @@ public class SMCHelper {
     }
     
     public func checkForUpdate() {
-        let helperURL = Bundle.main.bundleURL.appendingPathComponent("Contents/Library/LaunchServices/eu.exelban.LiteStats.SMC.Helper")
+        let helperURL = Bundle.main.bundleURL.appendingPathComponent("Contents/Library/LaunchServices/com.aravhawk.lite-stats.SMC.Helper")
         guard let helperBundleInfo = CFBundleCopyInfoDictionaryForURL(helperURL as CFURL) as? [String: Any],
               let helperVersion = helperBundleInfo["CFBundleShortVersionString"] as? String,
               let helper = self.helper(nil) else { return }
@@ -944,7 +952,7 @@ public class SMCHelper {
         }
         
         var error: Unmanaged<CFError>?
-        if SMJobBless(kSMDomainUserLaunchd, "eu.exelban.LiteStats.SMC.Helper" as CFString, authRef, &error) == false {
+        if SMJobBless(kSMDomainUserLaunchd, "com.aravhawk.lite-stats.SMC.Helper" as CFString, authRef, &error) == false {
             let blessError = error!.takeRetainedValue() as Error
             print("Error while installing the Helper: \(blessError.localizedDescription)")
             completion(false)
@@ -960,7 +968,7 @@ public class SMCHelper {
             return self.connection
         }
         
-        let connection = NSXPCConnection(machServiceName: "eu.exelban.LiteStats.SMC.Helper", options: .privileged)
+        let connection = NSXPCConnection(machServiceName: "com.aravhawk.lite-stats.SMC.Helper", options: .privileged)
         connection.exportedObject = self
         connection.remoteObjectInterface = NSXPCInterface(with: HelperProtocol.self)
         connection.invalidationHandler = {
@@ -1639,195 +1647,4 @@ public class VerticallyCenteredTextFieldCell: NSTextFieldCell {
         let titleRect = self.titleRect(forBounds: cellFrame)
         self.attributedStringValue.draw(in: titleRect)
     }
-}
-
-public class CPUeStressTest {
-    public var isRunning: Bool = false
-    
-    private var workers: [DispatchWorkItem] = []
-    private let queue = DispatchQueue.global(qos: .background)
-    
-    public init() {}
-    
-    public func start() {
-        guard !self.isRunning else { return }
-        self.isRunning = true
-        
-        let efficientCoreCount: Int = Int(SystemKit.shared.device.info.cpu?.eCores ?? 2)
-        self.workers.removeAll()
-        
-        for index in 0..<efficientCoreCount {
-            let worker = DispatchWorkItem { [weak self] in
-                self?.test(threadIndex: index)
-            }
-            self.workers.append(worker)
-            self.queue.async(execute: worker)
-        }
-    }
-    
-    public func stop() {
-        self.isRunning = false
-        self.workers.forEach { $0.cancel() }
-        self.workers.removeAll()
-    }
-    
-    private func test(threadIndex: Int) {
-        pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0)
-        var x: Double = 1.0
-        while self.isRunning {
-            x = sin(x) + cos(x)
-            if x > 100000 { x = 1.0 }
-            OSMemoryBarrier()
-        }
-    }
-}
-
-public class CPUpStressTest {
-    public var isRunning = false
-    
-    private var workers: [DispatchWorkItem] = []
-    private let queue = DispatchQueue.global(qos: .userInteractive)
-    
-    public init() {}
-    
-    public func start() {
-        guard !self.isRunning else { return }
-        self.isRunning = true
-        
-        let performanceCoreCount: Int = Int(SystemKit.shared.device.info.cpu?.pCores ?? 4)
-        self.workers.removeAll()
-        
-        for index in 0..<performanceCoreCount {
-            let worker = DispatchWorkItem { [weak self] in
-                self?.test(threadIndex: index)
-            }
-            self.workers.append(worker)
-            self.queue.async(execute: worker)
-        }
-    }
-    
-    public func stop() {
-        self.isRunning = false
-        self.workers.forEach { $0.cancel() }
-        self.workers.removeAll()
-    }
-    
-    private func test(threadIndex: Int) {
-        pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0)
-        var x: Double = 1.0
-        while self.isRunning {
-            x = sin(x) + cos(x)
-            if x > 100000 { x = 1.0 }
-            OSMemoryBarrier()
-        }
-    }
-}
-
-public class GPUStressTest {
-    public var isRunning = false
-    
-    private let device: MTLDevice
-    private let commandQueue: MTLCommandQueue
-    private let pipeline: MTLComputePipelineState
-    private let dataSize = 50_000_000 // Large data size for GPU workload
-    private var bufferA: MTLBuffer?
-    private var bufferB: MTLBuffer?
-    private var bufferC: MTLBuffer?
-    
-    public init?() {
-        guard let device = MTLCreateSystemDefaultDevice(), let queue = device.makeCommandQueue() else {
-            return nil
-        }
-        
-        self.device = device
-        self.commandQueue = queue
-        
-        let source = """
-        #include <metal_stdlib>
-        using namespace metal;
-        kernel void full_load_kernel(const device float* inA [[buffer(0)]],
-                                      const device float* inB [[buffer(1)]],
-                                      device float* outC [[buffer(2)]],
-                                      uint id [[thread_position_in_grid]]) {
-            outC[id] = (inA[id] * inB[id]) + sin(inA[id]) + cos(inB[id]) + tan(inA[id]) + log(inB[id]);
-        }
-        """
-        
-        do {
-            let library = try device.makeLibrary(source: source, options: nil)
-            let function = library.makeFunction(name: "full_load_kernel")!
-            self.pipeline = try device.makeComputePipelineState(function: function)
-        } catch {
-            return nil
-        }
-    }
-    
-    private func allocateMemory() {
-        guard self.bufferA == nil, self.bufferB == nil, self.bufferC == nil else { return }
-        
-        self.bufferA = self.device.makeBuffer(length: self.dataSize * MemoryLayout<Float>.size, options: .storageModeShared)
-        self.bufferB = self.device.makeBuffer(length: self.dataSize * MemoryLayout<Float>.size, options: .storageModeShared)
-        self.bufferC = self.device.makeBuffer(length: self.dataSize * MemoryLayout<Float>.size, options: .storageModeShared)
-        
-        let dataA = [Float](repeating: 1.0, count: self.dataSize)
-        let dataB = [Float](repeating: 2.0, count: self.dataSize)
-        
-        memcpy(self.bufferA?.contents(), dataA, dataA.count * MemoryLayout<Float>.size)
-        memcpy(self.bufferB?.contents(), dataB, dataB.count * MemoryLayout<Float>.size)
-    }
-    
-    private func freeMemory() {
-        self.bufferA = nil
-        self.bufferB = nil
-        self.bufferC = nil
-    }
-    
-    public func start() {
-        guard !self.isRunning else { return }
-        self.isRunning = true
-        self.allocateMemory()
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.test()
-        }
-    }
-    
-    public func stop() {
-        self.isRunning = false
-        self.freeMemory()
-    }
-    
-    private func test() {
-        let threadGroupSize = MTLSize(width: 256, height: 1, depth: 1)
-        let gridSize = MTLSize(width: self.dataSize, height: 1, depth: 1)
-        
-        while self.isRunning {
-            guard let commandBuffer = self.commandQueue.makeCommandBuffer(),
-                  let commandEncoder = commandBuffer.makeComputeCommandEncoder(),
-                  let bufferA = self.bufferA, let bufferB = self.bufferB, let bufferC = self.bufferC else {
-                break
-            }
-            
-            commandEncoder.setComputePipelineState(self.pipeline)
-            commandEncoder.setBuffer(bufferA, offset: 0, index: 0)
-            commandEncoder.setBuffer(bufferB, offset: 0, index: 1)
-            commandEncoder.setBuffer(bufferC, offset: 0, index: 2)
-            commandEncoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadGroupSize)
-            commandEncoder.endEncoding()
-            commandBuffer.commit()
-            
-            commandBuffer.waitUntilCompleted()
-        }
-    }
-}
-
-public func isWidgetActive(_ defaults: UserDefaults?, _ widgets: [String]) -> Bool {
-    for name in widgets {
-        guard let lastUpdate = defaults?.double(forKey: name) else { return false }
-        let timeSinceUpdate = Date().timeIntervalSince1970 - lastUpdate
-        if timeSinceUpdate < 60 {
-            return true
-        }
-    }
-    return false
 }

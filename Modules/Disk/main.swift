@@ -11,7 +11,6 @@
 
 import Cocoa
 import Kit
-import WidgetKit
 
 public struct stats: Codable {
     var read: Int64 = 0
@@ -64,14 +63,10 @@ public struct drive: Codable {
     public var popupState: Bool {
         Store.shared.bool(key: "Disk_\(self.uuid)_popup", defaultValue: true)
     }
-    
-    public func remote() -> String {
-        return "\(self.uuid),\(self.size),\(self.size-self.free),\(self.free),\(self.activity.read),\(self.activity.write)"
-    }
 }
 
-public class Disks: Codable, RemoteType {
-    private var queue: DispatchQueue = DispatchQueue(label: "eu.exelban.LiteStats.Disk.SynchronizedArray")
+public class Disks: Codable {
+    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Disk.SynchronizedArray")
     private var _array: [drive] = []
     public var array: [drive] {
         get { self.queue.sync { self._array } }
@@ -160,18 +155,6 @@ public class Disks: Codable, RemoteType {
     func updateSMARTData(_ idx: Int, smart: smart_t?) {
         self.array[idx].smart = smart
     }
-    
-    public func remote() -> Data? {
-        var string = "\(self.array.count),"
-        for (i, v) in self.array.enumerated() {
-            string += v.remote()
-            if i != self.array.count {
-                string += ","
-            }
-        }
-        string += "$"
-        return string.data(using: .utf8)
-    }
 }
 
 public struct Disk_process: Process_p, Codable {
@@ -220,11 +203,7 @@ public class Disk: Module {
     private var textValue: String {
         Store.shared.string(key: "\(self.name)_textWidgetValue", defaultValue: "$capacity.free/$capacity.total")
     }
-    
-    private var systemWidgetsUpdatesState: Bool {
-        Store.shared.bool(key: "systemWidgetsUpdates_state", defaultValue: true)
-    }
-    
+
     public init() {
         super.init(
             moduleType: .disk,
@@ -332,18 +311,8 @@ public class Disk: Module {
             default: break
             }
         }
-        
-        if self.systemWidgetsUpdatesState {
-            if #available(macOS 11.0, *) {
-                if isWidgetActive(self.userDefaults, [Disk_entry.kind, "UnitedWidget"]), let blobData = try? JSONEncoder().encode(d) {
-                    self.userDefaults?.set(blobData, forKey: "Disk@CapacityReader")
-                }
-                WidgetCenter.shared.reloadTimelines(ofKind: Disk_entry.kind)
-                WidgetCenter.shared.reloadTimelines(ofKind: "UnitedWidget")
-            }
-        }
     }
-    
+
     private func activityCallback(_ value: Disks) {
         guard self.enabled else { return }
         
@@ -359,13 +328,6 @@ public class Disk: Module {
         
         self.menuBar.widgets.filter{ $0.isActive }.forEach { (w: SWidget) in
             switch w.item {
-            case let widget as SpeedWidget: 
-                widget.setValue(input: d.activity.read, output: d.activity.write)
-            case let widget as NetworkChart:
-                widget.setValue(upload: Double(d.activity.write), download: Double(d.activity.read))
-                if self.capacityReader?.interval != 1 {
-                    self.settingsView.setUpdateInterval(value: 1)
-                }
             default: break
             }
         }

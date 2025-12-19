@@ -20,7 +20,7 @@ public class Reachability {
     
     private var isRunning = false
     private var reachability: SCNetworkReachability?
-    private let reachabilitySerialQueue = DispatchQueue(label: "eu.exelban.ReachabilityQueue")
+    private let reachabilitySerialQueue = DispatchQueue(label: "com.aravhawk.lite-stats.ReachabilityQueue")
     
     public init(start: Bool = false) {
         var zeroAddress = sockaddr()

@@ -53,7 +53,7 @@ public protocol Sensor_p {
 }
 
 public class Sensors_List: Codable {
-    private var queue: DispatchQueue = DispatchQueue(label: "eu.exelban.LiteStats.Sensors.SynchronizedArray", attributes: .concurrent)
+    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Sensors.SynchronizedArray", attributes: .concurrent)
     
     private var list: [Sensor_p] = []
     public var sensors: [Sensor_p] {
