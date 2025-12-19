@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9A1410F4229E721100D29793"
                BuildableName = "Lite Stats.app"
-               BlueprintName = "Stats"
+               BlueprintName = "Lite Stats"
                ReferencedContainer = "container:Stats.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,7 +46,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9A1410F4229E721100D29793"
             BuildableName = "Lite Stats.app"
-            BlueprintName = "Stats"
+            BlueprintName = "Lite Stats"
             ReferencedContainer = "container:Stats.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -79,7 +79,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9A1410F4229E721100D29793"
             BuildableName = "Lite Stats.app"
-            BlueprintName = "Stats"
+            BlueprintName = "Lite Stats"
             ReferencedContainer = "container:Stats.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -126,7 +126,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9A1410F4229E721100D29793"
             BuildableName = "Lite Stats.app"
-            BlueprintName = "Stats"
+            BlueprintName = "Lite Stats"
             ReferencedContainer = "container:Stats.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
