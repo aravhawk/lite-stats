@@ -14,17 +14,50 @@ import Cocoa
 public class Store {
     public static let shared = Store()
     private let defaults = UserDefaults.standard
+    private let bundleId = Bundle.main.bundleIdentifier
     private var cache: [String: Any] = [:]
     private let cacheQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Store.cache", attributes: .concurrent)
     
     public init() {
         self.loadCache()
+        self.cleanupLegacy()
     }
     
     private func loadCache() {
-        guard let bundleId = Bundle.main.bundleIdentifier,
+        guard let bundleId = self.bundleId,
               let domain = self.defaults.persistentDomain(forName: bundleId) else { return }
         self.cache = domain
+    }
+    
+    private func cleanupLegacy() {
+        guard let bundleId = self.bundleId,
+              let domain = self.defaults.persistentDomain(forName: bundleId) else { return }
+        
+        let legacyPrefixes = ["Battery_", "Net_"]
+        let legacyKeys: Set<String> = [
+            "Sensors_saveFanSpeed",
+            "Sensors_syncFansControl",
+            "Sensors_fanControl",
+            "Sensors_fanControlState",
+            "Sensors_fanMode",
+            "Sensors_fansMode",
+            "Sensors_fanSpeed"
+        ]
+        
+        var keysToRemove = Set<String>()
+        domain.keys.forEach { key in
+            if legacyPrefixes.contains(where: { key.hasPrefix($0) }) {
+                keysToRemove.insert(key)
+            }
+        }
+        keysToRemove.formUnion(legacyKeys)
+        
+        guard !keysToRemove.isEmpty else { return }
+        
+        self.cacheQueue.async(flags: .barrier) {
+            keysToRemove.forEach { self.cache.removeValue(forKey: $0) }
+        }
+        keysToRemove.forEach { self.defaults.removeObject(forKey: $0) }
     }
     
     private func getValue<T>(for key: String, type: T.Type) -> T? {

@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Condividi dati anonimi di telemetria";
 "Do not share anonymous telemetry data" = "Non condividere dati anonimi di telemetria";
 "The configuration is completed" = "Configurazione completata";
-"finish_setup_message" = "È tutto pronto!\nLite Stats è un software open source gratuito, e lo rimarrà per sempre.\nSe ti piace, dacci il tuo supporto: è sempre ben accetto!";
 
 // Alerts
 "New version available" = "Nuova versione disponibile";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Aggiornato con successo";
 "Lite Stats was updated to v" = "Lite Stats è stato aggiornato alla v%0";
 "Reset settings text" = "Tutte le impostazioni saranno resettate e l'applicazione sarà riavviata. Sei sicuro di volerlo fare?";
-"Support text" = "Grazie per aver usato Lite Stats!\n\nIl mantenimento e il miglioramento di questo progetto open-source richiede tempo e risorse. Il vostro sostegno ci aiuta a continuare a fornire un'applicazione gratuita e affidabile per tutti.\n\nSe trovate Lite Stats utile, prendete in considerazione l'idea di dare un contributo. Ogni piccolo contributo è utile!";
 
 // Settings
 "Open Activity Monitor" = "Apri Monitoraggio Attività";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Unità di temperatura";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Salva la velocità delle ventole";
 "Fan" = "Ventola";
 "HID sensors" = "Sensori HID";
-"Synchronize fan's control" = "Sincronizza ventole";
 "Current" = "Corrente";
 "Energy" = "Energia";
 "Show unknown sensors" = "Mostra sensori sconosciuti";
-"Install fan helper" = "Installa estensione ventole";
-"Uninstall fan helper" = "Disinstalla estensione ventole";
 "Fan value" = "Valore ventola";
-"Turn off fan" = "Disattiva la ventola";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Stai per disattivare la ventola. Questa azione non è consigliata e può danneggiare il tuo mac, sei sicuro di voler proseguire?";
 "Sensor threshold" = "Soglia sensore";
 "Left fan" = "Ventola sinistra";
 "Right fan" = "Ventola destra";

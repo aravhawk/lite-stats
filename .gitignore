@@ -1,4 +1,13 @@
 .DS_Store
+.idea
+.vscode
+__pycache__
+*.pyc
+.python-version
+.swiftpm
+.build
+DerivedData
+*.xcuserstate
 
 Pods
 Carthage
@@ -10,7 +19,6 @@ Stats.app
 create-dmg
 dSYMs.zip
 Stats.dmg.zip
-SMC/smc
 
 Cartfile.resolved
 web

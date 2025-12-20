@@ -20,15 +20,15 @@ internal class LoadReader: Reader<CPU_Load> {
     private var numCPUs: uint = 0
     private let CPUUsageLock: NSLock = NSLock()
     private var previousInfo = host_cpu_load_info()
-    private var hasHyperthreadingCores = false
     
     private var response: CPU_Load = CPU_Load()
     private var numCPUsU: natural_t = 0
     private var usagePerCore: [Double] = []
     private var cores: [core_s]? = nil
+    private var eCoreIndices: [Int] = []
+    private var pCoreIndices: [Int] = []
     
     public override func setup() {
-        self.hasHyperthreadingCores = sysctlByName("hw.physicalcpu") != sysctlByName("hw.logicalcpu")
         [CTL_HW, HW_NCPU].withUnsafeBufferPointer { mib in
             var sizeOfNumCPUs: size_t = MemoryLayout<uint>.size
             let status = sysctl(processor_info_array_t(mutating: mib.baseAddress), 2, &numCPUs, &sizeOfNumCPUs, nil, 0)
@@ -37,6 +37,10 @@ internal class LoadReader: Reader<CPU_Load> {
             }
         }
         self.cores = SystemKit.shared.device.info.cpu?.cores
+        if let cores = self.cores {
+            self.eCoreIndices = cores.filter { $0.type == .efficiency }.compactMap { Int($0.id) }
+            self.pCoreIndices = cores.filter { $0.type == .performance }.compactMap { Int($0.id) }
+        }
     }
     
     public override func read() {
@@ -70,22 +74,7 @@ internal class LoadReader: Reader<CPU_Load> {
             }
             self.CPUUsageLock.unlock()
             
-            let showHyperthratedCores = Store.shared.bool(key: "CPU_hyperhreading", defaultValue: false)
-            if showHyperthratedCores || !self.hasHyperthreadingCores {
-                self.response.usagePerCore = self.usagePerCore
-            } else {
-                var i = 0
-                var a = 0
-                
-                self.response.usagePerCore = []
-                while i < Int(self.usagePerCore.count/2) {
-                    a = i*2
-                    if self.usagePerCore.indices.contains(a) && self.usagePerCore.indices.contains(a+1) {
-                        self.response.usagePerCore.append((Double(self.usagePerCore[a]) + Double(self.usagePerCore[a+1])) / 2)
-                    }
-                    i += 1
-                }
-            }
+            self.response.usagePerCore = self.usagePerCore
             
             if let prevCpuInfo = self.prevCpuInfo {
                 let prevCpuInfoSize: size_t = MemoryLayout<integer_t>.stride * Int(self.numPrevCpuInfo)
@@ -129,22 +118,23 @@ internal class LoadReader: Reader<CPU_Load> {
         self.previousInfo = cpuInfo!
         self.response.totalUsage = self.response.systemLoad + self.response.userLoad
         
-        if let cores = self.cores {
-            let eCoresList: [Double] = cores.filter({ $0.type == .efficiency }).compactMap { (c: core_s) in
-                if self.response.usagePerCore.indices.contains(Int(c.id)) {
-                    return self.response.usagePerCore[Int(c.id)]
-                }
-                return 0
+        if !self.eCoreIndices.isEmpty {
+            var sum = 0.0
+            var count = 0
+            for idx in self.eCoreIndices where self.response.usagePerCore.indices.contains(idx) {
+                sum += self.response.usagePerCore[idx]
+                count += 1
             }
-            let pCoresList: [Double] = cores.filter({ $0.type == .performance }).compactMap { (c: core_s) in
-                if self.response.usagePerCore.indices.contains(Int(c.id)) {
-                    return self.response.usagePerCore[Int(c.id)]
-                }
-                return 0
+            self.response.usageECores = count > 0 ? (sum / Double(count)) : nil
+        }
+        if !self.pCoreIndices.isEmpty {
+            var sum = 0.0
+            var count = 0
+            for idx in self.pCoreIndices where self.response.usagePerCore.indices.contains(idx) {
+                sum += self.response.usagePerCore[idx]
+                count += 1
             }
-            
-            self.response.usageECores = eCoresList.reduce(0, +)/Double(eCoresList.count)
-            self.response.usagePCores = pCoresList.reduce(0, +)/Double(pCoresList.count)
+            self.response.usagePCores = count > 0 ? (sum / Double(count)) : nil
         }
         
         self.callback(self.response)
@@ -187,8 +177,9 @@ public class ProcessReader: Reader<[TopProcess]> {
         }
         
         let task = Process()
-        task.launchPath = "/bin/ps"
+        task.executableURL = URL(fileURLWithPath: "/bin/ps")
         task.arguments = ["-Aceo pid,pcpu,comm", "-r"]
+        task.qualityOfService = .utility
         
         let outputPipe = Pipe()
         let errorPipe = Pipe()
@@ -432,14 +423,16 @@ public class FrequencyReader: Reader<CPU_Frequency> {
     private func getSamples() async -> [([IOSample], TimeInterval)] {
         let duration = 500
         let step = UInt64(duration / self.measurementCount)
+        let tolerance = step == 0 ? UInt64(0) : max(UInt64(1), step / 10)
+        let stepDuration = Duration.milliseconds(Int64(step))
+        let toleranceDuration = Duration.milliseconds(Int64(tolerance))
         var samples = [([IOSample], TimeInterval)]()
         guard let initialSample = self.getSample() else { return samples }
         var prev = self.prev ?? initialSample
         
         for _ in 0..<self.measurementCount {
-            let milliseconds = UInt64(step) * 1_000_000
             do {
-                try await Task.sleep(nanoseconds: milliseconds)
+                try await Task.sleep(for: stepDuration, tolerance: toleranceDuration)
             } catch {
                 if Task.isCancelled { return [] }
                 continue
@@ -489,50 +482,6 @@ public class FrequencyReader: Reader<CPU_Frequency> {
     }
 }
 
-public class LimitReader: Reader<CPU_Limit> {
-    private var limits: CPU_Limit = CPU_Limit()
-    
-    public override func read() {
-        let task = Process()
-        task.launchPath = "/usr/bin/pmset"
-        task.arguments = ["-g", "therm"]
-        
-        let outputPipe = Pipe()
-        defer {
-            outputPipe.fileHandleForReading.closeFile()
-        }
-        task.standardOutput = outputPipe
-        
-        do {
-            try task.run()
-        } catch let err {
-            error("error read pmset: \(err.localizedDescription)", log: self.log)
-            return
-        }
-        
-        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-        guard let str = String(data: outputData, encoding: .utf8) else { return }
-        var lines = str.split(separator: "\n")
-        guard !lines.isEmpty else { return }
-        lines.removeFirst(3)
-        
-        lines.forEach { (line: Substring) in
-            guard let value = Int(line.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) else {
-                return
-            }
-            if line.contains("Scheduler") {
-                self.limits.scheduler = value
-            } else if line.contains("CPUs") {
-                self.limits.cpus = value
-            } else if line.contains("Speed") {
-                self.limits.speed = value
-            }
-        }
-        
-        self.callback(self.limits)
-    }
-}
-
 public class AverageLoadReader: Reader<CPU_AverageLoad> {
     private let title: String = "CPU"
     private var load: CPU_AverageLoad = CPU_AverageLoad()
@@ -544,7 +493,8 @@ public class AverageLoadReader: Reader<CPU_AverageLoad> {
     
     public override func read() {
         let task = Process()
-        task.launchPath = "/usr/bin/uptime"
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/uptime")
+        task.qualityOfService = .utility
         
         let outputPipe = Pipe()
         defer {

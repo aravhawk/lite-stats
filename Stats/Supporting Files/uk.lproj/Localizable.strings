@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Ділитись анонімними даними телеметрії";
 "Do not share anonymous telemetry data" = "Не передавати анонімні дані телеметрії";
 "The configuration is completed" = "Налаштування завершено";
-"finish_setup_message" = "Все налаштовано! \n Lite Stats — це інструмент з відкритим вихідним кодом, він безкоштовний і таким завжди буде. \n Якщо вам це подобається ви можете підтримати проект, це завжди цінується!";
 
 // Alerts
 "New version available" = "Доступна нова версія";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Успішно оновленно";
 "Lite Stats was updated to v" = "Lite Stats оновлено до v%0";
 "Reset settings text" = "Усі налаштування програми буде скинуто, і програма буде перезапущена. Ви впевнені, що хочете це зробити?";
-"Support text" = "Дякуємо за використання Lite Stats!\n\n Підтримка і вдосконалення цього проекту з відкритим вихідним кодом вимагає часу і ресурсів. Ваша підтримка допомагає нам продовжувати надавати безкоштовну і надійну програму для всіх.\n\nЯкщо ви вважаєте Lite Stats корисною, будь ласка, зробіть свій внесок. Кожна копійка допомагає!";
 
 // Settings
 "Open Activity Monitor" = "Відкрити Монітор активності";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Одиниця виміру температури";
 "Celsius" = "Цельсія";
 "Fahrenheit" = "Фаренгейта";
-"Save the fan speed" = "Зберегти швидкість вентилятора";
 "Fan" = "Вентилятор";
 "HID sensors" = "HID датчики";
-"Synchronize fan's control" = "Синхронізація керування вентиляторами";
 "Current" = "Струм";
 "Energy" = "Енергія";
 "Show unknown sensors" = "Показати невідомі датчики";
-"Install fan helper" = "Встановити помічник для вентилятора";
-"Uninstall fan helper" = "Видалити помічник для вентилятора";
 "Fan value" = "Значення вентилятора";
-"Turn off fan" = "Вимкнути вентилятор";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Ви збираєтеся вимкнути вентилятор. Це не рекомендована дія, яка може зламати ваш Mac. Ви впевнені, що хочете це зробити?";
 "Sensor threshold" = "Поріг датчика";
 "Left fan" = "Лівий";
 "Right fan" = "Правий";

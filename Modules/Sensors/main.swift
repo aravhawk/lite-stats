@@ -87,18 +87,6 @@ public class Sensors: Module {
         self.setReaders([self.sensorsReader])
     }
     
-    public override func willTerminate() {
-        guard SMCHelper.shared.isActive(), let reader = self.sensorsReader else { return }
-        
-        reader.list.sensors.filter({ $0 is Fan }).forEach { (s: Sensor_p) in
-            if let f = s as? Fan, let mode = f.customMode {
-                if mode != .automatic {
-                    SMCHelper.shared.setFanMode(f.id, mode: FanMode.automatic.rawValue)
-                }
-            }
-        }
-    }
-    
     private func usageCallback(_ raw: Sensors_List?) {
         guard let value = raw, self.enabled else { return }
         

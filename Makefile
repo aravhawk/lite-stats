@@ -5,8 +5,8 @@ BUILD_PATH = $(PWD)/build
 APP_PATH = "$(BUILD_PATH)/$(APP).app"
 ZIP_PATH = "$(BUILD_PATH)/$(APP).zip"
 
-.SILENT: archive notarize sign prepare-dmg prepare-dSYM clean next-version check history disk smc leveldb
-.PHONY: build archive notarize sign prepare-dmg prepare-dSYM clean next-version check history open smc leveldb
+.SILENT: archive notarize sign prepare-dmg prepare-dSYM clean next-version check history disk
+.PHONY: build archive notarize sign prepare-dmg prepare-dSYM clean next-version check history open
 
 build: clean next-version archive notarize sign prepare-dmg prepare-dSYM open
 
@@ -18,7 +18,7 @@ archive: clean
 
         xcodebuild \
                 -scheme "$(APP)" \
-                -destination 'platform=OS X,arch=x86_64' \
+                -destination 'platform=macOS,arch=arm64' \
                 -configuration Release archive \
                 -archivePath "$(BUILD_PATH)/$(APP).xcarchive"
 
@@ -53,7 +53,7 @@ sign:
 
 prepare-dmg:
 	if [ ! -d $(PWD)/create-dmg ]; then \
-	    git clone https://github.com/create-dmg/create-dmg; \
+	    git clone git@github.com:create-dmg/create-dmg.git; \
 	fi
 
         ./create-dmg/create-dmg \
@@ -100,16 +100,3 @@ open:
         osascript -e 'display notification "Lite Stats signed and ready for distribution" with title "Build Lite Stats"'
         echo "Opening working folder..."
         open $(PWD)
-
-smc:
-	$(MAKE) --directory=./smc
-	open $(PWD)/smc
-
-leveldb:
-	if [ ! -d $(PWD)/leveldb-source ]; then \
-		git clone --recurse-submodules https://github.com/google/leveldb.git leveldb-source; \
-	fi
-	mkdir -p $(PWD)/leveldb-source/build
-	cd $(PWD)/leveldb-source/build && cmake -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
-	cp $(PWD)/leveldb-source/build/libleveldb.a $(PWD)/Kit/lldb/libleveldb.a
-	rm -rf $(PWD)/leveldb-source

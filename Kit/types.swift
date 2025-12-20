@@ -58,22 +58,10 @@ public let CombinedModulesSpacings: [KeyValue_t] = [
     KeyValue_t(key: "8", value: "8", additional: 8)
 ]
 
-public let PublicIPAddressRefreshIntervals: [KeyValue_t] = [
-    KeyValue_t(key: "never", value: "Never"),
-    KeyValue_t(key: "separator", value: "separator"),
-    KeyValue_t(key: "hour", value: "Every hour"),
-    KeyValue_t(key: "12", value: "Every 12 hours"),
-    KeyValue_t(key: "24", value: "Every 24 hours")
-]
-
 public enum DataSizeBase: String {
     case bit
     case byte
 }
-public let SpeedBase: [KeyValue_t] = [
-    KeyValue_t(key: "bit", value: "Bit", additional: DataSizeBase.bit),
-    KeyValue_t(key: "byte", value: "Byte", additional: DataSizeBase.byte)
-]
 
 internal enum StackMode: String {
     case auto = "automatic"
@@ -96,43 +84,6 @@ internal let SensorsWidgetMode: [KeyValue_t] = [
     KeyValue_t(key: StackMode.twoRows.rawValue, value: "Two rows")
 ]
 
-internal let SpeedPictogram: [KeyValue_t] = [
-    KeyValue_t(key: "none", value: "None"),
-    KeyValue_t(key: "separator", value: "separator"),
-    KeyValue_t(key: "dots", value: "Dots"),
-    KeyValue_t(key: "arrows", value: "Arrows"),
-    KeyValue_t(key: "chars", value: "Characters")
-]
-internal let SpeedPictogramColor: [KeyValue_t] = [
-    KeyValue_t(key: "none", value: "None"),
-    KeyValue_t(key: "separator", value: "separator"),
-    KeyValue_t(key: "default", value: "Default color"),
-    KeyValue_t(key: "transparent", value: "Transparent when no activity"),
-    KeyValue_t(key: "constant", value: "Constant color")
-]
-
-internal let BatteryAdditionals: [KeyValue_t] = [
-    KeyValue_t(key: "none", value: "None"),
-    KeyValue_t(key: "separator", value: "separator"),
-    KeyValue_t(key: "innerPercentage", value: "Percentage inside the icon"),
-    KeyValue_t(key: "separator", value: "separator"),
-    KeyValue_t(key: "percentage", value: "Percentage"),
-    KeyValue_t(key: "time", value: "Time"),
-    KeyValue_t(key: "percentageAndTime", value: "Percentage and time"),
-    KeyValue_t(key: "timeAndPercentage", value: "Time and percentage")
-]
-
-internal let BatteryInfo: [KeyValue_t] = [
-    KeyValue_t(key: "percentage", value: "Percentage"),
-    KeyValue_t(key: "time", value: "Time"),
-    KeyValue_t(key: "percentageAndTime", value: "Percentage and time"),
-    KeyValue_t(key: "timeAndPercentage", value: "Time and percentage")
-]
-
-public let ShortLong: [KeyValue_t] = [
-    KeyValue_t(key: "short", value: "Short"),
-    KeyValue_t(key: "long", value: "Long")
-]
 
 public let ReaderUpdateIntervals: [KeyValue_t] = [
     KeyValue_t(key: "1", value: "1 sec"),
@@ -146,10 +97,6 @@ public let ReaderUpdateIntervals: [KeyValue_t] = [
 ]
 public let NumbersOfProcesses: [Int] = [0, 3, 5, 8, 10, 15]
 
-public let NetworkReaders: [KeyValue_t] = [
-    KeyValue_t(key: "interface", value: "Interface based"),
-    KeyValue_t(key: "process", value: "Processes based")
-]
 
 internal let Alignments: [KeyValue_t] = [
     KeyValue_t(key: "left", value: "Left alignment", additional: NSTextAlignment.left),
@@ -204,11 +151,7 @@ extension SColor: CaseIterable {
     public static var magenta: SColor { return SColor(key: "magenta", value: "Magenta", additional: NSColor.magenta) }
     public static var pink: SColor { return SColor(key: "pink", value: "Pink", additional: NSColor.systemPink) }
     public static var teal: SColor { return SColor(key: "teal", value: "Teal", additional: NSColor.systemTeal) }
-    public static var indigo: SColor { if #available(OSX 10.15, *) {
-        return SColor(key: "indigo", value: "Indigo", additional: NSColor.systemIndigo)
-    } else {
-        return SColor(key: "indigo", value: "Indigo", additional: NSColor(red: 75, green: 0, blue: 130, alpha: 1))
-    } }
+    public static var indigo: SColor { return SColor(key: "indigo", value: "Indigo", additional: NSColor.systemIndigo) }
     
     public static var allCases: [SColor] {
         return [.utilization, .pressure, .cluster, separator1,
@@ -249,19 +192,13 @@ public extension Notification.Name {
     static let clickInSettings = Notification.Name("clickInSettings")
     static let refreshPublicIP = Notification.Name("refreshPublicIP")
     static let resetTotalNetworkUsage = Notification.Name("resetTotalNetworkUsage")
-    static let syncFansControl = Notification.Name("syncFansControl")
-    static let fanHelperState = Notification.Name("fanHelperState")
     static let toggleOneView = Notification.Name("toggleOneView")
     static let widgetRearrange = Notification.Name("widgetRearrange")
     static let moduleRearrange = Notification.Name("moduleRearrange")
     static let pause = Notification.Name("pause")
-    static let toggleFanControl = Notification.Name("toggleFanControl")
     static let combinedModulesPopup = Notification.Name("combinedModulesPopup")
 }
 
-public var isARM: Bool {
-    SystemKit.shared.device.platform != .intel
-}
 
 public let notificationLevels: [KeyValue_t] = [
     KeyValue_t(key: "", value: "Disabled"),
@@ -389,16 +326,4 @@ public enum RAMPressure: String, Codable {
             return NSColor.systemRed
         }
     }
-}
-
-public struct TokenResponse: Codable {
-    public let access_token: String
-    public let refresh_token: String
-}
-
-public struct DeviceResponse: Codable {
-    public let device_code: String
-    public let user_code: String
-    public let verification_uri_complete: URL
-    public let interval: Int?
 }

@@ -495,14 +495,16 @@ public class ProcessReader: Reader<[Disk_process]> {
 
 private func runProcess(path: String, args: [String] = []) -> String? {
     let task = Process()
-    task.launchPath = path
+    task.executableURL = URL(fileURLWithPath: path)
     task.arguments = args
+    task.qualityOfService = .utility
     
     let outputPipe = Pipe()
     defer {
         outputPipe.fileHandleForReading.closeFile()
     }
     task.standardOutput = outputPipe
+    task.standardError = FileHandle.nullDevice
     
     do {
         try task.run()

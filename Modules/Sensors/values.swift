@@ -252,7 +252,6 @@ public struct Fan: Sensor_p, Codable {
     public var minSpeed: Double
     public var maxSpeed: Double
     public var value: Double
-    public var mode: FanMode
     
     public var percentage: Int {
         if self.value != 0 && self.maxSpeed != 0 && self.value != 1 && self.maxSpeed != 1 {
@@ -264,7 +263,6 @@ public struct Fan: Sensor_p, Codable {
     public var group: SensorGroup = .sensor
     public var type: SensorType = .fan
     public var platforms: [Platform] = Platform.all
-    public var isIntelOnly: Bool = false
     public var isComputed: Bool = false
     public var average: Bool = false
     public var unit: String = "RPM"
@@ -293,44 +291,12 @@ public struct Fan: Sensor_p, Codable {
         Store.shared.string(key: "sensor_\(self.key)_notification", defaultValue: "")
     }
     
-    public var customSpeed: Int? {
-        get {
-            if !Store.shared.exist(key: "fan_\(self.id)_speed") {
-                return nil
-            }
-            return Store.shared.int(key: "fan_\(self.id)_speed", defaultValue: Int(self.minSpeed))
-        }
-        set {
-            if let value = newValue {
-                Store.shared.set(key: "fan_\(self.id)_speed", value: value)
-            } else {
-                Store.shared.remove("fan_\(self.id)_speed")
-            }
-        }
-    }
-    public var customMode: FanMode? {
-        get {
-            if !Store.shared.exist(key: "fan_\(self.id)_mode") {
-                return nil
-            }
-            let value = Store.shared.int(key: "fan_\(self.id)_mode", defaultValue: FanMode.automatic.rawValue)
-            return FanMode(rawValue: value)
-        }
-        set {
-            if let value = newValue {
-                Store.shared.set(key: "fan_\(self.id)_mode", value: value.rawValue)
-            } else {
-                Store.shared.remove("fan_\(self.id)_mode")
-            }
-        }
-    }
 }
 
 // List of keys: https://github.com/acidanthera/VirtualSMC/blob/master/Docs/SMCSensorKeys.txt
 internal let SensorsList: [Sensor] = [
     // Temperature
     Sensor(key: "TA%P", name: "Ambient %", group: .sensor, type: .temperature, platforms: Platform.all),
-    Sensor(key: "Th%H", name: "Heatpipe %", group: .sensor, type: .temperature, platforms: [.intel]),
     Sensor(key: "TZ%C", name: "Thermal zone %", group: .sensor, type: .temperature, platforms: Platform.all),
     
     Sensor(key: "TC0D", name: "CPU diode", group: .CPU, type: .temperature, platforms: Platform.all),
@@ -343,15 +309,11 @@ internal let SensorsList: [Sensor] = [
     Sensor(key: "TC%c", name: "CPU core %", group: .CPU, type: .temperature, platforms: Platform.all, average: true),
     Sensor(key: "TC%C", name: "CPU Core %", group: .CPU, type: .temperature, platforms: Platform.all, average: true),
     
-    Sensor(key: "TCGC", name: "GPU Intel Graphics", group: .GPU, type: .temperature, platforms: Platform.all),
     Sensor(key: "TG0D", name: "GPU diode", group: .GPU, type: .temperature, platforms: Platform.all),
-    Sensor(key: "TGDD", name: "GPU AMD Radeon", group: .GPU, type: .temperature, platforms: Platform.all),
     Sensor(key: "TG0H", name: "GPU heatsink", group: .GPU, type: .temperature, platforms: Platform.all),
     Sensor(key: "TG0P", name: "GPU proximity", group: .GPU, type: .temperature, platforms: Platform.all),
     
     Sensor(key: "Tm0P", name: "Mainboard", group: .system, type: .temperature, platforms: Platform.all),
-    Sensor(key: "Tp0P", name: "Powerboard", group: .system, type: .temperature, platforms: [.intel]),
-    Sensor(key: "TB1T", name: "Battery", group: .system, type: .temperature, platforms: [.intel]),
     Sensor(key: "TW0P", name: "Airport", group: .system, type: .temperature, platforms: Platform.all),
     Sensor(key: "TL0P", name: "Display", group: .system, type: .temperature, platforms: Platform.all),
     Sensor(key: "TI%P", name: "Thunderbolt %", group: .system, type: .temperature, platforms: Platform.all),
@@ -480,7 +442,6 @@ internal let SensorsList: [Sensor] = [
     Sensor(key: "VCSC", name: "CPU System Agent", group: .CPU, type: .voltage, platforms: Platform.all),
     Sensor(key: "VC%C", name: "CPU Core %", group: .CPU, type: .voltage, platforms: Platform.all),
     
-    Sensor(key: "VCTC", name: "GPU Intel Graphics", group: .GPU, type: .voltage, platforms: Platform.all),
     Sensor(key: "VG0C", name: "GPU", group: .GPU, type: .voltage, platforms: Platform.all),
     
     Sensor(key: "VM0R", name: "Memory", group: .system, type: .voltage, platforms: Platform.all),
@@ -515,12 +476,9 @@ internal let SensorsList: [Sensor] = [
     Sensor(key: "PC0G", name: "CPU GFX", group: .CPU, type: .power, platforms: Platform.all),
     Sensor(key: "PCEC", name: "CPU VccEDRAM", group: .CPU, type: .power, platforms: Platform.all),
     
-    Sensor(key: "PCPG", name: "GPU Intel Graphics", group: .GPU, type: .power, platforms: Platform.all),
     Sensor(key: "PG0C", name: "GPU", group: .GPU, type: .power, platforms: Platform.all),
     Sensor(key: "PG0R", name: "GPU 1", group: .GPU, type: .power, platforms: Platform.all),
     Sensor(key: "PG1R", name: "GPU 2", group: .GPU, type: .power, platforms: Platform.all),
-    Sensor(key: "PCGC", name: "Intel GPU", group: .GPU, type: .power, platforms: Platform.all),
-    Sensor(key: "PCGM", name: "Intel GPU (IMON)", group: .GPU, type: .power, platforms: Platform.all),
     
     Sensor(key: "PC3C", name: "RAM", group: .sensor, type: .power, platforms: Platform.all),
     Sensor(key: "PPBR", name: "Battery", group: .sensor, type: .power, platforms: Platform.all),

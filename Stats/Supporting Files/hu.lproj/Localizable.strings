@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Névtelen telemetriai adatok megosztása";
 "Do not share anonymous telemetry data" = "Ne osszon meg névtelen telemetriai adatokat";
 "The configuration is completed" = "A konfiguráció befejezve";
-"finish_setup_message" = "Minden beállítva!\nA Lite Stats egy nyílt forráskódú eszköz, ami ingyenes és az is marad.\nHa hasznosnak találod, támogathatod a fejlesztését, mindig nagyra értékeljük!";
 
 // Alerts
 "New version available" = "Új verzió érhető el";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Sikeres frissítés";
 "Lite Stats was updated to v" = "A Lite Stats sikeresen frissítve lett a(z) v%0 verzióra";
 "Reset settings text" = "Minden alkalmazás beállítás alaphelyzetbe fog állni, és az alkalmazás újra fog indulni. Biztosan ezt szeretnéd?";
-"Support text" = "Köszönjük, hogy használja a Lite Stats-t!\n\n A nyílt forráskódú projekt fenntartása és fejlesztése időt és erőforrásokat igényel. Az Ön támogatása segít nekünk abban, hogy továbbra is ingyenes és megbízható alkalmazást nyújtsunk mindenkinek.\n\nHa hasznosnak találja a Lite Stats-t, kérjük, fontolja meg, hogy hozzájáruljon. Minden kis aprócska összeg segít!";
 
 // Settings
 "Open Activity Monitor" = "Tevékenységfigyelő megnyitása";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Hőmérséklet mértékegysége";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Ventilátor sebesség mentése";
 "Fan" = "Ventilátor";
 "HID sensors" = "HID szenzorok";
-"Synchronize fan's control" = "Ventilátor vezérlés szinkronizálása";
 "Current" = "Áramerősség";
 "Energy" = "Energia";
 "Show unknown sensors" = "Ismeretlen szenzorok megjelenítése";
-"Install fan helper" = "Ventilátor segítő telepítése";
-"Uninstall fan helper" = "Ventilátor segítő törlése";
 "Fan value" = "Ventilátor érték";
-"Turn off fan" = "Ventilátor kikapcsolása";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "A ventilátor ki lesz kapcsolva. Ez a művelet károsíthatja a macjét, ezért nem ajánlott. Biztosan ki akarja kapcsolni a ventilátort?";
 "Sensor threshold" = "Szenzor küszöb";
 "Left fan" = "Bal ventilátor";
 "Right fan" = "Jobb ventilátor";

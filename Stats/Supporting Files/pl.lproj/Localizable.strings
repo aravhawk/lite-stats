@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Udostępniaj anonimowe dane telemetryczne";
 "Do not share anonymous telemetry data" = "Nie udostępniaj anonimowych danych telemetrycznych";
 "The configuration is completed" = "Konfiguracja zakończona";
-"finish_setup_message" = "Wszystko gotowe! \n Lite Stats to narzędzie open source, które jest bezpłatne i zawsze takie będzie. \n Jeśli Ci się spodoba, możesz wesprzeć projekt, to jest zawsze mile widziane!";
 
 // Alerts
 "New version available" = "Dostępna nowa wersja";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Zaktualizowano pomyślnie";
 "Lite Stats was updated to v" = "Lite Stats został zaktualizowany do v%0";
 "Reset settings text" = "Wszystkie ustawienia aplikacji zostaną zresetowane, a aplikacja zostanie uruchomiona ponownie. Czy na pewno chcesz to zrobić?";
-"Support text" = "Dziękujemy za korzystanie ze Lite Stats! \n\n Utrzymanie i ulepszanie tego open-source projektu wymaga czasu i zasobów. Twoje wsparcie pomaga nam nadal dostarczać bezpłatną i niezawodną aplikację dla każdego.\n\nJeśli uważasz, że Lite Stats jest pomocny, rozważ dokonanie wpłaty. Każda drobnostka pomaga!";
 
 // Settings
 "Open Activity Monitor" = "Otwórz Monitor Aktywności";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Jednostka temperatury";
 "Celsius" = "Celsjusz";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Zapisz prędkość wentylatora";
 "Fan" = "Wentylator";
 "HID sensors" = "Czujniki HID";
-"Synchronize fan's control" = "Synchronizuj sterowanie wentylatorami";
 "Current" = "Prąd";
 "Energy" = "Energia";
 "Show unknown sensors" = "Pokaż nieznane czujniki";
-"Install fan helper" = "Zainstaluj narzędzie do wentylatora";
-"Uninstall fan helper" = "Odinstaluj narzędzie do wentylatora";
 "Fan value" = "Wartość wentylatora";
-"Turn off fan" = "Wyłączyć wentylator";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Zamierzasz wyłączyć wentylator. To nie jest zalecana czynność, która może spowodować uszkodzenie komputera Mac. Czy na pewno chcesz to zrobić?";
 "Sensor threshold" = "Próg czujnika";
 "Left fan" = "Lewy";
 "Right fan" = "Prawy";

@@ -26,12 +26,6 @@ public struct CPU_Frequency: Codable {
     var pCore: Double = 0
 }
 
-public struct CPU_Limit: Codable {
-    var scheduler: Int = 0
-    var cpus: Int = 0
-    var speed: Int = 0
-}
-
 public struct CPU_AverageLoad: Codable {
     var load1: Double = 0
     var load5: Double = 0
@@ -48,7 +42,6 @@ public class CPU: Module {
     private var processReader: ProcessReader? = nil
     private var temperatureReader: TemperatureReader? = nil
     private var frequencyReader: FrequencyReader? = nil
-    private var limitReader: LimitReader? = nil
     private var averageLoadReader: AverageLoadReader? = nil
     
     private var usagePerCoreState: Bool {
@@ -93,6 +86,10 @@ public class CPU: Module {
         }
         return color.additional as! NSColor
     }
+    private lazy var coreTypesById: [Int32: coreType] = {
+        guard let cores = SystemKit.shared.device.info.cpu?.cores else { return [:] }
+        return Dictionary(uniqueKeysWithValues: cores.map { ($0.id, $0.type) })
+    }()
 
     public init() {
         self.settingsView = Settings(.CPU)
@@ -122,15 +119,9 @@ public class CPU: Module {
             self?.popupView.temperatureCallback(value)
         }
         
-        #if arch(x86_64)
-        self.limitReader = LimitReader(.CPU, popup: true) { [weak self] value in
-            self?.popupView.limitCallback(value)
-        }
-        #else
         self.frequencyReader = FrequencyReader(.CPU, popup: false) { [weak self] value in
             self?.popupView.frequencyCallback(value)
         }
-        #endif
         
         self.settingsView.callback = { [weak self] in
             self?.loadReader?.read()
@@ -153,7 +144,6 @@ public class CPU: Module {
             self.processReader,
             self.temperatureReader,
             self.frequencyReader,
-            self.limitReader,
             self.averageLoadReader
         ])
     }
@@ -171,14 +161,12 @@ public class CPU: Module {
             case let widget as LineChart: widget.setValue(value.totalUsage)
             case let widget as BarChart:
                 var val: [[ColorValue]] = [[ColorValue(value.totalUsage)]]
-                let cores = SystemKit.shared.device.info.cpu?.cores ?? []
-                
                 if self.usagePerCoreState {
                     if widget.colorState == .cluster {
                         val = []
                         for (i, v) in value.usagePerCore.enumerated() {
-                            let core = cores.first(where: {$0.id == i })
-                            val.append([ColorValue(v, color: core?.type == .efficiency ? self.eCoreColor : self.pCoreColor)])
+                            let coreType = self.coreTypesById[Int32(i)]
+                            val.append([ColorValue(v, color: coreType == .efficiency ? self.eCoreColor : self.pCoreColor)])
                         }
                     } else {
                         val = value.usagePerCore.map({ [ColorValue($0)] })

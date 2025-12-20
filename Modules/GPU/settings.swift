@@ -15,7 +15,6 @@ import Kit
 internal class Settings: NSStackView, Settings_v {
     private var updateIntervalValue: Int = 1
     private var selectedGPU: String
-    private var showTypeValue: Bool = false
     
     private let title: String
     
@@ -23,14 +22,12 @@ internal class Settings: NSStackView, Settings_v {
     public var callback: (() -> Void) = {}
     public var setInterval: ((_ value: Int) -> Void) = {_ in }
     
-    private var hyperthreadView: NSView? = nil
     private var button: NSPopUpButton?
     
     public init(_ module: ModuleType) {
         self.title = module.stringValue
         self.selectedGPU = Store.shared.string(key: "\(self.title)_gpu", defaultValue: "")
         self.updateIntervalValue = Store.shared.int(key: "\(self.title)_updateInterval", defaultValue: self.updateIntervalValue)
-        self.showTypeValue = Store.shared.bool(key: "\(self.title)_showType", defaultValue: self.showTypeValue)
         
         super.init(frame: NSRect(x: 0, y: 0, width: 0, height: 0))
         
@@ -54,17 +51,6 @@ internal class Settings: NSStackView, Settings_v {
                 selected: "\(self.updateIntervalValue)"
             ))
         ]))
-        
-        #if arch(x86_64)
-        if !widgets.filter({ $0 == .mini }).isEmpty {
-            self.addArrangedSubview(PreferencesSection([
-                PreferencesRow(localizedString("Show GPU type"), component: switchView(
-                    action: #selector(self.toggleShowType),
-                    state: self.showTypeValue
-                ))
-            ]))
-        }
-        #endif
         
         self.button = selectView(
             action: #selector(self.handleSelection),
@@ -118,10 +104,5 @@ internal class Settings: NSStackView, Settings_v {
         self.selectedGPU = key
         Store.shared.set(key: "\(self.title)_gpu", value: key)
         self.selectedGPUHandler(key)
-    }
-    @objc private func toggleShowType(_ sender: NSControl) {
-        self.showTypeValue = controlState(sender)
-        Store.shared.set(key: "\(self.title)_showType", value: self.showTypeValue)
-        self.callback()
     }
 }

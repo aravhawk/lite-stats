@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Dela anonym telemetridata";
 "Do not share anonymous telemetry data" = "Dela inte anonym telemetridata";
 "The configuration is completed" = "Konfigurationen är slutförd";
-"finish_setup_message" = "Allt är inställt! \n Lite Stats är ett verktyg med öppen källkod, det är gratis och kommer alltid att vara det. \n Om du gillar det kan du stödja projektet, det uppskattas alltid!";
 
 // Alerts
 "New version available" = "Ny version tillgänglig";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Uppdateringen lyckades";
 "Lite Stats was updated to v" = "Lite Stats uppdaterades till v%0";
 "Reset settings text" = "Alla programinställningar kommer att återställas och programmet startas om. Är du säker på att du vill göra detta?";
-"Support text" = "Tack för att du använder Lite Stats!\n\n Att underhålla och förbättra detta projekt med öppen källkod tar tid och resurser. Ditt stöd hjälper oss att fortsätta tillhandahålla en gratis och tillförlitlig applikation för alla.\n\nOm du tycker att Lite Stats är användbart kan du överväga att ge ett bidrag. Varje liten bit hjälper!";
 
 // Settings
 "Open Activity Monitor" = "Öppna Aktivitetsövervakaren";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Temperaturenhet";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Spara fläkthastighet";
 "Fan" = "Fläkt";
 "HID sensors" = "HID-sensorer";
-"Synchronize fan's control" = "Synkronisera fläktkontroll";
 "Current" = "Ström";
 "Energy" = "Energi";
 "Show unknown sensors" = "Visa okända sensorer";
-"Install fan helper" = "Installera fläkthjälpare";
-"Uninstall fan helper" = "Avinstallera fläkthjälpare";
 "Fan value" = "Fläktvärde";
-"Turn off fan" = "Stäng av fläkt";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Du håller på att stänga av fläkten. Detta är en inte rekommenderad åtgärd som kan skada din Mac, är du säker på att du vill göra detta?";
 "Sensor threshold" = "Sensortröskel";
 "Left fan" = "Vänster";
 "Right fan" = "Höger";

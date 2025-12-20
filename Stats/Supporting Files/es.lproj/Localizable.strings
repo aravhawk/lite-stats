@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Compartir datos anónimos de telemetría";
 "Do not share anonymous telemetry data" = "No compartir datos anónimos de telemetría";
 "The configuration is completed" = "La configuración ha sido completada";
-"finish_setup_message" = "¡Todo ha sido configurado! \n Lite Stats es una herramienta de código abierto, es gratis y siempre lo será. \n Si te gusta puedes apoyar el proyecto, ¡siempre es apreciado!";
 
 // Alerts
 "New version available" = "Nueva versión disponible";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Actualización completada con éxito";
 "Lite Stats was updated to v" = "Lite Stats se ha actualizado a v%0";
 "Reset settings text" = "Todos los ajustes de la aplicación serán restablecidos y la aplicación se reiniciará. ¿Seguro que quieres hacer esto?";
-"Support text" = "Gracias por usar Lite Stats. Mantener y mejorar este proyecto de código abierto requiere tiempo y recursos. Tu apoyo nos ayuda a seguir proporcionando una aplicación gratuita y fiable para todo el mundo.\nSi Lite Stats te resulta útil, por favor, considera hacer una contribución. Todo ayuda.";
 
 // Settings
 "Open Activity Monitor" = "Abrir Monitor de Actividad";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Unidad de temperatura";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Guardar la velocidad del ventilador";
 "Fan" = "Ventilador";
 "HID sensors" = "Sensores HID";
-"Synchronize fan's control" = "Sincronizar control del ventilador";
 "Current" = "Corriente";
 "Energy" = "Energía";
 "Show unknown sensors" = "Mostrar sensores desconocidos";
-"Install fan helper" = "Instalar fan helper";
-"Uninstall fan helper" = "Desinstalar fan helper";
 "Fan value" = "Valor de ventilador";
-"Turn off fan" = "Apagar ventilador";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Vas a apagar el ventilador. Esto puede dañar tu Mac y no se recomienda. ¿Seguro que quieres hacerlo?";
 "Sensor threshold" = "Umbral del sensor";
 "Left fan" = "Ventilador izquierdo";
 "Right fan" = "Ventilador derecho";

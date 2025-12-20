@@ -679,13 +679,13 @@ private class ButtonSelectorView: NSStackView {
     }()
     
     private var settingsIcon: NSImage {
-        if #available(macOS 12.0, *), let icon = iconFromSymbol(name: "gear", scale: .large) {
+        if let icon = iconFromSymbol(name: "gear", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("settings"))!
     }
     private var previewIcon: NSImage {
-        if #available(macOS 12.0, *), let icon = iconFromSymbol(name: "command", scale: .large) {
+        if let icon = iconFromSymbol(name: "command", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("chart"))!

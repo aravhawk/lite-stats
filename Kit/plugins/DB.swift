@@ -14,95 +14,106 @@ import Foundation
 public class DB {
     public static let shared = DB()
     
-    private var lldb: LLDB? = nil
+    private let defaults: UserDefaults
     private let queue = DispatchQueue(label: "com.aravhawk.lite-stats.db")
     private let ttl: Int = 60*60
+    private let keyPrefix = "db."
     
-    public var _writeTS: [String: Date] = [:]
-    public var writeTS: [String: Date] {
-        get { self.queue.sync { self._writeTS } }
-        set { self.queue.sync { self._writeTS = newValue } }
-    }
-    
-    private var _values: [String: Codable] = [:]
-    public var values: [String: Codable] {
-        get { self.queue.sync { self._values } }
-        set { self.queue.sync { self._values = newValue } }
-    }
+    private var writeTS: [String: Date] = [:]
+    private var values: [String: Codable] = [:]
     
     init() {
+        let bundleId = Bundle.main.bundleIdentifier ?? "com.aravhawk.lite-stats"
+        self.defaults = UserDefaults(suiteName: "\(bundleId).db") ?? .standard
+        self.cleanupLegacyStore()
+    }
+    
+    private func storageKey(_ key: String) -> String {
+        return "\(self.keyPrefix)\(key)"
+    }
+
+    private func cleanupLegacyStore() {
         let fileManager = FileManager.default
-        let supportPath = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("Lite Stats")
-        let tmpPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("Lite Stats")
+        let supportRoot = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory())
         
-        try? fileManager.createDirectory(at: supportPath, withIntermediateDirectories: true, attributes: nil)
-        try? fileManager.createDirectory(at: tmpPath, withIntermediateDirectories: true, attributes: nil)
+        let legacyFolders = [
+            supportRoot?.appendingPathComponent("Lite Stats").appendingPathComponent("lldb"),
+            tempRoot.appendingPathComponent("Lite Stats").appendingPathComponent("lldb")
+        ].compactMap { $0 }
         
-        var dbURL: URL?
-        var tmpURL: URL?
-        
-        if let values = try? supportPath.resourceValues(forKeys: [.isDirectoryKey]), values.isDirectory ?? false {
-            dbURL = supportPath.appendingPathComponent("lldb")
+        legacyFolders.forEach { url in
+            guard fileManager.fileExists(atPath: url.path) else { return }
+            try? fileManager.removeItem(at: url)
+            
+            let parent = url.deletingLastPathComponent()
+            if let contents = try? fileManager.contentsOfDirectory(atPath: parent.path), contents.isEmpty {
+                try? fileManager.removeItem(at: parent)
+            }
         }
-        if let values = try? tmpPath.resourceValues(forKeys: [.isDirectoryKey]), values.isDirectory ?? false {
-            tmpURL = tmpPath.appendingPathComponent("lldb")
-        }
-        if dbURL == nil && tmpURL != nil {
-            dbURL = tmpURL
-        }
-        
-        if let url = dbURL, let lldb = LLDB(url.path) {
-            self.lldb = lldb
-            return
-        }
-        if let url = tmpURL, let lldb = LLDB(url.path) {
-            self.lldb = lldb
-            return
-        }
-        
-        print("ERROR INITIALIZE DB")
     }
     
-    deinit {
-        self.lldb?.close()
-    }
-    
-    public func setup<T: Codable>(_ type: T.Type, _ key: String) {
-        self.clean(key)
-        if let raw = self.lldb?.findOne(key), let value = try? JSONDecoder().decode(type, from: Data(raw.utf8)) {
+    private func setValue(_ value: Codable, for key: String) {
+        self.queue.sync {
             self.values[key] = value
         }
     }
     
+    private func getValue<T>(for key: String, type: T.Type) -> T? {
+        return self.queue.sync {
+            return self.values[key] as? T
+        }
+    }
+    
+    private func getWriteTS(for key: String) -> Date? {
+        return self.queue.sync {
+            return self.writeTS[key]
+        }
+    }
+    
+    private func setWriteTS(_ date: Date, for key: String) {
+        self.queue.sync {
+            self.writeTS[key] = date
+        }
+    }
+    
+    public func setup<T: Codable>(_ type: T.Type, _ key: String) {
+        self.clean(key)
+        if let data = self.defaults.data(forKey: self.storageKey(key)),
+           let value = try? JSONDecoder().decode(type, from: data) {
+            self.setValue(value, for: key)
+        }
+    }
+    
     public func insert(key: String, value: Codable, ts: Bool = true, force: Bool = false) {
-        self.values[key] = value
-        guard let blobData = try? JSONEncoder().encode(value), let str = String(data: blobData, encoding: .utf8) else { return }
+        self.setValue(value, for: key)
+        guard let blobData = try? JSONEncoder().encode(value) else { return }
         
         if ts {
-            self.lldb?.insert("\(key)@\(Date().currentTimeSeconds())", value: str)
+            self.defaults.set(blobData, forKey: self.storageKey("\(key)@\(Date().currentTimeSeconds())"))
         }
         
-        if !force, let ts = self.writeTS[key], (Date().timeIntervalSince1970-ts.timeIntervalSince1970) < 30 { return }
+        if !force, let ts = self.getWriteTS(for: key), Date().timeIntervalSince(ts) < 30 { return }
         
-        self.lldb?.insert(key, value: str)
-        self.writeTS[key] = Date()
+        self.defaults.set(blobData, forKey: self.storageKey(key))
+        self.setWriteTS(Date(), for: key)
     }
     
     public func findOne<T: Decodable>(_ dynamicType: T.Type, key: String) -> T? {
-        return self.values[key] as? T
+        return self.getValue(for: key, type: T.self)
     }
     
     private func clean(_ key: String) {
-        guard let keys = self.lldb?.keys(key) as? [String] else { return }
+        let prefix = self.storageKey("\(key)@")
         let maxLiveTS = Date().currentTimeSeconds() - self.ttl
         var toDeleteKeys: [String] = []
         
+        let keys = self.defaults.dictionaryRepresentation().keys.filter { $0.hasPrefix(prefix) }
         keys.forEach { (key: String) in
-            if let ts = key.split(separator: "@").last, let ts = Int(ts), ts < maxLiveTS {
-                toDeleteKeys.append(key)
-            }
+            guard let ts = key.split(separator: "@").last, let ts = Int(ts) else { return }
+            if ts < maxLiveTS { toDeleteKeys.append(key) }
         }
         
-        self.lldb?.deleteMany(toDeleteKeys)
+        toDeleteKeys.forEach { self.defaults.removeObject(forKey: $0) }
     }
 }

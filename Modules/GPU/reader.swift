@@ -13,16 +13,10 @@ import Cocoa
 import Kit
 
 public struct device {
-    public let vendor: String?
     public let model: String
     public let pci: String
     public var used: Bool
 }
-
-let vendors: [Data: String] = [
-    Data.init([0x86, 0x80, 0x00, 0x00]): "Intel",
-    Data.init([0x02, 0x10, 0x00, 0x00]): "AMD"
-]
 
 internal class InfoReader: Reader<GPUs> {
     private var gpus: GPUs = GPUs()
@@ -52,13 +46,7 @@ internal class InfoReader: Reader<GPUs> {
             }
             let model = modelName.replacingOccurrences(of: "\0", with: "")
             
-            var vendor: String? = nil
-            if let v = vendors.first(where: { $0.key == vendorID }) {
-                vendor = v.value
-            }
-            
             self.devices.append(device(
-                vendor: vendor,
                 model: model,
                 pci: pci,
                 used: false
@@ -84,7 +72,6 @@ internal class InfoReader: Reader<GPUs> {
             }
             
             var id: String = ""
-            var vendor: String? = nil
             var model: String = ""
             var cores: Int? = nil
             let accMatch = (accelerator["IOPCIMatch"] as? String ?? accelerator["IOPCIPrimaryMatch"] as? String ?? "").lowercased()
@@ -92,7 +79,6 @@ internal class InfoReader: Reader<GPUs> {
             for (i, device) in devices.enumerated() {
                 if accMatch.range(of: device.pci) != nil && !device.used {
                     model = device.model
-                    vendor = device.vendor
                     id = "\(model) #\(index)"
                     devices[i].used = true
                     break
@@ -100,7 +86,7 @@ internal class InfoReader: Reader<GPUs> {
             }
             
             let ioClass = IOClass.lowercased()
-            var predictModel = ""
+            var predictModel = "Unknown"
             var type: GPU_types = .unknown
             
             let utilization: Int? = stats["Device Utilization %"] as? Int ?? stats["GPU Activity(%)"] as? Int ?? nil
@@ -111,28 +97,7 @@ internal class InfoReader: Reader<GPUs> {
             let coreClock: Int? = stats["Core Clock(MHz)"] as? Int ?? nil
             let memoryClock: Int? = stats["Memory Clock(MHz)"] as? Int ?? nil
             
-            if ioClass == "nvaccelerator" || ioClass.contains("nvidia") { // nvidia
-                predictModel = "Nvidia Graphics"
-                type = .discrete
-            } else if ioClass.contains("amd") { // amd
-                predictModel = "AMD Graphics"
-                type = .discrete
-                
-                if temperature == nil || temperature == 0 {
-                    if let tmp = SMC.shared.getValue("TGDD"), tmp != 128 {
-                        temperature = Int(tmp)
-                    }
-                }
-            } else if ioClass.contains("intel") { // intel
-                predictModel = "Intel Graphics"
-                type = .integrated
-                
-                if temperature == nil || temperature == 0 {
-                    if let tmp = SMC.shared.getValue("TCGC"), tmp != 128 {
-                        temperature = Int(tmp)
-                    }
-                }
-            } else if ioClass.contains("agx") { // apple
+            if ioClass.contains("agx") { // apple
                 predictModel = stats["model"] as? String ?? "Apple Graphics"
                 if let display = self.displays.first(where: { $0.vendor == "sppci_vendor_Apple" }) {
                     if let name = display.name {
@@ -143,24 +108,17 @@ internal class InfoReader: Reader<GPUs> {
                     }
                 }
                 type = .integrated
-            } else {
-                predictModel = "Unknown"
-                type = .unknown
             }
             
             if model == "" {
                 model = predictModel
             }
-            if let v = vendor {
-                model = model.removedRegexMatches(pattern: v, replaceWith: "").trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            
             if self.gpus.list.first(where: { $0.id == id }) == nil {
                 self.gpus.list.append(GPU_Info(
                     id: id,
                     type: type.rawValue,
                     IOClass: IOClass,
-                    vendor: vendor,
+                    vendor: nil,
                     model: model,
                     cores: cores
                 ))

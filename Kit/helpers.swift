@@ -14,53 +14,29 @@ import Cocoa
 import ServiceManagement
 import UserNotifications
 import WebKit
-import Metal
 
 public struct LaunchAtLogin {
     private static let id = "\(Bundle.main.bundleIdentifier!).LaunchAtLogin"
+    private static var service: SMAppService {
+        SMAppService.loginItem(identifier: id)
+    }
     
     public static var isEnabled: Bool {
         get {
-            if #available(macOS 13, *) {
-                return isEnabledNext
-            } else {
-                return isEnabledLegacy
-            }
+            return service.status == .enabled
         }
-        set {
-            if #available(macOS 13, *) {
-                isEnabledNext = newValue
-            } else {
-                isEnabledLegacy = newValue
-            }
-        }
-    }
-    
-    private static var isEnabledLegacy: Bool {
-        get {
-            guard let jobs = (LaunchAtLogin.self as DeprecationWarningWorkaround.Type).jobsDict else {
-                return false
-            }
-            let job = jobs.first { $0["Label"] as! String == id }
-            return job?["OnDemand"] as? Bool ?? false
-        }
-        set {
-            SMLoginItemSetEnabled(id as CFString, newValue)
-        }
-    }
-    
-    @available(macOS 13, *)
-    private static var isEnabledNext: Bool {
-        get { SMAppService.mainApp.status == .enabled }
         set {
             do {
                 if newValue {
-                    if SMAppService.mainApp.status == .enabled {
-                        try? SMAppService.mainApp.unregister()
-                    }
-                    try SMAppService.mainApp.register()
+                    guard service.status != .enabled else { return }
+                    try service.register()
                 } else {
-                    try SMAppService.mainApp.unregister()
+                    switch service.status {
+                    case .enabled, .requiresApproval:
+                        try service.unregister()
+                    default:
+                        break
+                    }
                 }
             } catch {
                 print("failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
@@ -69,25 +45,8 @@ public struct LaunchAtLogin {
     }
     
     public static func migrate() {
-        guard #available(macOS 13, *), !Store.shared.exist(key: "LaunchAtLoginNext") else {
-            return
-        }
-        
+        guard !Store.shared.exist(key: "LaunchAtLoginNext") else { return }
         Store.shared.set(key: "LaunchAtLoginNext", value: true)
-        isEnabledNext = isEnabledLegacy
-        isEnabledLegacy = false
-        try? SMAppService.loginItem(identifier: id).unregister()
-    }
-}
-
-private protocol DeprecationWarningWorkaround {
-    static var jobsDict: [[String: AnyObject]]? { get }
-}
-
-extension LaunchAtLogin: DeprecationWarningWorkaround {
-    @available(*, deprecated)
-    static var jobsDict: [[String: AnyObject]]? {
-        SMCopyAllJobDictionaries(kSMDomainUserLaunchd)?.takeRetainedValue() as? [[String: AnyObject]]
     }
 }
 
@@ -448,40 +407,11 @@ public extension Array where Element: Hashable {
 }
 
 public func toggleNSControlState(_ control: NSControl?, state: NSControl.StateValue) {
-    if #available(OSX 10.15, *) {
-        if let checkbox = control as? NSSwitch {
-            checkbox.state = state
-        }
-    } else {
-        if let checkbox = control as? NSButton {
-            checkbox.state = state
-        }
+    if let checkbox = control as? NSSwitch {
+        checkbox.state = state
+    } else if let checkbox = control as? NSButton {
+        checkbox.state = state
     }
-}
-
-public func asyncShell(_ args: String) {
-    let task = Process()
-    task.launchPath = "/bin/sh"
-    task.arguments = ["-c", args]
-    let pipe = Pipe()
-    task.standardOutput = pipe
-    task.launch()
-}
-
-public func syncShell(_ args: String) -> String {
-    let task = Process()
-    task.launchPath = "/bin/sh"
-    task.arguments = ["-c", args]
-    let pipe = Pipe()
-    
-    task.standardOutput = pipe
-    task.launch()
-    task.waitUntilExit()
-    
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    let output = String(data: data, encoding: .utf8)!
-
-    return output
 }
 
 internal struct Version {
@@ -831,8 +761,9 @@ internal class WidgetLabelView: NSView {
 
 public func process(path: String, arguments: [String]) -> String? {
     let task = Process()
-    task.launchPath = path
+    task.executableURL = URL(fileURLWithPath: path)
     task.arguments = arguments
+    task.qualityOfService = .utility
     
     let outputPipe = Pipe()
     defer {
@@ -843,7 +774,7 @@ public func process(path: String, arguments: [String]) -> String? {
     do {
         try task.run()
     } catch let error {
-        debug("system_profiler SPMemoryDataType: \(error.localizedDescription)")
+        debug("process failed (\(path)): \(error.localizedDescription)")
         return nil
     }
     
@@ -864,154 +795,6 @@ public class SettingsContainerView: NSStackView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-}
-
-public class SMCHelper {
-    public static let shared = SMCHelper()
-    
-    public var isInstalled: Bool {
-        syncShell("ls /Library/PrivilegedHelperTools/").contains("com.aravhawk.lite-stats.SMC.Helper")
-    }
-    
-    private var connection: NSXPCConnection? = nil
-    
-    public func setFanSpeed(_ id: Int, speed: Int) {
-        guard let helper = self.helper(nil) else { return }
-        helper.setFanSpeed(id: id, value: speed) { result in
-            if let result, !result.isEmpty {
-                NSLog("set fan speed: \(result)")
-            }
-        }
-    }
-    
-    public func setFanMode(_ id: Int, mode: Int) {
-        guard let helper = self.helper(nil) else { return }
-        helper.setFanMode(id: id, mode: mode) { result in
-            if let result, !result.isEmpty {
-                NSLog("set fan mode: \(result)")
-            }
-        }
-    }
-    
-    public func isActive() -> Bool {
-        return self.connection != nil
-    }
-    
-    public func checkForUpdate() {
-        let helperURL = Bundle.main.bundleURL.appendingPathComponent("Contents/Library/LaunchServices/com.aravhawk.lite-stats.SMC.Helper")
-        guard let helperBundleInfo = CFBundleCopyInfoDictionaryForURL(helperURL as CFURL) as? [String: Any],
-              let helperVersion = helperBundleInfo["CFBundleShortVersionString"] as? String,
-              let helper = self.helper(nil) else { return }
-        
-        helper.version { installedHelperVersion in
-            guard installedHelperVersion != helperVersion else { return }
-            print("new version of SMC helper is detected, going to update...")
-            self.uninstall(silent: true)
-            self.install { installed in
-                if installed {
-                    print("the new version of SMC helper was successfully installed")
-                } else {
-                    print("error when installing a new version of the SMC helper")
-                }
-            }
-        }
-    }
-    
-    public func install(completion: @escaping (_ installed: Bool) -> Void) {
-        var authRef: AuthorizationRef?
-        var authStatus = AuthorizationCreate(nil, nil, [.preAuthorize], &authRef)
-        
-        guard authStatus == errAuthorizationSuccess else {
-            print("Unable to get a valid empty authorization reference to load Helper daemon")
-            completion(false)
-            return
-        }
-        
-        let authItem = kSMRightBlessPrivilegedHelper.withCString { authorizationString in
-            AuthorizationItem(name: authorizationString, valueLength: 0, value: nil, flags: 0)
-        }
-        
-        let pointer = UnsafeMutablePointer<AuthorizationItem>.allocate(capacity: 1)
-        pointer.initialize(to: authItem)
-        
-        defer {
-            pointer.deinitialize(count: 1)
-            pointer.deallocate()
-        }
-        
-        var authRights = AuthorizationRights(count: 1, items: pointer)
-        
-        let flags: AuthorizationFlags = [.interactionAllowed, .extendRights, .preAuthorize]
-        authStatus = AuthorizationCreate(&authRights, nil, flags, &authRef)
-        
-        guard authStatus == errAuthorizationSuccess else {
-            print("Unable to get a valid loading authorization reference to load Helper daemon")
-            completion(false)
-            return
-        }
-        
-        var error: Unmanaged<CFError>?
-        if SMJobBless(kSMDomainUserLaunchd, "com.aravhawk.lite-stats.SMC.Helper" as CFString, authRef, &error) == false {
-            let blessError = error!.takeRetainedValue() as Error
-            print("Error while installing the Helper: \(blessError.localizedDescription)")
-            completion(false)
-            return
-        }
-        
-        AuthorizationFree(authRef!, [])
-        completion(true)
-    }
-    
-    private func helperConnection() -> NSXPCConnection? {
-        guard self.connection == nil else {
-            return self.connection
-        }
-        
-        let connection = NSXPCConnection(machServiceName: "com.aravhawk.lite-stats.SMC.Helper", options: .privileged)
-        connection.exportedObject = self
-        connection.remoteObjectInterface = NSXPCInterface(with: HelperProtocol.self)
-        connection.invalidationHandler = {
-            self.connection?.invalidationHandler = nil
-            OperationQueue.main.addOperation {
-                self.connection = nil
-            }
-        }
-        
-        self.connection = connection
-        self.connection?.resume()
-        
-        return self.connection
-    }
-    
-    private func helper(_ completion: ((Bool) -> Void)?) -> HelperProtocol? {
-        guard let helper = self.helperConnection() else {
-            completion?(false)
-            return nil
-        }
-        guard let service = helper.remoteObjectProxyWithErrorHandler({ error in
-            print(error)
-        }) as? HelperProtocol else {
-            completion?(false)
-            return nil
-        }
-        
-        service.setSMCPath(Bundle.main.path(forResource: "smc", ofType: nil)!)
-        
-        return service
-    }
-    
-    public func uninstall(silent: Bool = false) {
-        if let count = SMC.shared.getValue("FNum") {
-            for i in 0..<Int(count) {
-                self.setFanMode(i, mode: 0)
-            }
-        }
-        guard let helper = self.helper(nil) else { return }
-        helper.uninstall()
-        if !silent {
-            NotificationCenter.default.post(name: .fanHelperState, object: nil, userInfo: ["state": false])
-        }
     }
 }
 
@@ -1195,18 +978,15 @@ public class AppIcon: NSView {
 }
 
 public func controlState(_ sender: NSControl) -> Bool {
-    var state: NSControl.StateValue
-    
-    if #available(OSX 10.15, *) {
-        state = sender is NSSwitch ? (sender as! NSSwitch).state : .off
-    } else {
-        state = sender is NSButton ? (sender as! NSButton).state : .off
+    if let toggle = sender as? NSSwitch {
+        return toggle.state == .on
     }
-    
-    return state == .on
+    if let button = sender as? NSButton {
+        return button.state == .on
+    }
+    return false
 }
 
-@available(macOS 11.0, *)
 public func iconFromSymbol(name: String, scale: NSImage.SymbolScale) -> NSImage? {
     let config = NSImage.SymbolConfiguration(textStyle: .body, scale: scale)
     if let symbol = NSImage(systemSymbolName: name, accessibilityDescription: nil) {
@@ -1441,9 +1221,11 @@ public class PreferencesRow: NSStackView {
 
 public func restartApp(_ sender: Any, afterDelay seconds: TimeInterval = 0.5) -> Never {
     let task = Process()
-    task.launchPath = "/bin/sh"
+    task.executableURL = URL(fileURLWithPath: "/bin/sh")
     task.arguments = ["-c", "sleep \(seconds); open \"\(Bundle.main.bundlePath)\""]
-    task.launch()
+    task.standardOutput = FileHandle.nullDevice
+    task.standardError = FileHandle.nullDevice
+    try? task.run()
     NSApp.terminate(sender)
     exit(0)
 }

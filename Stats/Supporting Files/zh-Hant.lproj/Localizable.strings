@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "分享匿名診斷資料";
 "Do not share anonymous telemetry data" = "不同意分享診斷資料";
 "The configuration is completed" = "組態設定完成！";
-"finish_setup_message" = "所有設定均已大功告成！\n Lite Stats 是一款開源且永久免費的工具程式。\n 由衷地感謝您喜歡與愛用 Lite Stats，也歡迎您支持這個專案！";
 
 // Alerts
 "New version available" = "有新版本可用";
@@ -131,7 +130,6 @@
 "Successfully updated" = "更新成功";
 "Lite Stats was updated to v" = "Lite Stats 已更新到 v%0";
 "Reset settings text" = "應用程式的所有設定將會重置，並會重新打開此應用程式。您確定要這樣做嗎？";
-"Support text" = "感謝您使用 Lite Stats！維護並改進此開放原始碼專案需要花費時間與資源。如果覺得 Lite Stats 對您有所幫助，歡迎贊助我們。您的一分一毫都帶給我們莫大的幫助！";
 
 // Settings
 "Open Activity Monitor" = "打開活動監視器";
@@ -354,18 +352,12 @@
 "Temperature unit" = "溫度單位";
 "Celsius" = "攝氏 (˚C)";
 "Fahrenheit" = "華氏 (˚F)";
-"Save the fan speed" = "儲存風扇速度";
 "Fan" = "風扇";
 "HID sensors" = "HID 感知器";
-"Synchronize fan's control" = "同步風扇控制";
 "Current" = "電流";
 "Energy" = "能耗";
 "Show unknown sensors" = "顯示未知的感知器";
-"Install fan helper" = "安裝風扇輔助程式";
-"Uninstall fan helper" = "解除安裝風扇輔助程式";
 "Fan value" = "風扇轉速值";
-"Turn off fan" = "關閉風扇";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "您似乎要關閉您 Mac 的風扇。不建議進行此操作，因為這可能會造成 Mac 的損毀，您確定仍要關閉風扇嗎？";
 "Sensor threshold" = "感知器臨界值";
 "Left fan" = "左側風扇";
 "Right fan" = "右側風扇";

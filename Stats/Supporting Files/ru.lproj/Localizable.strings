@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Делится анонимными данными телеметрии";
 "Do not share anonymous telemetry data" = "Не передавайте анонимные данные телеметрии";
 "The configuration is completed" = "Настройка завершена";
-"finish_setup_message" = "Все готово! \n Lite Stats — это инструмент с открытым исходным кодом, он бесплатный и всегда будет бесплатным. \n Если вам нравится, вы можете поддержать проект, это всегда ценно!";
 
 // Alerts
 "New version available" = "Доступна новая версия";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Успешно обновлено";
 "Lite Stats was updated to v" = "Lite Stats обновлено до v%0";
 "Reset settings text" = "Все настройки приложения будут сброшены, и приложение будет перезапущено. Вы уверены, что хотите это сделать?";
-"Support text" = "Спасибо за использование Lite Stats.\n\n Поддержание и улучшение этого проекта с открытым исходным кодом требует времени и ресурсов. Ваша поддержка помогает нам продолжать предоставлять бесплатное и надежное приложение для всех.\n\nЕсли вы находите Lite Stats полезным, пожалуйста, подумайте о том, чтобы сделать взнос. Каждый маленький кусочек помогает!";
 
 // Settings
 "Open Activity Monitor" = "Открыть Мониторинг системы";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Единица измерения температуры";
 "Celsius" = "Цельсия";
 "Fahrenheit" = "Фаренгейта";
-"Save the fan speed" = "Сохранить скорость вентилятора";
 "Fan" = "Вентилятор";
 "HID sensors" = "HID датчики";
-"Synchronize fan's control" = "Синхронизировать управление вентиляторами";
 "Current" = "Ток";
 "Energy" = "Энергия";
 "Show unknown sensors" = "Показать неизвестные датчики";
-"Install fan helper" = "Установить помощник для вентилятора";
-"Uninstall fan helper" = "Удалить помощник для вентилятора";
 "Fan value" = "Значение вентилятора";
-"Turn off fan" = "Выключить вентилятор";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Вы собираетесь выключить вентилятор. Это не рекомендуемое действие, которое может сломать ваш Mac. Вы уверены, что хотите это сделать?";
 "Sensor threshold" = "Порог датчика";
 "Left fan" = "Левый";
 "Right fan" = "Правый";

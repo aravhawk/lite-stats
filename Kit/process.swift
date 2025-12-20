@@ -10,6 +10,7 @@
 //
 
 import Cocoa
+import Darwin
 
 public protocol Process_p {
     var pid: Int { get }
@@ -264,8 +265,9 @@ public class ProcessView: NSStackView {
     }
     
     @objc private func kill() {
-        if let pid = self.pid {
-            asyncShell("kill \(pid)")
+        guard let pid = self.pid else { return }
+        DispatchQueue.global(qos: .utility).async {
+            _ = Darwin.kill(pid_t(pid), SIGTERM)
         }
     }
 }

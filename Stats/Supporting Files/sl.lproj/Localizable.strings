@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Deli anonimne podatke telemetrije";
 "Do not share anonymous telemetry data" = "Ne deli anonimne podatke telemetrije";
 "The configuration is completed" = "Konfiguracija je zaključena";
-"finish_setup_message" = "Vse je pripravljeno! \n Lite Stats je odprtokodno orodje katero je brezplačno in vedno bo. \Če vam je všeč, lahko projekt podprete, kar je vedno dobrodošlo!";
 
 // Alerts
 "New version available" = "Na voljo je nova različica";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Uspešno posodobljeno";
 "Lite Stats was updated to v" = "Program Lite Stats je bil posodobljen na v%0";
 "Reset settings text" = "Vse nastavitve aplikacije se bodo ponastavile in aplikacija se bo znova zagnala. Ali ste prepričani, da to storiti?";
-"Support text" = "Zahvaljujemo se vam za uporabo Lite Stats!\n\n Vzdrževanje in izboljševanje tega odprtokodnega projekta zahteva čas in sredstva. Vaša podpora nam pomaga še naprej zagotavljati brezplačno in zanesljivo aplikacijo za vsakogar.\n\nČe vam je program Lite Stats koristen, razmislite o prispevku. Vsaka malenkost šteje!";
 
 // Settings
 "Open Activity Monitor" = "Odpri monitor dejavnosti";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Enota za temperaturo";
 "Celsius" = "Celzija";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Shrani hitrost ventilatorja";
 "Fan" = "Ventilator";
 "HID sensors" = "HID senzorji";
-"Synchronize fan's control" = "Sinhroniziraj krmiljenje ventilatorja";
 "Current" = "Tok";
 "Energy" = "Energija";
 "Show unknown sensors" = "Prikaži neznane senzorje";
-"Install fan helper" = "Namesti pomočnika za ventilatorje";
-"Uninstall fan helper" = "Odstrani pomočnika za ventilatorje";
 "Fan value" = "Vrednost ventilatorja";
-"Turn off fan" = "Izklopi ventilator";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Izklopili boste ventilator. To ni priporočljivo dejanje, saj lahko poškoduje vaš računalnik. Ali ste prepričani, da želite to storiti?";
 "Sensor threshold" = "Prag zaznavanja";
 "Left fan" = "Levi ventilator";
 "Right fan" = "Desni ventilator";

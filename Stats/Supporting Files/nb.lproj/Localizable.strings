@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Del anonyme telemetridata";
 "Do not share anonymous telemetry data" = "Ikke del anonyme telemetridata";
 "The configuration is completed" = "Konfigurasjonen er fullført";
-"finish_setup_message" = "Alt er satt opp! \n Lite Stats er et fritt tilgjengelig verktøy, det er gratis og vil alltid være det. \n Hvis du liker Lite Stats, kan du støtte prosjektet, det settes veldig pris på!";
 
 // Alerts
 "New version available" = "Ny versjon tilgjengelig";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Oppdateringen var vellykket";
 "Lite Stats was updated to v" = "Lite Stats ble oppdatert til v%0";
 "Reset settings text" = "Alle innstillinger vil bli nullstilt og applikasjonen vil starte på nytt. Er du sikker på at du vil gjøre dette?";
-"Support text" = "Takk for at du bruker Lite Stats!\n\nDet krever tid og ressurser å vedlikeholde og forbedre dette åpen kildekode-prosjektet. Din støtte hjelper oss med å fortsette å tilby et gratis og pålitelig program for alle. Hvis du synes Lite Stats er nyttig, kan du vurdere å gi et bidrag. Hver eneste lille bit hjelper!";
 
 // Settings
 "Open Activity Monitor" = "Åpne Aktivitetsmonitor";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Temperaturenhet";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Lagre viftehastighet";
 "Fan" = "Vifte";
 "HID sensors" = "HID-sensorer";
-"Synchronize fan's control" = "Synkroniser viftekontroll";
 "Current" = "Nåværende";
 "Energy" = "Energi";
 "Show unknown sensors" = "Vis ukjente sensorer";
-"Install fan helper" = "Installer viftehjelper";
-"Uninstall fan helper" = "Avinstaller viftehjelper";
 "Fan value" = "Vifteverdi";
-"Turn off fan" = "Slå av viften";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Du slå nå av viften. Dette er en ikke-anbefalt handling som kan skade Mac-en din, er du sikker på at vil gjøre dette?";
 "Sensor threshold" = "Sensor threshold";
 "Left fan" = "Left";
 "Right fan" = "Right";

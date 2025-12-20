@@ -37,8 +37,22 @@ extension AppDelegate {
         if let mountIndex = args.firstIndex(of: "--mount-path") {
             if args.indices.contains(mountIndex+1) {
                 let mountPath = args[mountIndex+1]
-                asyncShell("/usr/bin/hdiutil detach \(mountPath)")
-                asyncShell("/bin/rm -rf \(mountPath)")
+                DispatchQueue.global(qos: .utility).async {
+                    let task = Process()
+                    task.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+                    task.arguments = ["detach", mountPath]
+                    task.qualityOfService = .utility
+                    task.standardOutput = FileHandle.nullDevice
+                    task.standardError = FileHandle.nullDevice
+                    do {
+                        try task.run()
+                        task.waitUntilExit()
+                    } catch {
+                        debug("hdiutil detach failed: \(error.localizedDescription)")
+                    }
+                    
+                    try? FileManager.default.removeItem(atPath: mountPath)
+                }
                 
                 debug("DMG was unmounted and mountPath deleted")
             }
@@ -46,7 +60,10 @@ extension AppDelegate {
         
         if let dmgIndex = args.firstIndex(of: "--dmg-path") {
             if args.indices.contains(dmgIndex+1) {
-                asyncShell("/bin/rm -rf \(args[dmgIndex+1])")
+                let dmgPath = args[dmgIndex+1]
+                DispatchQueue.global(qos: .utility).async {
+                    try? FileManager.default.removeItem(atPath: dmgPath)
+                }
                 
                 debug("DMG was deleted")
             }

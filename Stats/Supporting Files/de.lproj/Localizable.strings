@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Anonyme Telemetriedaten teilen";
 "Do not share anonymous telemetry data" = "Anonyme Telemetriedaten nicht teilen";
 "The configuration is completed" = "Die Einrichtung ist abgeschlossen";
-"finish_setup_message" = "Alles erledigt! \n Lite Stats ist ein Open Source Programm. Es ist und bleibt für immer kostenlos. \n Wenn es Ihnen gefällt, können Sie das Projekt gerne unterstützen!";
 
 // Alerts
 "New version available" = "Neue Version verfügbar";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Erfolgreich aktualisiert";
 "Lite Stats was updated to v" = "Lite Stats wurde auf v%0 aktualisiert";
 "Reset settings text" = "Alle Einstellungen von Lite Stats werden zurückgesetzt und Lite Stats wird neu gestartet. Möchten Sie dies wirklich?";
-"Support text" = "Vielen Dank, dass Sie Lite Stats nutzen!\n\n Die Pflege und Verbesserung dieses Open-Source-Projekts erfordert Zeit und Ressourcen. Ihre Unterstützung hilft uns, weiterhin eine kostenlose und zuverlässige Anwendung für jedermann bereitzustellen.\n\n Wenn Sie Lite Stats hilfreich finden, ziehen Sie bitte eine Spende in Betracht. Jedes kleine bisschen hilft!";
 
 // Settings
 "Open Activity Monitor" = "Aktivitätsanzeige öffnen";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Temperatureinheit";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Lüftergeschwindigkeit speichern";
 "Fan" = "Lüfter";
 "HID sensors" = "HID Sensoren";
-"Synchronize fan's control" = "Lüfter synchronisieren";
 "Current" = "Strom";
 "Energy" = "Energie";
 "Show unknown sensors" = "Unbekannte Sensoren anzeigen";
-"Install fan helper" = "Lüftersteuerung installieren";
-"Uninstall fan helper" = "Lüftersteuerung deinstallieren";
 "Fan value" = "Lüftergeschwindigkeit";
-"Turn off fan" = "Lüfter ausschalten";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Sie sind dabei den Lüfter auszuschalten. Dies kann den Mac beschädigen und wird daher nicht empfohlen. Möchten Sie wirklich fortfahren?";
 "Sensor threshold" = "Sensor-Schwellwert";
 "Left fan" = "Links";
 "Right fan" = "Rechts";

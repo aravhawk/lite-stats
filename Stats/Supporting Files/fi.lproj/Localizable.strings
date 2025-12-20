@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Jaa anonyymit telemetriatiedot";
 "Do not share anonymous telemetry data" = "Älä jaa anonyymejä telemetriatietoja";
 "The configuration is completed" = "Määritys on valmis";
-"finish_setup_message" = "Kaikki on valmista! \n Lite Stats on avoimen lähdekoodin työkalu, se on ilmainen ja tulee aina olemaan. \n Jos pidät siitä, voit tukea projektia, mikä on aina arvostettua!";
 
 // Alerts
 "New version available" = "Uusi versio saatavilla";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Päivitys onnistui";
 "Lite Stats was updated to v" = "Lite Stats päivitettiin versioon v%0";
 "Reset settings text" = "Kaikki sovelluksen asetukset nollataan, ja sovellus käynnistetään uudelleen. Haluatko varmasti tehdä tämän?";
-"Support text" = "Kiitos, että käytät Lite Statsia!\n\n Tämän avoimen lähdekoodin projektin ylläpitäminen ja parantaminen vie aikaa ja resursseja. Tukesi auttaa meitä jatkossakin tarjoamaan ilmaisen ja luotettavan sovelluksen kaikille.\n\nJos Lite Stats on mielestäsi hyödyllinen, harkitse lahjoituksen tekemistä. Jokainen pieni osa auttaa!";
 
 // Settings
 "Open Activity Monitor" = "Avaa Aktiviteettimonitori";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Lämpötilan yksikkö";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Tallenna tuulettimen nopeus";
 "Fan" = "Tuuletin";
 "HID sensors" = "HID-anturit";
-"Synchronize fan's control" = "Synkronoi tuulettimen hallinta";
 "Current" = "Virta";
 "Energy" = "Energia";
 "Show unknown sensors" = "Näytä tuntemattomat anturit";
-"Install fan helper" = "Asenna tuuletinavustaja";
-"Uninstall fan helper" = "Poista tuuletinavustaja";
 "Fan value" = "Tuulettimen arvo";
-"Turn off fan" = "Sammuta tuuletin";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Olet sammuttamassa tuuletinta. Tämä ei ole suositeltavaa ja voi vahingoittaa Maciasi. Haluatko varmasti tehdä tämän?";
 "Sensor threshold" = "Anturin raja";
 "Left fan" = "Vasen tuuletin";
 "Right fan" = "Oikea tuuletin";

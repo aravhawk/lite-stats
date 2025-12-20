@@ -292,20 +292,7 @@ private class SetupView_end: NSStackView {
         title.toolTip = localizedString("The configuration is completed")
         title.isSelectable = false
         
-        let content = NSStackView()
-        content.orientation = .vertical
-        
-        let message: NSTextField = TextView(frame: NSRect(x: 0, y: 0, width: container.frame.width, height: 16))
-        message.alignment = .center
-        message.font = NSFont.systemFont(ofSize: 13, weight: .regular)
-        message.stringValue = localizedString("finish_setup_message")
-        message.toolTip = localizedString("finish_setup_message")
-        message.isSelectable = false
-
-        content.addArrangedSubview(message)
-        
         container.addRow(with: [title])
-        container.addRow(with: [content])
         
         container.row(at: 0).height = 100
         

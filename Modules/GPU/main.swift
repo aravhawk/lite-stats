@@ -95,10 +95,6 @@ public class GPU: Module {
     private var notificationLevelState: Bool = false
     private var notificationID: String? = nil
     
-    private var showType: Bool {
-        Store.shared.bool(key: "\(self.config.name)_showType", defaultValue: false)
-    }
-
     public init() {
         self.popupView = Popup()
         self.settingsView = Settings(.GPU)
@@ -157,7 +153,7 @@ public class GPU: Module {
             switch w.item {
             case let widget as Mini:
                 widget.setValue(utilization)
-                widget.setTitle(self.showType ? "\(selectedGPU.type)GPU" : nil)
+                widget.setTitle(nil)
             case let widget as LineChart: widget.setValue(utilization)
             case let widget as BarChart: widget.setValue([[ColorValue(utilization)]])
             case let widget as Tachometer:

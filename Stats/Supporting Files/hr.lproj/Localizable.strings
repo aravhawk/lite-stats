@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "Konfiguracija je završena";
-"finish_setup_message" = "Sve je postavljeno! \n Lite Stats je alat otvorenog koda, besplatan je i uvijek će takav biti. \n Ako ti se program sviđa, možeš podržati projekt. Zahvalni smo za svaku vrstu podrške!!";
 
 // Alerts
 "New version available" = "Dostupna je nova verzija";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Aktualiziranje je uspjelo";
 "Lite Stats was updated to v" = "Lite Stats je aktualiziran na v%0";
 "Reset settings text" = "Sve postavke programa će se resetirati i program će se ponovo pokrenuti. Stvarno to želiš učiniti?";
-"Support text" = "Hvala vam što koristite Lite Stats!\n\n Održavanje i poboljšanje ovog projekta otvorenog koda zahtijeva vrijeme i resurse. Vaša nam podrška pomaže da nastavimo pružati besplatnu i pouzdanu aplikaciju za sve.\n\nAko smatrate da je statistika korisna, razmislite o davanju doprinosa. Svako malo pomaže!";
 
 // Settings
 "Open Activity Monitor" = "Otvori program „Praćenje aktivnosti”";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Jedinica temperature";
 "Celsius" = "Celzij";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Spremi brzinu ventilatora";
 "Fan" = "Ventilator";
 "HID sensors" = "Senzori HID uređaja";
-"Synchronize fan's control" = "Sinkroniziraj upravljanje ventilatora";
 "Current" = "Current";
 "Energy" = "Energy";
 "Show unknown sensors" = "Show unknown sensors";
-"Install fan helper" = "Install fan helper";
-"Uninstall fan helper" = "Uninstall fan helper";
 "Fan value" = "Fan value";
-"Turn off fan" = "Turn off fan";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?";
 "Sensor threshold" = "Sensor threshold";
 "Left fan" = "Left";
 "Right fan" = "Right";

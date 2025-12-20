@@ -103,7 +103,6 @@ class Notifications: NotificationsWrapper {
             ))
         ]))
         
-        #if arch(arm64)
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Efficiency cores load"), component: PreferencesSwitch(
                 action: self.toggleECoresLoad, state: self.eCoresLoadState,
@@ -114,7 +113,6 @@ class Notifications: NotificationsWrapper {
                 with: StepperInput(self.pCoresLoad, callback: self.changePCoresLoad)
             ))
         ]))
-        #endif
     }
     
     required init?(coder: NSCoder) {

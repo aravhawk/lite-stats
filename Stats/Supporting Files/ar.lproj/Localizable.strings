@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "مشاركة بيانات التشخيص المجهولة";
 "Do not share anonymous telemetry data" = "عدم مشاركة بيانات التشخيص المجهولة";
 "The configuration is completed" = "تم الانتهاء من التكوين";
-"finish_setup_message" = "كل شيء مُعدّ، الإحصاءات هي أداة مفتوحة المصدر، مجانية وستظل دائمًا كذلك. إذا كنت تستمتع بها يمكنك دعم المشروع، دائمًا محل تقدير!";
 
 // Alerts
 "New version available" = "إصدار جديد متاح";
@@ -131,7 +130,6 @@
 "Successfully updated" = "تم التحديث بنجاح";
 "Lite Stats was updated to v" = "تم تحديث الإحصاءات إلى الإصدار v%0";
 "Reset settings text" = "سيتم إعادة ضبط جميع إعدادات التطبيق وسيتم إعادة تشغيل التطبيق. هل تريد المتابعة؟";
-"Support text" = "شكرًا لك على استخدامك ل Lite Stats! \n\nيستغرق الحفاظ على هذا المشروع مفتوح المصدر وتحسينه وقتًا وموارد. دعمكم يساعدنا على الاستمرار في توفير تطبيق مجاني وموثوق للجميع. كل جزء صغير يساعدنا!";
 
 // Settings
 "Open Activity Monitor" = "فتح مراقب النشاط";
@@ -354,18 +352,12 @@
 "Temperature unit" = "وحدة الحرارة";
 "Celsius" = "درجة مئوية";
 "Fahrenheit" = "فهرنهايت";
-"Save the fan speed" = "حفظ سرعة المروحة";
 "Fan" = "مروحة";
 "HID sensors" = "مستشعرات HID";
-"Synchronize fan's control" = "مزامنة تحكم المروحة";
 "Current" = "الحالي";
 "Energy" = "الطاقة";
 "Show unknown sensors" = "عرض المستشعرات غير المعروفة";
-"Install fan helper" = "تثبيت مساعد المروحة";
-"Uninstall fan helper" = "إلغاء تثبيت مساعد المروحة";
 "Fan value" = "قيمة المروحة";
-"Turn off fan" = "إيقاف تشغيل المروحة";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "أنت على وشك إيقاف تشغيل المروحة. هذا ليس إجراءً مُوصى به يمكن أن يتسبب في تلف جهازك، هل تريد بالتأكيد القيام بذلك؟";
 "Sensor threshold" = "عتبة المستشعر";
 "Left fan" = "المروحة اليسرى";
 "Right fan" = "المروحة اليمنى";

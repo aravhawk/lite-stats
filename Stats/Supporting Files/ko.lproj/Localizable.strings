@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "익명 사용정보를 공유합니다";
 "Do not share anonymous telemetry data" = "익명 사용정보를 공유하지 않습니다";
 "The configuration is completed" = "설정이 완료되었습니다";
-"finish_setup_message" = "모든 것이 설정되었습니다! \n Lite Stats는 무료 오픈 소스 도구이며 앞으로도 그럴 것입니다. \n 이 애플리케이션이 마음에 드셨다면 프로젝트를 후원 하실 수 있습니다. 늘 감사합니다!";
 
 // Alerts
 "New version available" = "새로운 버전을 이용할 수 있습니다";
@@ -131,7 +130,6 @@
 "Successfully updated" = "성공적으로 업데이트되었습니다";
 "Lite Stats was updated to v" = "Lite Stats가 v%0 버전으로 업데이트되었습니다";
 "Reset settings text" = "모든 애플리케이션 설정이 재설정되고 다시 시작됩니다. 계속 진행하시겠습니까?";
-"Support text" = "Lite Stats를 사용해 주셔서 감사합니다!\n\n 이 오픈 소스 프로젝트를 유지 관리하고 개선하는 데는 시간과 리소스가 필요합니다. 여러분의 지원은 모든 사람에게 신뢰할 수 있는 무료 애플리케이션을 계속 제공하는 데 도움이 됩니다.\n\nLite Stats가 도움이 된다면 기여를 고려해 주세요. 여러분의 작은 도움이 큰 힘이 됩니다!";
 
 // Settings
 "Open Activity Monitor" = "활동 모니터 열기";
@@ -354,18 +352,12 @@
 "Temperature unit" = "온도 단위";
 "Celsius" = "섭씨";
 "Fahrenheit" = "화씨";
-"Save the fan speed" = "팬 속도 저장";
 "Fan" = "팬";
 "HID sensors" = "HID 센서";
-"Synchronize fan's control" = "팬 제어 동기화";
 "Current" = "전류";
 "Energy" = "에너지";
 "Show unknown sensors" = "알 수 없는 센서 표시";
-"Install fan helper" = "팬 헬퍼 설치";
-"Uninstall fan helper" = "팬 헬퍼 제거";
 "Fan value" = "팬 값";
-"Turn off fan" = "팬 끄기";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "팬을 끄려고 합니다. 팬을 끄는 행위는 Mac을 손상시킬 수 있으므로 권장하지 않습니다. 정말 팬을 끄겠습니까?";
 "Sensor threshold" = "Sensor threshold";
 "Left fan" = "Left";
 "Right fan" = "Right";

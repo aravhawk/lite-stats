@@ -121,25 +121,11 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
         switch itemIdentifier {
         case .toggleButton:
-            var toggleBtn: NSControl = NSControl()
-            if #available(OSX 10.15, *) {
-                let switchButton = NSSwitch()
-                switchButton.state = .on
-                switchButton.action = #selector(self.toggleEnable)
-                switchButton.target = self
-                switchButton.controlSize = .small
-                toggleBtn = switchButton
-            } else {
-                let button: NSButton = NSButton()
-                button.setButtonType(.switch)
-                button.state = .on
-                button.title = ""
-                button.action = #selector(self.toggleEnable)
-                button.isBordered = false
-                button.isTransparent = false
-                button.target = self
-                toggleBtn = button
-            }
+            let toggleBtn = NSSwitch()
+            toggleBtn.state = .on
+            toggleBtn.action = #selector(self.toggleEnable)
+            toggleBtn.target = self
+            toggleBtn.controlSize = .small
             self.toggleButton = toggleBtn
             
             let toolbarItem = NSToolbarItem(itemIdentifier: itemIdentifier)
@@ -280,32 +266,32 @@ private class SidebarView: NSStackView {
     }
     
     private var dashboardIcon: NSImage {
-        if #available(macOS 11.0, *), let icon = NSImage(systemSymbolName: "circle.grid.3x3.fill", accessibilityDescription: nil) {
+        if let icon = NSImage(systemSymbolName: "circle.grid.3x3.fill", accessibilityDescription: nil) {
             return icon
         }
         return NSImage(named: NSImage.Name("apps"))!
     }
     private var settingsIcon: NSImage {
-        if #available(macOS 11.0, *), let icon = iconFromSymbol(name: "gear", scale: .large) {
+        if let icon = iconFromSymbol(name: "gear", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("settings"))!
     }
 
     private var pauseIcon: NSImage {
-        if #available(macOS 11.0, *), let icon = iconFromSymbol(name: "pause.fill", scale: .large) {
+        if let icon = iconFromSymbol(name: "pause.fill", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("pause"))!
     }
     private var resumeIcon: NSImage {
-        if #available(macOS 11.0, *), let icon = iconFromSymbol(name: "play.fill", scale: .large) {
+        if let icon = iconFromSymbol(name: "play.fill", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("resume"))!
     }
     private var closeIcon: NSImage {
-        if #available(macOS 12.0, *), let icon = iconFromSymbol(name: "power", scale: .large) {
+        if let icon = iconFromSymbol(name: "power", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("power"))!
@@ -341,12 +327,6 @@ private class SidebarView: NSStackView {
         additionalButtons.addArrangedSubview(pauseButton)
         additionalButtons.addArrangedSubview(self.makeButton(title: localizedString("Close application"), image: self.closeIcon, action: #selector(closeApp)))
         
-        let emptySpace = NSView()
-        emptySpace.heightAnchor.constraint(equalToConstant: 28).isActive = true
-        
-        if #unavailable(macOS 11) {
-            self.addArrangedSubview(emptySpace)
-        }
         self.addArrangedSubview(self.scrollView)
         self.addArrangedSubview(additionalButtons)
         

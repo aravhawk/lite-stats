@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "پیکربندی کامل شد";
-"finish_setup_message" = "همه چیز آماده است! \n Lite Stats یک ابزار متن باز رایگان است و همیشه رایگان خواهد بود \n اگر از این پروژه راضی بودید می‌توانید از ما حمایت کنید";
 
 // Alerts
 "New version available" = "نسخه‌ی جدید در دسترس است";
@@ -131,7 +130,6 @@
 "Successfully updated" = "با موفقیت به‌روزرسانی شد";
 "Lite Stats was updated to v" = "Lite Stats به نسخه‌ی v%0 بروزسانی شد  ";
 "Reset settings text" = "تمام تنظیمات اپلیکیشن ریست خواهد شد و اپ دوباره راه‌اندازی خواهد شد، آیا از این کار مطمئنید؟";
-"Support text" = "از اینکه از آمار استفاده می کنید متشکریم!\n\n نگهداری و بهبود این پروژه منبع باز زمان و منابع می طلبد. پشتیبانی شما به ما کمک می‌کند تا به ارائه یک برنامه رایگان و قابل اعتماد برای همه ادامه دهیم.\n\nاگر آمارها را مفید می‌دانید، لطفاً در نظر بگیرید. هر ذره کمک می کند!";
 
 // Settings
 "Open Activity Monitor" = "باز کردن نظارت فعالیت‌ها";
@@ -354,18 +352,12 @@
 "Temperature unit" = "واحد دما";
 "Celsius" = "سلسیوس";
 "Fahrenheit" = "فارنهایت";
-"Save the fan speed" = "ذخیره سرعت فن";
 "Fan" = "فن";
 "HID sensors" = "سنسور‌های HID";
-"Synchronize fan's control" = "همگام‌سازی سرعت فن‌ها";
 "Current" = "جریان";
 "Energy" = "انرژی";
 "Show unknown sensors" = "نمایش سنسور‌های ناشناخته";
-"Install fan helper" = "Install fan helper";
-"Uninstall fan helper" = "Uninstall fan helper";
 "Fan value" = "Fan value";
-"Turn off fan" = "Turn off fan";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?";
 "Sensor threshold" = "Sensor threshold";
 "Left fan" = "Left";
 "Right fan" = "Right";

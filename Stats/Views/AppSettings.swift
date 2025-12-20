@@ -38,7 +38,6 @@ class ApplicationSettings: NSStackView {
     private var startAtLoginBtn: NSSwitch?
 
     private var combinedModulesView: PreferencesSection?
-    private var fanHelperView: PreferencesSection?
 
     private let moduleSelector: ModuleSelectorView = ModuleSelectorView()
 
@@ -116,26 +115,13 @@ class ApplicationSettings: NSStackView {
             )
         ]))
         
-        self.fanHelperView = PreferencesSection([
-            PreferencesRow(
-                localizedString("Uninstall fan helper"),
-                component: buttonView(#selector(self.uninstallHelper), text: localizedString("Uninstall"))
-            )
-        ])
-        scrollView.stackView.addArrangedSubview(self.fanHelperView!)
-
         self.addArrangedSubview(scrollView)
-
-        NotificationCenter.default.addObserver(self, selector: #selector(self.toggleUninstallHelperButton), name: .fanHelperState, object: nil)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self, name: .fanHelperState, object: nil)
-    }
     
     internal func viewWillAppear() {
         self.startAtLoginBtn?.state = LaunchAtLogin.isEnabled ? .on : .off
@@ -272,16 +258,6 @@ class ApplicationSettings: NSStackView {
         }
     }
     
-    @objc private func toggleUninstallHelperButton(_ notification: Notification) {
-        guard let state = notification.userInfo?["state"] as? Bool, let v = self.fanHelperView else {
-            return
-        }
-        v.isHidden = !state
-    }
-    
-    @objc private func uninstallHelper() {
-        SMCHelper.shared.uninstall()
-    }
 }
 
 private class ModuleSelectorView: NSStackView {

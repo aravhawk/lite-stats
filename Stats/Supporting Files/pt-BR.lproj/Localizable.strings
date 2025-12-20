@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Compartilhar dados de telemetria anônimos";
 "Do not share anonymous telemetry data" = "Não compartilhar dados de telemetria anônimos";
 "The configuration is completed" = "A configuração está concluída";
-"finish_setup_message" = "Tudo pronto! \n O Lite Stats é uma ferramenta de código aberto, é gratuita e sempre será. \n Se você gostou, você pode apoiar o projeto, sua ajuda sempre será bem vinda!";
 
 // Alerts
 "New version available" = "Nova versão disponível";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Atualizado com sucesso";
 "Lite Stats was updated to v" = "Lite Stats foi atualizado para v%0";
 "Reset settings text" = "Todas as configurações do aplicativo serão redefinidas e o aplicativo será reiniciado. Tem certeza de que deseja fazer isso?";
-"Support text" = "Obrigado por usar o Lite Stats!\n\nA manutenção e o aprimoramento deste projeto de código aberto exigem tempo e recursos. Seu apoio nos ajuda a continuar fornecendo um aplicativo gratuito e confiável para todos.\n\nSe você acha o Lite Stats útil, considere fazer uma contribuição. Cada pedacinho ajuda!";
 
 // Settings
 "Open Activity Monitor" = "Abrir Monitor de Atividades";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Unidade de temperatura";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Salvar a velocidade do ventoinha";
 "Fan" = "Ventoinha";
 "HID sensors" = "Sensores HID";
-"Synchronize fan's control" = "Sincronizar o controle do ventoinha";
 "Current" = "Atual";
 "Energy" = "Energia";
 "Show unknown sensors" = "Mostrar sensores desconhecidos";
-"Install fan helper" = "Instalar software auxiliar para ventoinha";
-"Uninstall fan helper" = "Desinstalar software auxiliar para ventoinha";
 "Fan value" = "Valor da ventoinha";
-"Turn off fan" = "Desligar ventoninha";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Você irá desligar a ventoinha. Esta não é uma ação recomendada, pois pode danificar o seu mac, tem certeza que deseja fazer isto?";
 "Sensor threshold" = "Sensor threshold";
 "Left fan" = "Esquerda";
 "Right fan" = "Direita";

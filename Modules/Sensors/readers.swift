@@ -114,12 +114,10 @@ internal class SensorsReader: Reader<Sensors_List> {
             return true
         })
         
-        #if arch(arm64)
         if self.HIDState {
             results += self.initHIDSensors()
         }
         results += self.initIOSensors()
-        #endif
         results += self.initCalculatedSensors(results)
         
         return results
@@ -142,7 +140,6 @@ internal class SensorsReader: Reader<Sensors_List> {
         var gpuSensors = self.list.sensors.filter({ $0.group == .GPU && $0.type == .temperature && $0.average }).map{ $0.value }
         let fanSensors = self.list.sensors.filter({ $0.type == .fan && !$0.isComputed })
         
-        #if arch(arm64)
         if self.HIDState {
             for typ in SensorsReader.HIDtypes {
                 let (page, usage, type) = self.m1Preset(type: typ)
@@ -190,7 +187,6 @@ internal class SensorsReader: Reader<Sensors_List> {
                 self.list.sensors[idx].value = pci
             }
         }
-        #endif
         
         if !cpuSensors.isEmpty {
             if let idx = self.list.sensors.firstIndex(where: { $0.key == "Average CPU" }) {
@@ -257,12 +253,10 @@ internal class SensorsReader: Reader<Sensors_List> {
         var cpuSensors = sensors.filter({ $0.group == .CPU && $0.type == .temperature && $0.average }).map{ $0.value }
         var gpuSensors = sensors.filter({ $0.group == .GPU && $0.type == .temperature && $0.average }).map{ $0.value }
         
-        #if arch(arm64)
         if self.HIDState {
             cpuSensors += sensors.filter({ $0.key.hasPrefix("pACC MTR Temp") || $0.key.hasPrefix("eACC MTR Temp") }).map{ $0.value }
             gpuSensors += sensors.filter({ $0.key.hasPrefix("GPU MTR Temp") }).map{ $0.value }
         }
-        #endif
         
         let fanSensors = sensors.filter({ $0.type == .fan && !$0.isComputed })
         
@@ -282,7 +276,7 @@ internal class SensorsReader: Reader<Sensors_List> {
         }
         if !fanSensors.isEmpty && fanSensors.count > 1 {
             if let f = fanSensors.max(by: { $0.value < $1.value }) as? Fan {
-                list.append(Fan(id: -1, key: "Fastest fan", name: "Fastest fan", minSpeed: f.minSpeed, maxSpeed: f.maxSpeed, value: f.value, mode: .automatic, isComputed: true))
+                list.append(Fan(id: -1, key: "Fastest fan", name: "Fastest fan", minSpeed: f.minSpeed, maxSpeed: f.maxSpeed, value: f.value, isComputed: true))
             }
         }
         
@@ -319,7 +313,6 @@ extension SensorsReader {
         var list: [Fan] = []
         for i in 0..<Int(count) {
             var name = SMC.shared.getStringValue("F\(i)ID")
-            var mode: FanMode
             
             if name == nil && count == 2 {
                 switch i {
@@ -331,41 +324,17 @@ extension SensorsReader {
                 }
             }
             
-            if let md = SMC.shared.getValue("F\(i)Md") {
-                mode = FanMode(rawValue: Int(md)) ?? .automatic
-            } else {
-                mode = self.getFanMode(i)
-            }
-            
             list.append(Fan(
                 id: i,
                 key: "F\(i)Ac",
                 name: name ?? "\(localizedString("Fan")) #\(i)",
                 minSpeed: SMC.shared.getValue("F\(i)Mn") ?? 1,
                 maxSpeed: SMC.shared.getValue("F\(i)Mx") ?? 1,
-                value: SMC.shared.getValue("F\(i)Ac") ?? 0,
-                mode: mode
+                value: SMC.shared.getValue("F\(i)Ac") ?? 0
             ))
         }
         
         return list
-    }
-    
-    private func getFanMode(_ id: Int) -> FanMode {
-        let fansMode: Int = Int(SMC.shared.getValue("FS! ") ?? 0)
-        var mode: FanMode = .automatic
-        
-        if fansMode == 0 {
-            mode = .automatic
-        } else if fansMode == 3 {
-            mode = .forced
-        } else if fansMode == 1 && id == 0 {
-            mode = .forced
-        } else if fansMode == 2 && id == 1 {
-            mode = .forced
-        }
-        
-        return mode
     }
 }
 

@@ -127,12 +127,13 @@ public class ProcessReader: Reader<[TopProcess]> {
         }
         
         let task = Process()
-        task.launchPath = "/usr/bin/top"
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/top")
         if self.combinedProcesses {
             task.arguments = ["-l", "1", "-o", "mem", "-stats", "pid,command,mem"]
         } else {
             task.arguments = ["-l", "1", "-o", "mem", "-n", "\(self.numberOfProcesses)", "-stats", "pid,command,mem"]
         }
+        task.qualityOfService = .utility
         
         let outputPipe = Pipe()
         let errorPipe = Pipe()

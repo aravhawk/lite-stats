@@ -12,8 +12,6 @@
 import Cocoa
 
 public enum Platform: String, Codable {
-    case intel
-    
     case m1
     case m1Pro
     case m1Max
@@ -57,7 +55,7 @@ public enum Platform: String, Codable {
     }
     
     public static var all: [Platform] {
-        return apple + [.intel]
+        return apple
     }
 }
 
@@ -195,11 +193,7 @@ public class SystemKit {
             self.device.model = model
         }
         
-        #if arch(x86_64)
-        self.device.arch = "x86_64"
-        #elseif arch(arm64)
         self.device.arch = "arm64"
-        #endif
         
         self.device.bootDate = self.bootDate()
         
@@ -672,9 +666,7 @@ public class SystemKit {
     
     private func getPlatform() -> Platform? {
         if let name = self.device.info.cpu?.name?.lowercased() {
-            if name.contains("intel") {
-                return .intel
-            } else if name.contains("m1") {
+            if name.contains("m1") {
                 if name.contains("pro") {
                     return .m1Pro
                 } else if name.contains("max") {

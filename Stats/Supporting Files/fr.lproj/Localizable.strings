@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Partager les données télémétriques anonymes";
 "Do not share anonymous telemetry data" = "Ne pas partager les données télémétriques anonymes";
 "The configuration is completed" = "La configuration est terminée";
-"finish_setup_message" = "Tout est prêt ! \n Lite Stats est un outil open source, gratuit et le restera toujours. \n Si vous appréciez ce projet, vous pouvez le soutenir, cela sera toujours apprécié !";
 
 // Alerts
 "New version available" = "Nouvelle version disponible";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Mise à jour effectuée avec succès";
 "Lite Stats was updated to v" = "Lite Stats a été mis à jour en version %0";
 "Reset settings text" = "Tous les paramètres de l'application seront réinitialisés et l'application redémarrera. Êtes-vous sûr de vouloir continuer ?";
-"Support text" = "Merci d'utiliser Lite Stats!\nLa maintenance et l'amélioration de ce projet open-source nécessitent du temps et des ressources. Votre soutien nous aide à continuer à fournir une application gratuite et fiable pour tout le monde.\nSi vous trouvez Lite Stats utile, veuillez envisager de faire une contribution. Chaque petit geste compte !";
 
 // Settings
 "Open Activity Monitor" = "Ouvrir le Moniteur d'activité";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Unité de température";
 "Celsius" = "Celsius";
 "Fahrenheit" = "Fahrenheit";
-"Save the fan speed" = "Enregistrer la vitesse du ventilateur";
 "Fan" = "Ventilateur";
 "HID sensors" = "Capteurs HID";
-"Synchronize fan's control" = "Synchroniser le contrôle des ventilateurs";
 "Current" = "Courant";
 "Energy" = "Énergie";
 "Show unknown sensors" = "Afficher les capteurs inconnus";
-"Install fan helper" = "Installer l'assistant des ventilateurs";
-"Uninstall fan helper" = "Désinstaller l'assistant des ventilateurs";
 "Fan value" = "Vitesse du ventilateur";
-"Turn off fan" = "Éteindre les ventilateurs";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "Vous vous apprêtez à éteindre les ventilateurs. Cette action n'est pas recommandée car elle peut endommager votre mac, êtes-vous sûr de vouloir faire cela ?";
 "Sensor threshold" = "Seuil du capteur";
 "Left fan" = "Gauche";
 "Right fan" = "Droite";

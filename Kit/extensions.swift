@@ -240,28 +240,10 @@ public extension NSView {
         titleField.font = NSFont.systemFont(ofSize: 12, weight: .regular)
         titleField.textColor = .textColor
         
-        let state: NSControl.StateValue = state ? .on : .off
-        var toggle: NSControl = NSControl()
-        if #available(OSX 10.15, *) {
-            let switchButton = NSSwitch()
-            switchButton.state = state
-            switchButton.action = action
-            switchButton.target = self
-            
-            toggle = switchButton
-        } else {
-            let button: NSButton = NSButton()
-            button.setButtonType(.switch)
-            button.state = state
-            button.title = ""
-            button.action = action
-            button.isBordered = false
-            button.isTransparent = false
-            button.target = self
-            button.wantsLayer = true
-            
-            toggle = button
-        }
+        let toggle = NSSwitch()
+        toggle.state = state ? .on : .off
+        toggle.action = action
+        toggle.target = self
         
         view.addArrangedSubview(titleField)
         view.addArrangedSubview(NSView())
@@ -598,13 +580,13 @@ public class KeyboardShartcutView: NSStackView {
     private let callback: (_ value: [UInt16]) -> Void
     
     private var startIcon: NSImage {
-        if #available(macOS 12.0, *), let icon = iconFromSymbol(name: "record.circle", scale: .large) {
+        if let icon = iconFromSymbol(name: "record.circle", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("record"))!
     }
     private var stopIcon: NSImage {
-        if #available(macOS 12.0, *), let icon = iconFromSymbol(name: "stop.circle.fill", scale: .large) {
+        if let icon = iconFromSymbol(name: "stop.circle.fill", scale: .large) {
             return icon
         }
         return NSImage(named: NSImage.Name("stop"))!

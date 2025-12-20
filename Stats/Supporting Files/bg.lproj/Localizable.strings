@@ -123,7 +123,6 @@
 "Share anonymous telemetry data" = "Share anonymous telemetry data";
 "Do not share anonymous telemetry data" = "Do not share anonymous telemetry data";
 "The configuration is completed" = "Конфигурацията е завършена";
-"finish_setup_message" = "Всичко е настроено! \n Lite Stats е приложение с отворен код, безплатно е и винаги ще бъде. \n Ако ви допада, може да подкрепите проекта, ще сме много благодарни!";
 
 // Alerts
 "New version available" = "Налична е нова версия";
@@ -131,7 +130,6 @@
 "Successfully updated" = "Успешно обновяване";
 "Lite Stats was updated to v" = "Lite Stats е обновена до версия v%0";
 "Reset settings text" = "Всички настройки на приложението ще бъдат занулени и приложението ще се рестартира. Сигурни ли сте, че искате това?";
-"Support text" = "Благодарим ви, че използвате Статистики!\n\n Поддържането и подобряването на този проект с отворен код изисква време и ресурси. Вашата подкрепа ни помага да продължим да предоставяме безплатно и надеждно приложение за всички.\n\nАко намирате Lite Stats за полезно, моля, помислете дали да не дадете своя принос. Всяка малка част помага!";
 
 // Settings
 "Open Activity Monitor" = "Отваряне на монитора на активностите";
@@ -354,18 +352,12 @@
 "Temperature unit" = "Температурна единица";
 "Celsius" = "Целзиус";
 "Fahrenheit" = "Фаренхайт";
-"Save the fan speed" = "Запазете скоростта на вентилатора";
 "Fan" = "Вентилатор";
 "HID sensors" = "HID sensors";
-"Synchronize fan's control" = "Synchronize fan's control";
 "Current" = "Текущо";
 "Energy" = "Енергия";
 "Show unknown sensors" = "Показване на непознатите сензори";
-"Install fan helper" = "Install fan helper";
-"Uninstall fan helper" = "Uninstall fan helper";
 "Fan value" = "Fan value";
-"Turn off fan" = "Turn off fan";
-"You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?" = "You are going to turn off the fan. This is not recommended action that can damage your mac, are you sure you want to do that?";
 "Sensor threshold" = "Sensor threshold";
 "Left fan" = "Left";
 "Right fan" = "Right";
