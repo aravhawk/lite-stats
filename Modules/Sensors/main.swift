@@ -41,50 +41,78 @@ public class Sensors: Module {
         )
         guard self.available else { return }
         
-        self.sensorsReader = SensorsReader { [weak self] value in
-            self?.usageCallback(value)
-        }
-        
-        self.settingsView.setList(self.sensorsReader?.list.sensors)
-        self.popupView.setup(self.sensorsReader?.list.sensors)
-        self.portalView.setup(self.sensorsReader?.list.sensors)
-        self.notificationsView.setup(self.sensorsReader?.list.sensors)
-        
         self.settingsView.callback = { [weak self] in
+            self?.ensureReader()
             self?.sensorsReader?.read()
         }
         self.settingsView.setInterval = { [weak self] value in
+            self?.ensureReader()
             self?.sensorsReader?.setInterval(value)
         }
         self.settingsView.HIDcallback = { [weak self] in
+            self?.ensureReader()
             DispatchQueue.global(qos: .background).async {
                 self?.sensorsReader?.HIDCallback()
                 DispatchQueue.main.async {
-                    self?.popupView.setup(self?.sensorsReader?.list.sensors)
-                    self?.portalView.setup(self?.sensorsReader?.list.sensors)
-                    self?.settingsView.setList(self?.sensorsReader?.list.sensors)
-                    self?.notificationsView.setup(self?.sensorsReader?.list.sensors)
+                    self?.reloadSensorViews()
                 }
             }
         }
         self.settingsView.unknownCallback = { [weak self] in
+            self?.ensureReader()
             DispatchQueue.global(qos: .background).async {
                 self?.sensorsReader?.unknownCallback()
                 DispatchQueue.main.async {
-                    self?.popupView.setup(self?.sensorsReader?.list.sensors)
-                    self?.portalView.setup(self?.sensorsReader?.list.sensors)
-                    self?.settingsView.setList(self?.sensorsReader?.list.sensors)
-                    self?.notificationsView.setup(self?.sensorsReader?.list.sensors)
+                    self?.reloadSensorViews()
                 }
             }
         }
         self.selectedSensor = Store.shared.string(key: "\(ModuleType.sensors.stringValue)_sensor", defaultValue: self.selectedSensor)
         self.settingsView.selectedHandler = { [weak self] value in
             self?.selectedSensor = value
+            self?.ensureReader()
             self?.sensorsReader?.read()
         }
+        self.settingsView.loadCallback = { [weak self] in
+            self?.ensureReader()
+        }
+        self.popupView.visibilityHandler = { [weak self] visible in
+            self?.sensorsReader?.setPopupVisible(visible)
+            guard visible else { return }
+            DispatchQueue.global(qos: .utility).async {
+                self?.sensorsReader?.read()
+            }
+        }
         
+        if self.enabled {
+            self.ensureReader()
+        }
+    }
+
+    public override func willEnable() {
+        self.ensureReader()
+    }
+
+    public override func settingsWillOpen() {
+        self.ensureReader()
+    }
+
+    private func ensureReader() {
+        guard self.sensorsReader == nil else { return }
+
+        self.sensorsReader = SensorsReader { [weak self] value in
+            self?.usageCallback(value)
+        }
+
+        self.reloadSensorViews()
         self.setReaders([self.sensorsReader])
+    }
+
+    private func reloadSensorViews() {
+        self.settingsView.setList(self.sensorsReader?.list.sensors)
+        self.popupView.setup(self.sensorsReader?.list.sensors)
+        self.portalView.setup(self.sensorsReader?.list.sensors)
+        self.notificationsView.setup(self.sensorsReader?.list.sensors)
     }
     
     private func usageCallback(_ raw: Sensors_List?) {

@@ -28,7 +28,7 @@ var modules: [Module] = [
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     internal let settingsWindow: SettingsWindow = SettingsWindow()
-    internal let setupWindow: SetupWindow = SetupWindow()
+    internal lazy var setupWindow: SetupWindow = SetupWindow()
     internal var clickInNotification: Bool = false
     internal var menuBarItem: NSStatusItem? = nil
     internal var combinedView: CombinedView = CombinedView()
@@ -87,8 +87,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         guard let startTS = self.startTS, Date().timeIntervalSince(startTS) > 2 else { return false }
         
         if flag {
+            self.settingsWindow.openDefaultIfNeeded()
             self.settingsWindow.makeKeyAndOrderFront(self)
         } else {
+            self.settingsWindow.openDefaultIfNeeded()
             self.settingsWindow.setIsVisible(true)
         }
         

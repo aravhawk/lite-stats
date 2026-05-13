@@ -19,7 +19,6 @@ internal class LoadReader: Reader<CPU_Load> {
     private var numPrevCpuInfo: mach_msg_type_number_t = 0
     private var numCPUs: uint = 0
     private let CPUUsageLock: NSLock = NSLock()
-    private var previousInfo = host_cpu_load_info()
     
     private var response: CPU_Load = CPU_Load()
     private var numCPUsU: natural_t = 0
@@ -48,33 +47,50 @@ internal class LoadReader: Reader<CPU_Load> {
         if result == KERN_SUCCESS {
             self.CPUUsageLock.lock()
             self.usagePerCore = []
+            var userTicks: Int64 = 0
+            var systemTicks: Int64 = 0
+            var niceTicks: Int64 = 0
+            var idleTicks: Int64 = 0
             
             for i in 0 ..< Int32(numCPUs) {
-                var inUse: Int32
-                var total: Int32
+                let base = Int(CPU_STATE_MAX * i)
+                let user: Int64
+                let system: Int64
+                let nice: Int64
+                let idle: Int64
                 if let prevCpuInfo = self.prevCpuInfo {
-                    inUse = self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_USER)]
-                        - prevCpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_USER)]
-                        + self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_SYSTEM)]
-                        - prevCpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_SYSTEM)]
-                        + self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_NICE)]
-                        - prevCpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_NICE)]
-                    total = inUse + (self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_IDLE)]
-                        - prevCpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_IDLE)])
+                    user = Int64(self.cpuInfo[base + Int(CPU_STATE_USER)] - prevCpuInfo[base + Int(CPU_STATE_USER)])
+                    system = Int64(self.cpuInfo[base + Int(CPU_STATE_SYSTEM)] - prevCpuInfo[base + Int(CPU_STATE_SYSTEM)])
+                    nice = Int64(self.cpuInfo[base + Int(CPU_STATE_NICE)] - prevCpuInfo[base + Int(CPU_STATE_NICE)])
+                    idle = Int64(self.cpuInfo[base + Int(CPU_STATE_IDLE)] - prevCpuInfo[base + Int(CPU_STATE_IDLE)])
                 } else {
-                    inUse = self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_USER)]
-                        + self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_SYSTEM)]
-                        + self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_NICE)]
-                    total = inUse + self.cpuInfo[Int(CPU_STATE_MAX * i + CPU_STATE_IDLE)]
+                    user = Int64(self.cpuInfo[base + Int(CPU_STATE_USER)])
+                    system = Int64(self.cpuInfo[base + Int(CPU_STATE_SYSTEM)])
+                    nice = Int64(self.cpuInfo[base + Int(CPU_STATE_NICE)])
+                    idle = Int64(self.cpuInfo[base + Int(CPU_STATE_IDLE)])
                 }
+
+                let inUse = max(user, 0) + max(system, 0) + max(nice, 0)
+                let total = inUse + max(idle, 0)
                 
                 if total != 0 {
                     self.usagePerCore.append(Double(inUse) / Double(total))
                 }
+                userTicks += max(user, 0)
+                systemTicks += max(system, 0)
+                niceTicks += max(nice, 0)
+                idleTicks += max(idle, 0)
             }
             self.CPUUsageLock.unlock()
             
             self.response.usagePerCore = self.usagePerCore
+            let totalTicks = Double(systemTicks + userTicks + niceTicks + idleTicks)
+            if totalTicks > 0 {
+                self.response.systemLoad = Double(systemTicks) / totalTicks
+                self.response.userLoad = Double(userTicks) / totalTicks
+                self.response.idleLoad = Double(idleTicks) / totalTicks
+                self.response.totalUsage = self.response.systemLoad + self.response.userLoad
+            }
             
             if let prevCpuInfo = self.prevCpuInfo {
                 let prevCpuInfoSize: size_t = MemoryLayout<integer_t>.stride * Int(self.numPrevCpuInfo)
@@ -88,35 +104,9 @@ internal class LoadReader: Reader<CPU_Load> {
             self.numCpuInfo = 0
         } else {
             error("host_processor_info(): \(String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error")", log: self.log)
-        }
-        
-        let cpuInfo = hostCPULoadInfo()
-        if cpuInfo == nil {
             self.callback(nil)
             return
         }
-        
-        let userDiff = Double(cpuInfo!.cpu_ticks.0 - self.previousInfo.cpu_ticks.0)
-        let sysDiff  = Double(cpuInfo!.cpu_ticks.1 - self.previousInfo.cpu_ticks.1)
-        let idleDiff = Double(cpuInfo!.cpu_ticks.2 - self.previousInfo.cpu_ticks.2)
-        let niceDiff = Double(cpuInfo!.cpu_ticks.3 - self.previousInfo.cpu_ticks.3)
-        let totalTicks = sysDiff + userDiff + niceDiff + idleDiff
-        
-        let system = sysDiff / totalTicks
-        let user = userDiff / totalTicks
-        let idle = idleDiff / totalTicks
-        
-        if !system.isNaN {
-            self.response.systemLoad  = system
-        }
-        if !user.isNaN {
-            self.response.userLoad = user
-        }
-        if !idle.isNaN {
-            self.response.idleLoad = idle
-        }
-        self.previousInfo = cpuInfo!
-        self.response.totalUsage = self.response.systemLoad + self.response.userLoad
         
         if !self.eCoreIndices.isEmpty {
             var sum = 0.0
@@ -139,24 +129,6 @@ internal class LoadReader: Reader<CPU_Load> {
         
         self.callback(self.response)
     }
-    
-    private func hostCPULoadInfo() -> host_cpu_load_info? {
-        let count = MemoryLayout<host_cpu_load_info>.stride/MemoryLayout<integer_t>.stride
-        var size = mach_msg_type_number_t(count)
-        var cpuLoadInfo = host_cpu_load_info()
-        
-        let result: kern_return_t = withUnsafeMutablePointer(to: &cpuLoadInfo) {
-            $0.withMemoryRebound(to: integer_t.self, capacity: count) {
-                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &size)
-            }
-        }
-        if result != KERN_SUCCESS {
-            error("kern_result_t: \(result)", log: self.log)
-            return nil
-        }
-        
-        return cpuLoadInfo
-    }
 }
 
 public class ProcessReader: Reader<[TopProcess]> {
@@ -168,69 +140,11 @@ public class ProcessReader: Reader<[TopProcess]> {
     
     public override func setup() {
         self.popup = true
-        self.setInterval(Store.shared.int(key: "\(self.title)_updateTopInterval", defaultValue: 1))
+        self.setInterval(Store.shared.int(key: "\(self.title)_updateTopInterval", defaultValue: 3))
     }
     
     public override func read() {
-        if self.numberOfProcesses == 0 {
-            return
-        }
-        
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/ps")
-        task.arguments = ["-Aceo pid,pcpu,comm", "-r"]
-        task.qualityOfService = .utility
-        
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-        
-        defer {
-            outputPipe.fileHandleForReading.closeFile()
-            errorPipe.fileHandleForReading.closeFile()
-        }
-        
-        task.standardOutput = outputPipe
-        task.standardError = errorPipe
-        
-        do {
-            try task.run()
-        } catch let err {
-            error("error read ps: \(err.localizedDescription)", log: self.log)
-            return
-        }
-        
-        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: outputData, encoding: .utf8)
-        _ = String(data: errorData, encoding: .utf8)
-        guard let output, !output.isEmpty else { return }
-        
-        var index = 0
-        var processes: [TopProcess] = []
-        output.enumerateLines { (line, stop) in
-            if index != 0 {
-                let str = line.trimmingCharacters(in: .whitespaces)
-                let pidFind = str.findAndCrop(pattern: "^\\d+")
-                let usageFind = pidFind.remain.findAndCrop(pattern: "^[0-9,.]+ ")
-                let command = usageFind.remain.trimmingCharacters(in: .whitespaces)
-                let pid = Int(pidFind.cropped) ?? 0
-                let usage = Double(usageFind.cropped.replacingOccurrences(of: ",", with: ".")) ?? 0
-                
-                var name: String = command
-                if let app = NSRunningApplication(processIdentifier: pid_t(pid)), let n = app.localizedName {
-                    name = n
-                }
-                if command.contains("com.apple.Virtua") && name.contains("Docker") {
-                    name = "Docker"
-                }
-                
-                processes.append(TopProcess(pid: pid, name: name, usage: usage))
-            }
-            
-            if index == self.numberOfProcesses { stop = true }
-            index += 1
-        }
-        
+        let processes = ProcessSampler.shared.topCPUProcesses(limit: self.numberOfProcesses)
         self.callback(processes)
     }
 }
@@ -294,6 +208,8 @@ public class FrequencyReader: Reader<CPU_Frequency> {
     private var channels: CFMutableDictionary? = nil
     private var subscription: IOReportSubscriptionRef? = nil
     private var prev: (samples: CFDictionary, time: TimeInterval)? = nil
+    private var sampleTask: Task<Void, Never>? = nil
+    private let sampleTaskLock = NSLock()
     
     private let measurementCount: Int = 4
     private let isReadingQueue = DispatchQueue(label: "com.example.isReadingQueue")
@@ -305,10 +221,7 @@ public class FrequencyReader: Reader<CPU_Frequency> {
     }
     
     private struct IOSample {
-        let group: String
-        let subGroup: String
         let channel: String
-        let unit: String
         let delta: CFDictionary
     }
     
@@ -330,16 +243,24 @@ public class FrequencyReader: Reader<CPU_Frequency> {
         let minECoreFreq = Double(self.eCoreFreqs.min() ?? 0)
         let minPCoreFreq = Double(self.pCoreFreqs.min() ?? 0)
         
-        Task {
+        let task = Task { [weak self] in
+            guard let self else { return }
+            defer {
+                self.isReading = false
+                self.sampleTaskLock.lock()
+                self.sampleTask = nil
+                self.sampleTaskLock.unlock()
+            }
+
             var eCores: [Double] = []
             var pCores: [Double] = []
             
             for (samples, _) in await self.getSamples() {
+                guard !Task.isCancelled else { return }
                 var eCore: [Double] = []
                 var pCore: [Double] = []
                 
                 for sample in samples {
-                    guard sample.group == "CPU Stats" else { continue }
                     if sample.channel.starts(with: "ECPU") {
                         eCore.append(self.calculateFrequencies(dict: sample.delta, freqs: self.eCoreFreqs))
                     }
@@ -358,9 +279,26 @@ public class FrequencyReader: Reader<CPU_Frequency> {
             let pFreq: Double = pCores.reduce(0, { $0 + $1 }) / Double(self.measurementCount)
             let value: Double = ((eFreq * self.eCoreCount) + (pFreq * self.pCoreCount)) / (self.eCoreCount + self.pCoreCount)
             
+            guard !Task.isCancelled else { return }
             self.callback(CPU_Frequency(value: value, eCore: eFreq, pCore: pFreq))
-            self.isReading = false
         }
+        self.sampleTaskLock.lock()
+        self.sampleTask = task
+        self.sampleTaskLock.unlock()
+    }
+
+    public override func pause() {
+        self.cancelSampleTask()
+        super.pause()
+    }
+
+    public override func stop() {
+        self.cancelSampleTask()
+        super.stop()
+    }
+
+    public override func terminate() {
+        self.cancelSampleTask()
     }
     
     private func calculateFrequencies(dict: CFDictionary, freqs: [Int32]) -> Double {
@@ -406,9 +344,9 @@ public class FrequencyReader: Reader<CPU_Frequency> {
             channels.append(channel)
         }
         
-        let chan = channels[0]
-        for i in 1..<channels.count {
-            IOReportMergeChannels(chan, channels[i], nil)
+        guard let chan = channels.first else { return nil }
+        for channel in channels.dropFirst() {
+            IOReportMergeChannels(chan, channel, nil)
         }
         
         let size = CFDictionaryGetCount(chan)
@@ -427,8 +365,7 @@ public class FrequencyReader: Reader<CPU_Frequency> {
         let stepDuration = Duration.milliseconds(Int64(step))
         let toleranceDuration = Duration.milliseconds(Int64(tolerance))
         var samples = [([IOSample], TimeInterval)]()
-        guard let initialSample = self.getSample() else { return samples }
-        var prev = self.prev ?? initialSample
+        guard var prev = self.prev ?? self.getSample() else { return samples }
         
         for _ in 0..<self.measurementCount {
             do {
@@ -438,6 +375,7 @@ public class FrequencyReader: Reader<CPU_Frequency> {
                 continue
             }
             
+            guard !Task.isCancelled else { return [] }
             guard let next = self.getSample() else { continue }
             
             if let diffCF = IOReportCreateSamplesDelta(prev.samples, next.samples, nil) {
@@ -471,14 +409,21 @@ public class FrequencyReader: Reader<CPU_Frequency> {
             let item = unsafeBitCast(dict, to: CFDictionary.self)
             
             let group = IOReportChannelGetGroup(item)?.takeUnretainedValue() ?? ("" as CFString)
-            let subGroup = IOReportChannelGetSubGroup(item)?.takeUnretainedValue() ?? ("" as CFString)
+            guard group as String == "CPU Stats" else { continue }
             let channel = IOReportChannelGetChannelName(item)?.takeUnretainedValue() ?? ("" as CFString)
-            let unit = IOReportChannelGetUnitLabel(item)?.takeUnretainedValue() ?? ("" as CFString)
             
-            samples.append(IOSample(group: group as String, subGroup: subGroup as String, channel: channel as String, unit: unit as String, delta: item))
+            samples.append(IOSample(channel: channel as String, delta: item))
         }
         
         return samples
+    }
+
+    private func cancelSampleTask() {
+        self.sampleTaskLock.lock()
+        let task = self.sampleTask
+        self.sampleTask = nil
+        self.sampleTaskLock.unlock()
+        task?.cancel()
     }
 }
 
@@ -487,48 +432,17 @@ public class AverageLoadReader: Reader<CPU_AverageLoad> {
     private var load: CPU_AverageLoad = CPU_AverageLoad()
     
     public override func setup() {
-        self.popup = false
+        self.popup = true
         self.setInterval(15)
     }
     
     public override func read() {
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/uptime")
-        task.qualityOfService = .utility
+        var averages = [Double](repeating: 0, count: 3)
+        guard getloadavg(&averages, Int32(averages.count)) == Int32(averages.count) else { return }
         
-        let outputPipe = Pipe()
-        defer {
-            outputPipe.fileHandleForReading.closeFile()
-        }
-        task.standardOutput = outputPipe
-        
-        do {
-            try task.run()
-        } catch let err {
-            error("error read uptime: \(err.localizedDescription)", log: self.log)
-            return
-        }
-        
-        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-        guard let raw = String(data: outputData, encoding: .utf8), let line = raw.split(separator: "\n").first else {
-            return
-        }
-        
-        let str = line.trimmingCharacters(in: .whitespaces)
-        let strFind = str.findAndCrop(pattern: "(\\d+(.|,)\\d+ *){3}$")
-        let strArr = strFind.cropped.split(separator: " ")
-        guard strArr.count == 3 else { return }
-        
-        var list: [Double] = []
-        strArr.forEach { (n: Substring) in
-            let value = Double(n.replacingOccurrences(of: ",", with: ".")) ?? 0
-            list.append(value)
-        }
-        guard list.count == 3 else { return }
-        
-        self.load.load1 = list[0]
-        self.load.load5 = list[1]
-        self.load.load15 = list[2]
+        self.load.load1 = averages[0]
+        self.load.load5 = averages[1]
+        self.load.load15 = averages[2]
         
         self.callback(self.load)
     }

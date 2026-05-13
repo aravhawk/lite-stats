@@ -252,7 +252,7 @@ public class LineChart: WidgetWrapper {
         self._value = newValue
         DispatchQueue.main.async(execute: {
             self.chart.addValue(newValue)
-            self.display()
+            self.needsDisplay = true
         })
     }
     
@@ -260,7 +260,7 @@ public class LineChart: WidgetWrapper {
         guard self._pressureLevel != newPressureLevel else { return }
         self._pressureLevel = newPressureLevel
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     

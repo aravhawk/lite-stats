@@ -13,13 +13,14 @@ import Cocoa
 import Kit
 
 internal class Settings: NSStackView, Settings_v {
-    private var updateIntervalValue: Int = 1
+    private var updateIntervalValue: Int = 3
     private var selectedGPU: String
     
     private let title: String
     
     public var selectedGPUHandler: (String) -> Void = {_ in }
     public var callback: (() -> Void) = {}
+    public var loadCallback: (() -> Void) = {}
     public var setInterval: ((_ value: Int) -> Void) = {_ in }
     
     private var button: NSPopUpButton?
@@ -60,6 +61,7 @@ internal class Settings: NSStackView, Settings_v {
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("GPU to show"), component: self.button!)
         ]))
+        self.loadCallback()
     }
     
     internal func setList(_ gpus: GPUs) {

@@ -110,32 +110,57 @@ public class GPU: Module {
         )
         guard self.available else { return }
         
-        self.infoReader = InfoReader(.GPU) { [weak self] value in
-            self?.infoCallback(value)
-        }
         self.selectedGPU = Store.shared.string(key: "\(self.config.name)_gpu", defaultValue: self.selectedGPU)
         
         self.settingsView.selectedGPUHandler = { [weak self] value in
             self?.selectedGPU = value
+            self?.ensureReader()
             self?.infoReader?.read()
         }
         self.settingsView.setInterval = { [weak self] value in
+            self?.ensureReader()
             self?.infoReader?.setInterval(value)
         }
         self.settingsView.callback = { [weak self] in
+            self?.ensureReader()
+            self?.infoReader?.read()
+        }
+        self.settingsView.loadCallback = { [weak self] in
+            self?.ensureReader()
             self?.infoReader?.read()
         }
         
+        if self.enabled {
+            self.ensureReader()
+        }
+    }
+
+    public override func willEnable() {
+        self.ensureReader()
+    }
+
+    public override func settingsWillOpen() {
+        self.ensureReader()
+        self.infoReader?.read()
+    }
+
+    private func ensureReader() {
+        guard self.infoReader == nil else { return }
+
+        self.infoReader = InfoReader(.GPU) { [weak self] value in
+            self?.infoCallback(value)
+        }
         self.setReaders([self.infoReader])
     }
     
     private func infoCallback(_ raw: GPUs?) {
-        guard raw != nil && !raw!.list.isEmpty, let value = raw, self.enabled else { return }
+        guard raw != nil && !raw!.list.isEmpty, let value = raw else { return }
+        self.settingsView.setList(value)
+        guard self.enabled else { return }
         
         DispatchQueue.main.async(execute: {
             self.popupView.infoCallback(value)
         })
-        self.settingsView.setList(value)
         
         let activeGPUs = value.active()
         guard let activeGPU = activeGPUs.first(where: { $0.state }) ?? activeGPUs.first else {

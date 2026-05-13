@@ -36,6 +36,38 @@ public class Mini: WidgetWrapper {
         }
         return .left
     }
+
+    private func displayValue(_ value: Double) -> Int {
+        Int((value * 100).rounded())
+    }
+
+    private func utilizationBucket(_ value: Double, zones: colorZones) -> Int {
+        let reversed = self.title == "BAT"
+        if reversed {
+            switch value {
+            case 0...zones.orange: return 2
+            case zones.orange...zones.red: return 1
+            default: return 0
+            }
+        }
+
+        switch value {
+        case 0...zones.orange: return 0
+        case zones.orange...zones.red: return 1
+        default: return 2
+        }
+    }
+
+    private func displayKey(value: Double, zones: colorZones) -> (Int, Int) {
+        let colorKey = self.colorState == .utilization ? self.utilizationBucket(value, zones: zones) : 0
+        return (self.displayValue(value), colorKey)
+    }
+
+    private func applyInitialWidth() {
+        let width = self.width
+        self.shadowSize.width = width
+        self.setFrameSize(NSSize(width: width, height: self.frame.size.height))
+    }
     
     public init(title: String, config: NSDictionary?, preview: Bool = false) {
         var widgetTitle: String = title
@@ -83,6 +115,8 @@ public class Mini: WidgetWrapper {
             self.labelState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_label", defaultValue: self.labelState)
             self.alignmentState = Store.shared.string(key: "\(self.title)_\(self.type.rawValue)_alignment", defaultValue: self.alignmentState)
         }
+
+        self.applyInitialWidth()
     }
     
     required init?(coder: NSCoder) {
@@ -141,17 +175,15 @@ public class Mini: WidgetWrapper {
             NSAttributedString.Key.paragraphStyle: style
         ]
         let rect = CGRect(x: origin.x, y: origin.y, width: self.width - (Constants.Widget.margin.x*2), height: valueSize+1)
-        let str = NSAttributedString.init(string: "\(Int(value.rounded(toPlaces: 2) * 100))\(suffix)", attributes: stringAttributes)
+        let str = NSAttributedString.init(string: "\(self.displayValue(value))\(suffix)", attributes: stringAttributes)
         str.draw(with: rect)
-        
-        self.setWidth(width)
     }
     
     public func setValue(_ newValue: Double) {
-        guard self._value != newValue else { return }
+        guard self.displayKey(value: self._value, zones: self._colorZones) != self.displayKey(value: newValue, zones: self._colorZones) else { return }
         self._value = newValue
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     
@@ -179,7 +211,7 @@ public class Mini: WidgetWrapper {
         guard self._colorZones != newColorZones else { return }
         self._colorZones = newColorZones
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     
@@ -187,7 +219,7 @@ public class Mini: WidgetWrapper {
         guard self._suffix != newSuffix else { return }
         self._suffix = newSuffix
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     
@@ -222,13 +254,14 @@ public class Mini: WidgetWrapper {
             self.colorState = newColor
         }
         Store.shared.set(key: "\(self.title)_\(self.type.rawValue)_color", value: key)
-        self.display()
+        self.needsDisplay = true
     }
     
     @objc private func toggleLabel(_ sender: NSControl) {
         self.labelState = controlState(sender)
         Store.shared.set(key: "\(self.title)_\(self.type.rawValue)_label", value: self.labelState)
-        self.display()
+        self.setWidth(self.width)
+        self.needsDisplay = true
     }
     
     @objc private func toggleAlignment(_ sender: NSMenuItem) {
@@ -237,6 +270,6 @@ public class Mini: WidgetWrapper {
             self.alignmentState = newAlignment.key
         }
         Store.shared.set(key: "\(self.title)_\(self.type.rawValue)_alignment", value: key)
-        self.display()
+        self.needsDisplay = true
     }
 }

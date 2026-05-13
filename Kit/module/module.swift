@@ -70,7 +70,9 @@ open class Module {
     public var enabled: Bool = false
     
     public var menuBar: MenuBar
-    public var settings: Settings_p? = nil
+    public var settings: Settings_p? {
+        self.ensureSettings()
+    }
     public let portal: Portal_p?
     
     public var name: String { config.name }
@@ -88,6 +90,7 @@ open class Module {
     private var popup: PopupWindow? = nil
     private var popupView: Popup_p? = nil
     private var notificationsView: NotificationsWrapper? = nil
+    private var settingsWrapper: Settings_p? = nil
     
     private let log: NextLog
     private var readers: [Reader_p] = []
@@ -137,15 +140,7 @@ open class Module {
             debug("Module started without widget", log: self.log)
         }
         
-        self.settings = Settings(
-            config: &self.config,
-            widgets: &self.menuBar.widgets,
-            moduleSettings: self.settingsView,
-            popupSettings: self.popupView,
-            notificationsSettings: self.notificationsView
-        )
-        
-        self.popup = PopupWindow(title: self.config.name, module: self.moduleType, view: self.popupView, visibilityCallback: self.visibilityCallback)
+        debug("Module started with lazy settings and popup wrappers", log: self.log)
     }
     
     deinit {
@@ -155,6 +150,7 @@ open class Module {
     // load function which call when app start
     public func mount() {
         guard self.enabled else { return }
+        self.willEnable()
         self.readers.forEach { (reader: Reader_p) in
             reader.initStoreValues(title: self.config.name)
             reader.start()
@@ -182,6 +178,12 @@ open class Module {
     // function to call before module terminate
     open func willTerminate() {}
     
+    // function to call before module readers start
+    open func willEnable() {}
+
+    // function to call before module settings are displayed
+    open func settingsWillOpen() {}
+
     // set module state to enabled
     public func enable() {
         guard self.available else { return }
@@ -189,12 +191,13 @@ open class Module {
         self.enabled = true
         Store.shared.set(key: "\(self.config.name)_state", value: true)
         self.userDefaults?.set(true, forKey: "\(self.config.name)_state")
+        self.willEnable()
         self.readers.forEach { (reader: Reader_p) in
             reader.initStoreValues(title: self.config.name)
             reader.start()
         }
         self.menuBar.enable()
-        self.settings?.setState(self.enabled)
+        self.settingsWrapper?.setState(self.enabled)
         debug("Module enabled", log: self.log)
     }
     
@@ -209,13 +212,42 @@ open class Module {
         }
         self.readers.forEach{ $0.stop() }
         self.menuBar.disable()
-        self.settings?.setState(self.enabled)
+        self.settingsWrapper?.setState(self.enabled)
         self.popup?.setIsVisible(false)
         debug("Module disabled", log: self.log)
     }
     
     public func setReaders(_ list: [Reader_p?]) {
         self.readers = list.filter({ $0 != nil }).map({ $0! as Reader_p })
+    }
+
+    private func ensureSettings() -> Settings_p? {
+        guard self.available else { return nil }
+        if self.settingsWrapper == nil {
+            let settings = Settings(
+                config: self.config,
+                widgets: self.menuBar.widgets,
+                moduleSettings: self.settingsView,
+                popupSettings: self.popupView,
+                notificationsSettings: self.notificationsView
+            )
+            settings.setState(self.enabled)
+            self.settingsWrapper = settings
+        }
+        return self.settingsWrapper
+    }
+
+    private func ensurePopup() -> PopupWindow? {
+        guard self.available else { return nil }
+        if self.popup == nil {
+            self.popup = PopupWindow(
+                title: self.config.name,
+                module: self.moduleType,
+                view: self.popupView,
+                visibilityCallback: self.visibilityCallback
+            )
+        }
+        return self.popup
     }
     
     // determine if module is available (can be overrided in module)
@@ -250,13 +282,14 @@ open class Module {
     }
     
     @objc private func listenForPopupToggle(_ notification: Notification) {
-        guard let popup = self.popup,
-              let name = notification.userInfo?["module"] as? String,
+        guard let name = notification.userInfo?["module"] as? String,
               let buttonOrigin = notification.userInfo?["origin"] as? CGPoint,
               let buttonCenter = notification.userInfo?["center"] as? CGFloat,
               self.config.name == name else {
             return
         }
+
+        guard let popup = self.ensurePopup() else { return }
         
         let openedWindows = NSApplication.shared.windows.filter{ $0 is NSPanel }
         openedWindows.forEach{ $0.setIsVisible(false) }

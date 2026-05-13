@@ -10,6 +10,7 @@
 //
 
 import Cocoa
+import IOKit
 import Kit
 
 public struct stats: Codable {
@@ -49,6 +50,22 @@ public struct drive: Codable {
     
     var activity: stats = stats()
     var smart: smart_t? = nil
+
+    enum CodingKeys: String, CodingKey {
+        case uuid
+        case mediaName
+        case BSDName
+        case root
+        case removable
+        case model
+        case path
+        case connectionType
+        case fileSystem
+        case size
+        case free
+        case activity
+        case smart
+    }
     
     public var percentage: Double {
         let total = self.size
@@ -70,7 +87,12 @@ public class Disks: Codable {
     private var _array: [drive] = []
     public var array: [drive] {
         get { self.queue.sync { self._array } }
-        set { self.queue.sync { self._array = newValue } }
+        set {
+            self.queue.sync {
+                self._array.forEach { releaseParent($0.parent) }
+                self._array = newValue
+            }
+        }
     }
     
     enum CodingKeys: String, CodingKey {
@@ -90,9 +112,7 @@ public class Disks: Codable {
     init() {}
     
     public var count: Int {
-        var result = 0
-        self.queue.sync { result = self.array.count }
-        return result
+        self.queue.sync { self._array.count }
     }
     
     // swiftlint:disable empty_count
@@ -102,58 +122,71 @@ public class Disks: Codable {
     // swiftlint:enable empty_count
     
     public func first(where predicate: (drive) -> Bool) -> drive? {
-        return self.array.first(where: predicate)
+        self.queue.sync { self._array.first(where: predicate) }
     }
     
     public func index(where predicate: (drive) -> Bool) -> Int? {
-        return self.array.firstIndex(where: predicate)
+        self.queue.sync { self._array.firstIndex(where: predicate) }
     }
     
     public func map<ElementOfResult>(_ transform: (drive) -> ElementOfResult?) -> [ElementOfResult] {
-        return self.array.compactMap(transform)
+        self.queue.sync { self._array.compactMap(transform) }
     }
     
     public func reversed() -> [drive] {
-        return self.array.reversed()
+        self.queue.sync { self._array.reversed() }
     }
     
     func forEach(_ body: (drive) -> Void) {
-        self.array.forEach(body)
+        self.queue.sync { self._array.forEach(body) }
     }
     
     public func append( _ element: drive) {
-        if !self.array.contains(where: {$0.BSDName == element.BSDName}) {
-            self.array.append(element)
+        self.queue.sync {
+            if !self._array.contains(where: {$0.BSDName == element.BSDName}) {
+                self._array.append(element)
+            }
         }
     }
     
     public func remove(at index: Int) {
-        self.array.remove(at: index)
+        self.queue.sync {
+            let removed = self._array.remove(at: index)
+            releaseParent(removed.parent)
+        }
     }
     
     public func sort() {
-        self.array.sort{ $1.removable }
+        self.queue.sync { self._array.sort{ $1.removable } }
     }
     
     func updateFreeSize(_ idx: Int, newValue: Int64) {
-        self.array[idx].free = newValue
+        self.queue.sync { self._array[idx].free = newValue }
     }
     
     func updateReadWrite(_ idx: Int, read: Int64, write: Int64) {
-        self.array[idx].activity.readBytes = read
-        self.array[idx].activity.writeBytes = write
+        self.queue.sync {
+            self._array[idx].activity.readBytes = read
+            self._array[idx].activity.writeBytes = write
+        }
     }
     
     func updateRead(_ idx: Int, newValue: Int64) {
-        self.array[idx].activity.read = newValue
+        self.queue.sync { self._array[idx].activity.read = newValue }
     }
     
     func updateWrite(_ idx: Int, newValue: Int64) {
-        self.array[idx].activity.write = newValue
+        self.queue.sync { self._array[idx].activity.write = newValue }
     }
     
     func updateSMARTData(_ idx: Int, smart: smart_t?) {
-        self.array[idx].smart = smart
+        self.queue.sync { self._array[idx].smart = smart }
+    }
+}
+
+private func releaseParent(_ parent: io_object_t) {
+    if parent != 0 {
+        IOObjectRelease(parent)
     }
 }
 

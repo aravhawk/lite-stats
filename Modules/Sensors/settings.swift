@@ -21,6 +21,7 @@ internal class Settings: NSStackView, Settings_v {
     public var callback: (() -> Void) = {}
     public var HIDcallback: (() -> Void) = {}
     public var unknownCallback: (() -> Void) = {}
+    public var loadCallback: (() -> Void) = {}
     public var setInterval: ((_ value: Int) -> Void) = {_ in }
     public var selectedHandler: (String) -> Void = {_ in }
     
@@ -85,6 +86,9 @@ internal class Settings: NSStackView, Settings_v {
     }
     
     public func load(widgets: [widget_t]) {
+        if self.list.isEmpty {
+            self.loadCallback()
+        }
         var sensors = self.list
         guard !sensors.isEmpty else {
             return

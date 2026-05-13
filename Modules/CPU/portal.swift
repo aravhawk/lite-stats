@@ -139,12 +139,14 @@ public class Portal: PortalWrapper {
                 self.idleField?.stringValue = "\(Int(value.idleLoad.rounded(toPlaces: 2) * 100))%"
                 
                 self.circle?.toolTip = "\(localizedString("CPU usage")): \(Int(value.totalUsage.rounded(toPlaces: 2) * 100))%"
-                self.circle?.setValue(value.totalUsage)
-                self.circle?.setSegments([
-                    circle_segment(value: value.systemLoad, color: self.systemColor),
-                    circle_segment(value: value.userLoad, color: self.userColor)
-                ])
-                self.circle?.setNonActiveSegmentColor(self.idleColor)
+                self.circle?.set(
+                    value: value.totalUsage,
+                    segments: [
+                        circle_segment(value: value.systemLoad, color: self.systemColor),
+                        circle_segment(value: value.userLoad, color: self.userColor)
+                    ],
+                    nonActiveSegmentColor: self.idleColor
+                )
                 
                 if let field = self.eCoresField, let usage = value.usageECores {
                     field.stringValue = "\(Int(usage * 100))%"

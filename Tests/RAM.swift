@@ -10,9 +10,24 @@
 //
 
 import XCTest
+@testable import Kit
 import RAM
 
 class RAM: XCTestCase {
+    func testProcessSampler_cpuUsagePercent() throws {
+        XCTAssertEqual(ProcessSampler.cpuUsagePercent(current: 2_000_000_000, previous: 1_000_000_000, elapsed: 1), 100)
+        XCTAssertEqual(ProcessSampler.cpuUsagePercent(current: 1_500_000_000, previous: 1_000_000_000, elapsed: 2), 25)
+        XCTAssertEqual(ProcessSampler.cpuUsagePercent(current: 1_000_000_000, previous: 1_000_000_000, elapsed: 1), 0)
+        XCTAssertEqual(ProcessSampler.cpuUsagePercent(current: 2_000_000_000, previous: 1_000_000_000, elapsed: 0), 0)
+    }
+
+    func testProcessSampler_bytesPerSecond() throws {
+        XCTAssertEqual(ProcessSampler.bytesPerSecond(current: 4_000, previous: 1_000, elapsed: 3), 1_000)
+        XCTAssertEqual(ProcessSampler.bytesPerSecond(current: 1_000, previous: 1_000, elapsed: 3), 0)
+        XCTAssertEqual(ProcessSampler.bytesPerSecond(current: 1_000, previous: 2_000, elapsed: 3), 0)
+        XCTAssertEqual(ProcessSampler.bytesPerSecond(current: 4_000, previous: 1_000, elapsed: 0), 0)
+    }
+
     func testProcessReader_parseProcess() throws {
         var process = ProcessReader.parseProcess("3127  lldb-rpc-server  611M")
         XCTAssertEqual(process.pid, 3127)

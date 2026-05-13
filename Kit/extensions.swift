@@ -600,6 +600,7 @@ public class KeyboardShartcutView: NSStackView {
     private var keyCodes: [UInt16] = []
     private var value: [UInt16] = []
     private var interaction: Bool = false
+    private var localMonitor: Any?
     
     public init(callback: @escaping (_ value: [UInt16]) -> Void, value: [UInt16]) {
         self.callback = callback
@@ -624,10 +625,10 @@ public class KeyboardShartcutView: NSStackView {
         self.startButton = startButton
         self.stopButton = stopButton
         
-        NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
-            self?.handleKeyEvent(event)
-            return event
-        }
+    }
+
+    deinit {
+        self.stopMonitoring()
     }
     
     required init?(coder: NSCoder) {
@@ -643,6 +644,7 @@ public class KeyboardShartcutView: NSStackView {
         self.valueField?.stringValue = localizedString("Listening...")
         self.keyCodes = []
         self.recording = true
+        self.startMonitoring()
     }
     
     @objc private func stopListening() {
@@ -658,7 +660,22 @@ public class KeyboardShartcutView: NSStackView {
         
         self.recording = false
         self.interaction = false
+        self.stopMonitoring()
         self.callback(self.value)
+    }
+
+    private func startMonitoring() {
+        guard self.localMonitor == nil else { return }
+        self.localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
+            self?.handleKeyEvent(event)
+            return event
+        }
+    }
+
+    private func stopMonitoring() {
+        guard let localMonitor = self.localMonitor else { return }
+        NSEvent.removeMonitor(localMonitor)
+        self.localMonitor = nil
     }
     
     private func handleKeyEvent(_ event: NSEvent) {

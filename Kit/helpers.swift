@@ -504,6 +504,21 @@ public func isNewestVersion(currentVersion: String, latestVersion: String) -> Bo
     return false
 }
 
+private enum NotificationAuthorization {
+    private static let queue = DispatchQueue(label: "com.aravhawk.lite-stats.notificationAuthorization")
+    private static var requested = false
+
+    static func requestIfNeeded(center: UNUserNotificationCenter) {
+        let shouldRequest = self.queue.sync { () -> Bool in
+            guard !self.requested else { return false }
+            self.requested = true
+            return true
+        }
+        guard shouldRequest else { return }
+        center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    }
+}
+
 public func showNotification(title: String, subtitle: String? = nil, userInfo: [AnyHashable: Any] = [:], delegate: UNUserNotificationCenterDelegate? = nil) -> String {
     let id = UUID().uuidString
     
@@ -519,7 +534,7 @@ public func showNotification(title: String, subtitle: String? = nil, userInfo: [
     let center = UNUserNotificationCenter.current()
     center.delegate = delegate
     
-    center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    NotificationAuthorization.requestIfNeeded(center: center)
     center.add(request) { (error: Error?) in
         if let err = error {
             print(err)
@@ -577,6 +592,37 @@ public func fetchIOService(_ name: String) -> [NSDictionary]? {
     return list.isEmpty ? nil : list
 }
 
+public func fetchIOServiceProperties(_ name: String, keys: [String]) -> [[String: Any]]? {
+    var iterator: io_iterator_t = io_iterator_t()
+    var obj: io_registry_entry_t = 1
+    var list: [[String: Any]] = []
+
+    let result = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching(name), &iterator)
+    if result != kIOReturnSuccess {
+        print("Error IOServiceGetMatchingServices(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
+        return nil
+    }
+    defer { IOObjectRelease(iterator) }
+
+    while obj != 0 {
+        obj = IOIteratorNext(iterator)
+        guard obj != 0 else { continue }
+        defer { IOObjectRelease(obj) }
+
+        var properties: [String: Any] = [:]
+        for key in keys {
+            if let value = getIOProperty(obj, key) {
+                properties[key] = value
+            }
+        }
+        if !properties.isEmpty {
+            list.append(properties)
+        }
+    }
+
+    return list.isEmpty ? nil : list
+}
+
 public func getIOProperties(_ entry: io_registry_entry_t) -> NSDictionary? {
     var properties: Unmanaged<CFMutableDictionary>? = nil
     
@@ -584,11 +630,14 @@ public func getIOProperties(_ entry: io_registry_entry_t) -> NSDictionary? {
         return nil
     }
     
-    defer {
-        properties?.release()
+    return properties?.takeRetainedValue()
+}
+
+public func getIOProperty(_ entry: io_registry_entry_t, _ key: String) -> Any? {
+    guard let property = IORegistryEntryCreateCFProperty(entry, key as CFString, kCFAllocatorDefault, 0) else {
+        return nil
     }
-    
-    return properties?.takeUnretainedValue()
+    return property.takeRetainedValue()
 }
 
 internal func getIOName(_ entry: io_registry_entry_t) -> String? {

@@ -118,93 +118,15 @@ public class ProcessReader: Reader<[TopProcess]> {
     
     public override func setup() {
         self.popup = true
-        self.setInterval(Store.shared.int(key: "\(self.title)_updateTopInterval", defaultValue: 1))
+        self.setInterval(Store.shared.int(key: "\(self.title)_updateTopInterval", defaultValue: 3))
     }
     
     public override func read() {
-        if self.numberOfProcesses == 0 {
-            return
-        }
-        
-        let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/usr/bin/top")
-        if self.combinedProcesses {
-            task.arguments = ["-l", "1", "-o", "mem", "-stats", "pid,command,mem"]
-        } else {
-            task.arguments = ["-l", "1", "-o", "mem", "-n", "\(self.numberOfProcesses)", "-stats", "pid,command,mem"]
-        }
-        task.qualityOfService = .utility
-        
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-        
-        defer {
-            outputPipe.fileHandleForReading.closeFile()
-            errorPipe.fileHandleForReading.closeFile()
-        }
-        
-        task.standardOutput = outputPipe
-        task.standardError = errorPipe
-        
-        do {
-            try task.run()
-        } catch let err {
-            error("top(): \(err.localizedDescription)", log: self.log)
-            return
-        }
-        
-        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: outputData, encoding: .utf8)
-        _ = String(data: errorData, encoding: .utf8)
-        guard let output, !output.isEmpty else { return }
-        
-        var processes: [TopProcess] = []
-        output.enumerateLines { (line, _) in
-            if line.matches("^\\d+\\** +.* +\\d+[A-Z]*\\+?\\-? *$") {
-                processes.append(ProcessReader.parseProcess(line))
-            }
-        }
-        
-        if !self.combinedProcesses {
-            self.callback(processes)
-            return
-        }
-        
-        var processGroups: [String: [TopProcess]] = [:]
-        for process in processes {
-            let responsiblePid = ProcessReader.getResponsiblePid(process.pid)
-            let groupKey = "\(responsiblePid)"
-            
-            if processGroups[groupKey] != nil {
-                processGroups[groupKey]!.append(process)
-            } else {
-                processGroups[groupKey] = [process]
-            }
-        }
-        
-        var result: [TopProcess] = []
-        for (_, processes) in processGroups {
-            let totalUsage = processes.reduce(0) { $0 + $1.usage }
-            let firstProcess = processes.first!
-            let name: String
-            
-            if let app = NSRunningApplication(processIdentifier: pid_t(ProcessReader.getResponsiblePid(firstProcess.pid))),
-               let appName = app.localizedName {
-                name = appName
-            } else {
-                name = firstProcess.name
-            }
-            
-            result.append(TopProcess(
-                pid: ProcessReader.getResponsiblePid(firstProcess.pid),
-                name: name,
-                usage: totalUsage
-            ))
-        }
-        
-        result.sort { $0.usage > $1.usage }
-        self.callback(Array(result.prefix(self.numberOfProcesses)))
+        let processes = ProcessSampler.shared.topMemoryProcesses(
+            limit: self.numberOfProcesses,
+            responsiblePID: self.combinedProcesses ? ProcessReader.getResponsiblePid : nil
+        )
+        self.callback(processes)
     }
     
     private static let dynGetResponsiblePidFunc: UnsafeMutableRawPointer? = {

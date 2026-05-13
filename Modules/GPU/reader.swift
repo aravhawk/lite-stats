@@ -24,16 +24,16 @@ internal class InfoReader: Reader<GPUs> {
     private var devices: [device] = []
     
     public override func setup() {
-        if let list = SystemKit.shared.device.info.gpu {
+        if let list = SystemKit.shared.gpuInfo() {
             self.displays = list
         }
         
-        guard let PCIdevices = fetchIOService("IOPCIDevice") else {
+        guard let PCIdevices = fetchIOServiceProperties("IOPCIDevice", keys: ["IOName", "device-id", "vendor-id", "model"]) else {
             return
         }
-        let devices = PCIdevices.filter{ $0.object(forKey: "IOName") as? String == "display" }
+        let devices = PCIdevices.filter{ $0["IOName"] as? String == "display" }
         
-        devices.forEach { (dict: NSDictionary) in
+        devices.forEach { dict in
             guard let deviceID = dict["device-id"] as? Data, let vendorID = dict["vendor-id"] as? Data else {
                 error("device-id or vendor-id not found", log: self.log)
                 return
@@ -55,13 +55,16 @@ internal class InfoReader: Reader<GPUs> {
     }
     
     public override func read() {
-        guard let accelerators = fetchIOService(kIOAcceleratorClassName) else {
+        guard let accelerators = fetchIOServiceProperties(
+            kIOAcceleratorClassName,
+            keys: ["IOClass", "PerformanceStatistics", "IOPCIMatch", "IOPCIPrimaryMatch", "AGCInfo"]
+        ) else {
             return
         }
         var devices = self.devices
         
         for (index, accelerator) in accelerators.enumerated() {
-            guard let IOClass = accelerator.object(forKey: "IOClass") as? String else {
+            guard let IOClass = accelerator["IOClass"] as? String else {
                 error("IOClass not found", log: self.log)
                 return
             }
@@ -92,7 +95,7 @@ internal class InfoReader: Reader<GPUs> {
             let utilization: Int? = stats["Device Utilization %"] as? Int ?? stats["GPU Activity(%)"] as? Int ?? nil
             let renderUtilization: Int? = stats["Renderer Utilization %"] as? Int ?? nil
             let tilerUtilization: Int? = stats["Tiler Utilization %"] as? Int ?? nil
-            var temperature: Int? = stats["Temperature(C)"] as? Int ?? nil
+            let temperature: Int? = stats["Temperature(C)"] as? Int ?? nil
             let fanSpeed: Int? = stats["Fan Speed(%)"] as? Int ?? nil
             let coreClock: Int? = stats["Core Clock(MHz)"] as? Int ?? nil
             let memoryClock: Int? = stats["Memory Clock(MHz)"] as? Int ?? nil

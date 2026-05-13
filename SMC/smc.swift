@@ -47,7 +47,7 @@ internal struct SMCKeyData_t {
                             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
                             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
                             UInt8, UInt8, UInt8, UInt8)
-    
+
     struct vers_t {
         var major: CUnsignedChar = 0
         var minor: CUnsignedChar = 0
@@ -55,7 +55,7 @@ internal struct SMCKeyData_t {
         var reserved: CUnsignedChar = 0
         var release: CUnsignedShort = 0
     }
-    
+
     struct LimitData_t {
         var version: UInt16 = 0
         var length: UInt16 = 0
@@ -63,13 +63,13 @@ internal struct SMCKeyData_t {
         var gpuPLimit: UInt32 = 0
         var memPLimit: UInt32 = 0
     }
-    
+
     struct keyInfo_t {
         var dataSize: IOByteCount32 = 0
         var dataType: UInt32 = 0
         var dataAttributes: UInt8 = 0
     }
-    
+
     var key: UInt32 = 0
     var vers = vers_t()
     var pLimitData = LimitData_t()
@@ -92,7 +92,7 @@ internal struct SMCVal_t {
     var dataSize: UInt32 = 0
     var dataType: String = ""
     var bytes: [UInt8] = Array(repeating: 0, count: 32)
-    
+
     init(_ key: String) {
         self.key = key
     }
@@ -101,12 +101,12 @@ internal struct SMCVal_t {
 extension FourCharCode {
     init(fromString str: String) {
         precondition(str.count == 4)
-        
+
         self = str.utf8.reduce(0) { sum, character in
             return sum << 8 | UInt32(character)
         }
     }
-    
+
     func toString() -> String {
         return String(describing: UnicodeScalar(self >> 24 & 0xff)!) +
                String(describing: UnicodeScalar(self >> 16 & 0xff)!) +
@@ -139,7 +139,7 @@ extension Float {
             return $0.load(fromByteOffset: 0, as: Self.self)
         }
     }
-    
+
     var bytes: [UInt8] {
         withUnsafeBytes(of: self, Array.init)
     }
@@ -147,27 +147,35 @@ extension Float {
 
 public class SMC {
     public static let shared = SMC()
+
+    private struct KeyInfo {
+        let dataSize: IOByteCount32
+        let dataType: UInt32
+    }
+
     private var conn: io_connect_t = 0
-    
+    private let queue = DispatchQueue(label: "com.aravhawk.lite-stats.smc")
+    private var keyInfoCache: [String: KeyInfo] = [:]
+
     public init() {
         var result: kern_return_t
         var iterator: io_iterator_t = 0
         let device: io_object_t
-        
+
         let matchingDictionary: CFMutableDictionary = IOServiceMatching("AppleSMC")
         result = IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &iterator)
         if result != kIOReturnSuccess {
             print("Error IOServiceGetMatchingServices(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
             return
         }
-        
+
         device = IOIteratorNext(iterator)
         IOObjectRelease(iterator)
         if device == 0 {
             print("Error IOIteratorNext(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
             return
         }
-        
+
         result = IOServiceOpen(device, mach_task_self_, 0, &conn)
         IOObjectRelease(device)
         if result != kIOReturnSuccess {
@@ -175,33 +183,33 @@ public class SMC {
             return
         }
     }
-    
+
     deinit {
         let result = self.close()
         if result != kIOReturnSuccess {
             print("error close smc connection: " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
         }
     }
-    
+
     public func close() -> kern_return_t {
         return IOServiceClose(conn)
     }
-    
+
     public func getValue(_ key: String) -> Double? {
         var result: kern_return_t = 0
         var val: SMCVal_t = SMCVal_t(key)
-        
+
         result = read(&val)
         if result != kIOReturnSuccess {
             print("Error read(\(key)): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
             return nil
         }
-        
+
         if val.dataSize > 0 {
             if val.bytes.first(where: { $0 != 0 }) == nil && val.key != "FS! " && val.key != "F0Md" && val.key != "F1Md" {
                 return nil
             }
-            
+
             switch val.dataType {
             case SMCDataType.UI8.rawValue:
                 return Double(val.bytes[0])
@@ -254,25 +262,25 @@ public class SMC {
                 return nil
             }
         }
-        
+
         return nil
     }
-    
+
     public func getStringValue(_ key: String) -> String? {
         var result: kern_return_t = 0
         var val: SMCVal_t = SMCVal_t(key)
-        
+
         result = read(&val)
         if result != kIOReturnSuccess {
             print("Error read(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
             return nil
         }
-        
+
         if val.dataSize > 0 {
             if val.bytes.first(where: { $0 != 0}) == nil {
                 return nil
             }
-            
+
             switch val.dataType {
             case SMCDataType.FDS.rawValue:
                 let c1  = String(UnicodeScalar(val.bytes[4]))
@@ -287,82 +295,99 @@ public class SMC {
                 let c10 = String(UnicodeScalar(val.bytes[13]))
                 let c11 = String(UnicodeScalar(val.bytes[14]))
                 let c12 = String(UnicodeScalar(val.bytes[15]))
-                
+
                 return (c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8 + c9 + c10 + c11 + c12).trimmingCharacters(in: .whitespaces)
             default:
                 print("unsupported data type \(val.dataType) for key: \(key)")
                 return nil
             }
         }
-        
+
         return nil
     }
-    
+
     public func getAllKeys() -> [String] {
         var list: [String] = []
-        
+
         let keysNum: Double? = self.getValue("#KEY")
         if keysNum == nil {
             print("ERROR no keys count found")
             return list
         }
-        
+
         var result: kern_return_t = 0
         var input: SMCKeyData_t = SMCKeyData_t()
         var output: SMCKeyData_t = SMCKeyData_t()
-        
-        for i in 0...Int(keysNum!) {
-            input = SMCKeyData_t()
-            output = SMCKeyData_t()
-            
-            input.data8 = SMCKeys.readIndex.rawValue
-            input.data32 = UInt32(i)
-            
-            result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
-            if result != kIOReturnSuccess {
-                continue
+
+        self.queue.sync {
+            for i in 0..<Int(keysNum!) {
+                input = SMCKeyData_t()
+                output = SMCKeyData_t()
+
+                input.data8 = SMCKeys.readIndex.rawValue
+                input.data32 = UInt32(i)
+
+                result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
+                if result != kIOReturnSuccess {
+                    continue
+                }
+
+                list.append(output.key.toString())
             }
-            
-            list.append(output.key.toString())
         }
-        
+
         return list
     }
-    
+
     // MARK: - internal functions
-    
+
     private func read(_ value: UnsafeMutablePointer<SMCVal_t>) -> kern_return_t {
+        self.queue.sync {
+            self.readLocked(value)
+        }
+    }
+
+    private func readLocked(_ value: UnsafeMutablePointer<SMCVal_t>) -> kern_return_t {
         var result: kern_return_t = 0
         var input = SMCKeyData_t()
         var output = SMCKeyData_t()
-        
-        input.key = FourCharCode(fromString: value.pointee.key)
-        input.data8 = SMCKeys.readKeyInfo.rawValue
-        
-        result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
-        if result != kIOReturnSuccess {
-            return result
+        let key = value.pointee.key
+
+        input.key = FourCharCode(fromString: key)
+        if let cached = self.keyInfoCache[key] {
+            value.pointee.dataSize = UInt32(cached.dataSize)
+            value.pointee.dataType = cached.dataType.toString()
+            input.keyInfo.dataSize = cached.dataSize
+        } else {
+            input.data8 = SMCKeys.readKeyInfo.rawValue
+
+            result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
+            if result != kIOReturnSuccess {
+                return result
+            }
+
+            value.pointee.dataSize = UInt32(output.keyInfo.dataSize)
+            value.pointee.dataType = output.keyInfo.dataType.toString()
+            input.keyInfo.dataSize = output.keyInfo.dataSize
+            self.keyInfoCache[key] = KeyInfo(dataSize: output.keyInfo.dataSize, dataType: output.keyInfo.dataType)
         }
-        
-        value.pointee.dataSize = UInt32(output.keyInfo.dataSize)
-        value.pointee.dataType = output.keyInfo.dataType.toString()
-        input.keyInfo.dataSize = output.keyInfo.dataSize
+
         input.data8 = SMCKeys.readBytes.rawValue
-        
+
         result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
         if result != kIOReturnSuccess {
             return result
         }
-        
+
         memcpy(&value.pointee.bytes, &output.bytes, Int(value.pointee.dataSize))
-        
+
         return kIOReturnSuccess
     }
-    
+
     private func call(_ index: UInt8, input: inout SMCKeyData_t, output: inout SMCKeyData_t) -> kern_return_t {
         let inputSize = MemoryLayout<SMCKeyData_t>.stride
         var outputSize = MemoryLayout<SMCKeyData_t>.stride
-        
+
         return IOConnectCallStructMethod(conn, UInt32(index), &input, inputSize, &output, &outputSize)
     }
 }

@@ -160,7 +160,6 @@ internal class Popup: PopupWrapper {
             if !(self.window?.isVisible ?? false) && self.processesInitialized {
                 return
             }
-            let list = list.map{ $0 }
             if list.count != self.processes?.count { self.processes?.clear("-") }
             
             for i in 0..<list.count {

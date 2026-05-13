@@ -189,7 +189,7 @@ open class WidgetWrapper: NSView, widget_p {
     
     public func redraw() {
         DispatchQueue.main.async { [weak self] in
-            self?.display()
+            self?.needsDisplay = true
         }
     }
     
@@ -357,15 +357,13 @@ public class MenuBar {
     }
     public var sortedWidgets: [widget_t] {
         get {
-            var list: [widget_t: Int] = [:]
-            self.activeWidgets.forEach { (w: SWidget) in
-                list[w.type] = w.position
-            }
-            return list.sorted { $0.1 < $1.1 }.map{ $0.key }
+            self.sortedWidgets(self.activeWidgets)
         }
     }
     
     private var _active: Bool = false
+    private var lastLayoutWidth: CGFloat = -1
+    private var lastLayoutWidgets: [widget_t] = []
     public var active: Bool {
         get { self.queue.sync { self._active } }
         set { self.queue.sync { self._active = newValue } }
@@ -468,16 +466,30 @@ public class MenuBar {
     
     private func recalculateWidth() {
         guard self.oneView, self.active else { return }
+        let activeWidgets = self.activeWidgets
+        let sorted = self.sortedWidgets(activeWidgets)
         
-        let w = self.activeWidgets.map({ $0.item.frame.width }).reduce(0, +) +
-            (CGFloat(self.activeWidgets.count - 1) * Constants.Widget.spacing) +
+        let w = activeWidgets.map({ $0.item.frame.width }).reduce(0, +) +
+            (CGFloat(max(activeWidgets.count - 1, 0)) * Constants.Widget.spacing) +
             Constants.Widget.spacing * 2
-        self.menuBarItem?.length = w
-        self.view.setFrameOrigin(NSPoint(x: 0, y: 0))
-        self.view.setFrameSize(NSSize(width: w, height: Constants.Widget.height))
-        
-        self.view.recalculate(self.sortedWidgets)
+
+        let widthChanged = self.menuBarItem?.length != w || self.view.frame.width != w
+        guard widthChanged || self.lastLayoutWidth != w || self.lastLayoutWidgets != sorted else { return }
+
+        if widthChanged {
+            self.menuBarItem?.length = w
+            self.view.setFrameOrigin(NSPoint(x: 0, y: 0))
+            self.view.setFrameSize(NSSize(width: w, height: Constants.Widget.height))
+        }
+
+        self.view.recalculate(sorted)
+        self.lastLayoutWidth = w
+        self.lastLayoutWidgets = sorted
         self.callback?()
+    }
+
+    private func sortedWidgets(_ widgets: [SWidget]) -> [widget_t] {
+        widgets.sorted { $0.position < $1.position }.map { $0.type }
     }
     
     @objc private func togglePopup() {
@@ -545,9 +557,16 @@ public class MenuBarView: NSView {
     
     public func recalculate(_ list: [widget_t] = []) {
         var x: CGFloat = Constants.Widget.spacing
+        let views = Dictionary(uniqueKeysWithValues: self.subviews.compactMap { view -> (widget_t, NSView)? in
+            guard let raw = view.identifier?.rawValue, let type = widget_t(rawValue: raw) else { return nil }
+            return (type, view)
+        })
+
         list.forEach { (type: widget_t) in
-            if let view = self.subviews.first(where: { $0.identifier == NSUserInterfaceItemIdentifier(type.rawValue) }) {
-                view.setFrameOrigin(NSPoint(x: x, y: view.frame.origin.y))
+            if let view = views[type] {
+                if view.frame.origin.x != x {
+                    view.setFrameOrigin(NSPoint(x: x, y: view.frame.origin.y))
+                }
                 x = view.frame.origin.x + view.frame.width + Constants.Widget.spacing
             }
         }

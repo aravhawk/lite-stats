@@ -126,12 +126,12 @@ public class NextLog {
 }
 
 extension NextLog {
-    private static var timestampFormatter: DateFormatter {
+    private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return formatter
-    }
+    }()
     
     private struct StdoutOutputStream: Writer {
         public let type: LogWriter = .stdout

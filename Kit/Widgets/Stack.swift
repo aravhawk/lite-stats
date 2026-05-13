@@ -226,28 +226,46 @@ public class StackWidget: WidgetWrapper {
     }
     
     public func setValues(_ values: [Stack_t]) {
-        var tableNeedsToBeUpdated: Bool = false
-        
-        values.forEach { (p: Stack_t) in
-            if let idx = self.values.firstIndex(where: { $0.key == p.key }) {
-                self.values[idx].value = p.value
-                return
+        let oldKeys = self.values.map(\.key)
+        var tableNeedsToBeUpdated = false
+        var viewNeedsToBeUpdated = false
+        var incoming: [String: Stack_t] = [:]
+        values.forEach { incoming[$0.key] = $0 }
+        var nextValues: [Stack_t] = []
+
+        for current in self.values {
+            guard var updated = incoming.removeValue(forKey: current.key) else {
+                tableNeedsToBeUpdated = true
+                viewNeedsToBeUpdated = true
+                continue
             }
-            tableNeedsToBeUpdated = true
-            self.values.append(p)
+
+            if current.value != updated.value {
+                viewNeedsToBeUpdated = true
+            }
+            updated.key = current.key
+            nextValues.append(updated)
         }
-        
-        let diff = self.values.filter({ v in values.contains(where: { $0.key == v.key }) })
-        if diff.count != self.values.count {
+
+        if !incoming.isEmpty {
             tableNeedsToBeUpdated = true
+            viewNeedsToBeUpdated = true
+            nextValues.append(contentsOf: incoming.values)
         }
-        self.values = diff.sorted(by: { $0.index < $1.index })
+
+        self.values = nextValues.sorted(by: { $0.index < $1.index })
+        if oldKeys != self.values.map(\.key) {
+            tableNeedsToBeUpdated = true
+            viewNeedsToBeUpdated = true
+        }
+
+        guard tableNeedsToBeUpdated || viewNeedsToBeUpdated else { return }
         
         DispatchQueue.main.async(execute: {
             if tableNeedsToBeUpdated {
                 self.orderTableView.update()
             }
-            self.display()
+            self.needsDisplay = true
         })
     }
     

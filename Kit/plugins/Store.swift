@@ -67,14 +67,46 @@ public class Store {
     }
     
     private func setValue(_ value: Any?, for key: String) {
-        self.cacheQueue.async(flags: .barrier) {
-            self.cache[key] = value
+        var shouldWrite = false
+        self.cacheQueue.sync(flags: .barrier) {
+            let oldValue = self.cache[key]
+            guard !Store.isEqual(oldValue, value) else { return }
+
+            if let value {
+                self.cache[key] = value
+            } else {
+                self.cache.removeValue(forKey: key)
+            }
+            shouldWrite = true
         }
+
+        guard shouldWrite else { return }
         
         if let value = value {
             self.defaults.set(value, forKey: key)
         } else {
             self.defaults.removeObject(forKey: key)
+        }
+    }
+
+    private static func isEqual(_ lhs: Any?, _ rhs: Any?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            return true
+        case let (left as Bool, right as Bool):
+            return left == right
+        case let (left as Int, right as Int):
+            return left == right
+        case let (left as String, right as String):
+            return left == right
+        case let (left as Data, right as Data):
+            return left == right
+        case let (left as NSArray, right as NSArray):
+            return left.isEqual(right)
+        case let (left as NSObject, right as NSObject):
+            return left.isEqual(right)
+        default:
+            return false
         }
     }
     

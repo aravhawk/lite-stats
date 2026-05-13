@@ -161,6 +161,8 @@ extension AppDelegate {
     }
     
     internal func handleKeyEvent(_ event: NSEvent) {
+        guard modules.contains(where: { $0.enabled && !$0.popupKeyboardShortcut.isEmpty }) else { return }
+
         var keyCodes: [UInt16] = []
         if event.modifierFlags.contains(.control) { keyCodes.append(59) }
         if event.modifierFlags.contains(.shift) { keyCodes.append(60) }
@@ -170,7 +172,7 @@ extension AppDelegate {
         
         guard !keyCodes.isEmpty,
               let module = modules.first(where: { $0.enabled && $0.popupKeyboardShortcut == keyCodes }),
-              let widget = module.menuBar.widgets.filter({ $0.isActive }).first,
+              let widget = module.menuBar.widgets.first(where: { $0.isActive }),
               let window = widget.item.window else { return }
         
         NotificationCenter.default.post(name: .togglePopup, object: nil, userInfo: [

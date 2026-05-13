@@ -91,8 +91,7 @@ public class Portal: PortalWrapper {
                 }
                 
                 self.circle?.toolTip = "\(localizedString("GPU usage")): \(Int(value.utilization!*100))%"
-                self.circle?.setValue(value.utilization!)
-                self.circle?.setText("\(Int(value.utilization!*100))%")
+                self.circle?.set(value: value.utilization!, text: "\(Int(value.utilization!*100))%")
                 self.initialized = true
             }
         })

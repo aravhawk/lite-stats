@@ -13,6 +13,14 @@ import Cocoa
 import Kit
 
 class Dashboard: NSStackView {
+    private static let uptimeFormatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.maximumUnitCount = 2
+        formatter.unitsStyle = .full
+        formatter.allowedUnits = [.day, .hour, .minute]
+        return formatter
+    }()
+
     private var processorValue: String {
         guard let cpu = SystemKit.shared.device.info.cpu, cpu.name != nil || cpu.physicalCores != nil || cpu.logicalCores != nil else {
             return localizedString("Unknown")
@@ -63,7 +71,7 @@ class Dashboard: NSStackView {
         return value
     }
     private var memoryValue: String {
-        guard let dimms = SystemKit.shared.device.info.ram?.dimms else {
+        guard let dimms = SystemKit.shared.ramInfo()?.dimms else {
             return localizedString("Unknown")
         }
         
@@ -114,7 +122,7 @@ class Dashboard: NSStackView {
         return value
     }
     private var graphicsValue: String {
-        guard let gpus = SystemKit.shared.device.info.gpu else {
+        guard let gpus = SystemKit.shared.gpuInfo() else {
             return localizedString("Unknown")
         }
         
@@ -142,7 +150,7 @@ class Dashboard: NSStackView {
         return value
     }
     private var disksValue: String {
-        guard let disks = SystemKit.shared.device.info.disk else {
+        guard let disks = SystemKit.shared.diskInfo() else {
             return localizedString("Unknown")
         }
         
@@ -159,7 +167,7 @@ class Dashboard: NSStackView {
         return value
     }
     private var displaysValue: String {
-        guard let displays = SystemKit.shared.device.display else {
+        guard let displays = SystemKit.shared.displayInfo() else {
             return localizedString("Unknown")
         }
         
@@ -191,14 +199,9 @@ class Dashboard: NSStackView {
         return value
     }
     private var uptimeValue: String {
-        let form = DateComponentsFormatter()
-        form.maximumUnitCount = 2
-        form.unitsStyle = .full
-        form.allowedUnits = [.day, .hour, .minute]
-        
         var value = localizedString("Unknown")
         if let bootDate = SystemKit.shared.device.bootDate {
-            if let duration = form.string(from: bootDate, to: Date()) {
+            if let duration = Dashboard.uptimeFormatter.string(from: bootDate, to: Date()) {
                 value = duration
             }
         }

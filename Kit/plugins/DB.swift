@@ -20,6 +20,7 @@ public class DB {
     private let keyPrefix = "db."
     
     private var writeTS: [String: Date] = [:]
+    private var cleanupTS: [String: Date] = [:]
     private var values: [String: Codable] = [:]
     
     init() {
@@ -76,9 +77,18 @@ public class DB {
             self.writeTS[key] = date
         }
     }
+
+    private func shouldClean(_ key: String, now: Date) -> Bool {
+        self.queue.sync {
+            if let cleanupTS = self.cleanupTS[key], now.timeIntervalSince(cleanupTS) < 600 {
+                return false
+            }
+            self.cleanupTS[key] = now
+            return true
+        }
+    }
     
     public func setup<T: Codable>(_ type: T.Type, _ key: String) {
-        self.clean(key)
         if let data = self.defaults.data(forKey: self.storageKey(key)),
            let value = try? JSONDecoder().decode(type, from: data) {
             self.setValue(value, for: key)
@@ -87,16 +97,20 @@ public class DB {
     
     public func insert(key: String, value: Codable, ts: Bool = true, force: Bool = false) {
         self.setValue(value, for: key)
+        let now = Date()
+        if !force, let ts = self.getWriteTS(for: key), now.timeIntervalSince(ts) < 30 { return }
+
         guard let blobData = try? JSONEncoder().encode(value) else { return }
         
         if ts {
-            self.defaults.set(blobData, forKey: self.storageKey("\(key)@\(Date().currentTimeSeconds())"))
+            if self.shouldClean(key, now: now) {
+                self.clean(key)
+            }
+            self.defaults.set(blobData, forKey: self.storageKey("\(key)@\(now.currentTimeSeconds())"))
         }
         
-        if !force, let ts = self.getWriteTS(for: key), Date().timeIntervalSince(ts) < 30 { return }
-        
         self.defaults.set(blobData, forKey: self.storageKey(key))
-        self.setWriteTS(Date(), for: key)
+        self.setWriteTS(now, for: key)
     }
     
     public func findOne<T: Decodable>(_ dynamicType: T.Type, key: String) -> T? {

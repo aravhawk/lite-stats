@@ -16,6 +16,7 @@ internal class CombinedView: NSObject, NSGestureRecognizerDelegate {
     private var menuBarItem: NSStatusItem? = nil
     private var view: NSView = NSView(frame: NSRect(x: 0, y: 0, width: 0, height: Constants.Widget.height))
     private var popup: PopupWindow? = nil
+    private var separatorViews: [NSView] = []
     
     private var status: Bool {
         Store.shared.bool(key: "CombinedModules", defaultValue: false)
@@ -116,27 +117,55 @@ internal class CombinedView: NSObject, NSGestureRecognizerDelegate {
     }
     
     private func recalculate() {
-        self.view.subviews.forEach({ $0.removeFromSuperview() })
-        
-        var w: CGFloat = 0
-        var i: Int = 0
-        self.activeModules.forEach { (m: Module) in
-            self.view.addSubview(m.menuBar.view)
-            self.view.subviews[i].setFrameOrigin(NSPoint(x: w, y: 0))
-            w += m.menuBar.view.frame.width + self.spacing
-            i += 1
-            
-            if self.separator && i < 2 * self.activeModules.count - 1 {
-                let separator = NSView(frame: NSRect(x: w, y: 3, width: 1, height: Constants.Widget.height-6))
-                separator.wantsLayer = true
-                separator.layer?.backgroundColor = (separator.isDarkMode ? NSColor.black : NSColor.white).cgColor
-                self.view.addSubview(separator)
-                w += 3 + self.spacing
-                i += 1
+        let activeModules = self.activeModules
+        let activeViews = Set(activeModules.map { ObjectIdentifier($0.menuBar.view) })
+        let separatorCount = self.separator ? max(activeModules.count - 1, 0) : 0
+        while self.separatorViews.count < separatorCount {
+            let separator = NSView(frame: NSRect(x: 0, y: 3, width: 1, height: Constants.Widget.height-6))
+            separator.identifier = NSUserInterfaceItemIdentifier("CombinedModules_separator")
+            separator.wantsLayer = true
+            self.separatorViews.append(separator)
+        }
+        while self.separatorViews.count > separatorCount {
+            self.separatorViews.removeLast().removeFromSuperview()
+        }
+        let activeSeparators = Set(self.separatorViews.map { ObjectIdentifier($0) })
+
+        self.view.subviews.forEach { subview in
+            let id = ObjectIdentifier(subview)
+            if !activeViews.contains(id) && !activeSeparators.contains(id) {
+                subview.removeFromSuperview()
             }
         }
-        self.view.setFrameSize(NSSize(width: w, height: self.view.frame.height))
-        self.menuBarItem?.length = w
+        
+        var w: CGFloat = 0
+        activeModules.enumerated().forEach { (idx, m: Module) in
+            if m.menuBar.view.superview !== self.view {
+                self.view.addSubview(m.menuBar.view)
+            }
+            if m.menuBar.view.frame.origin.x != w {
+                m.menuBar.view.setFrameOrigin(NSPoint(x: w, y: 0))
+            }
+            w += m.menuBar.view.frame.width + self.spacing
+            
+            if self.separator, idx < activeModules.count - 1 {
+                let separator = self.separatorViews[idx]
+                separator.layer?.backgroundColor = (separator.isDarkMode ? NSColor.black : NSColor.white).cgColor
+                if separator.superview !== self.view {
+                    self.view.addSubview(separator)
+                }
+                if separator.frame.origin.x != w {
+                    separator.setFrameOrigin(NSPoint(x: w, y: separator.frame.origin.y))
+                }
+                w += 3 + self.spacing
+            }
+        }
+        if self.view.frame.width != w {
+            self.view.setFrameSize(NSSize(width: w, height: self.view.frame.height))
+        }
+        if self.menuBarItem?.length != w {
+            self.menuBarItem?.length = w
+        }
     }
     
     // call when popup appear/disappear

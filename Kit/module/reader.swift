@@ -11,6 +11,8 @@
 
 import Cocoa
 
+private let readerExecutionQueue = DispatchQueue(label: "com.aravhawk.lite-stats.readerExecutionQueue", qos: .utility, attributes: .concurrent)
+
 public protocol Reader_p {
     var optional: Bool { get }
     var popup: Bool { get }
@@ -52,7 +54,7 @@ open class Reader<T: Codable>: NSObject, ReaderInternal_p {
     }
     
     public var interval: Double? = nil
-    public var defaultInterval: Int = 1
+    public var defaultInterval: Int = 3
     public var optional: Bool = false
     public var popup: Bool = false
     
@@ -63,6 +65,9 @@ open class Reader<T: Codable>: NSObject, ReaderInternal_p {
     private var repeatTask: Repeater?
     private var locked: Bool = true
     private var initlizalized: Bool = false
+    private let readLock = NSLock()
+    private var readInFlight: Bool = false
+    private var lifecycleID: UInt64 = 0
     
     private let activeQueue = DispatchQueue(label: "com.aravhawk.lite-stats.readerActiveQueue")
     private var _active: Bool = false
@@ -121,9 +126,6 @@ open class Reader<T: Codable>: NSObject, ReaderInternal_p {
     
     open func start() {
         if self.popup && self.locked {
-            DispatchQueue.global(qos: .background).async {
-                self.read()
-            }
             return
         }
         
@@ -133,23 +135,23 @@ open class Reader<T: Codable>: NSObject, ReaderInternal_p {
             }
             
             self.repeatTask = Repeater.init(seconds: Int(interval)) { [weak self] in
-                self?.read()
+                self?.scheduleRead()
             }
         }
         
+        self.active = true
+        self.bumpLifecycle()
         if !self.initlizalized {
-            DispatchQueue.global(qos: .background).async {
-                self.read()
-            }
+            self.scheduleRead()
             self.initlizalized = true
         }
         self.repeatTask?.start()
-        self.active = true
     }
     
     open func pause() {
         self.repeatTask?.pause()
         self.active = false
+        self.bumpLifecycle()
     }
     
     open func stop() {
@@ -157,6 +159,7 @@ open class Reader<T: Codable>: NSObject, ReaderInternal_p {
         self.repeatTask = nil
         self.active = false
         self.initlizalized = false
+        self.bumpLifecycle()
     }
     
     public func setInterval(_ value: Int) {
@@ -167,6 +170,37 @@ open class Reader<T: Codable>: NSObject, ReaderInternal_p {
     
     public func save(_ value: T) {
         DB.shared.insert(key: "\(self.module.stringValue)@\(self.name)", value: value, ts: self.history, force: true)
+    }
+
+    private func scheduleRead() {
+        self.readLock.lock()
+        guard !self.readInFlight else {
+            self.readLock.unlock()
+            return
+        }
+        let lifecycleID = self.lifecycleID
+        self.readInFlight = true
+        self.readLock.unlock()
+
+        readerExecutionQueue.async { [weak self] in
+            guard let self else { return }
+            defer {
+                self.readLock.lock()
+                self.readInFlight = false
+                self.readLock.unlock()
+            }
+            self.readLock.lock()
+            let shouldRead = self.lifecycleID == lifecycleID && self.active
+            self.readLock.unlock()
+            guard shouldRead else { return }
+            self.read()
+        }
+    }
+
+    private func bumpLifecycle() {
+        self.readLock.lock()
+        self.lifecycleID &+= 1
+        self.readLock.unlock()
     }
 }
 

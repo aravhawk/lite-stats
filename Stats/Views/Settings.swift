@@ -22,8 +22,8 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
     private let mainView: MainView = MainView(frame: NSRect(x: 0, y: 0, width: 540, height: 480))
     private let sidebarView: SidebarView = SidebarView(frame: NSRect(x: 0, y: 0, width: 180, height: 480))
     
-    private var dashboard: NSView = Dashboard()
-    private var settings: ApplicationSettings = ApplicationSettings()
+    private var dashboard: NSView?
+    private lazy var settings: ApplicationSettings = ApplicationSettings()
     
     private var toggleButton: NSControl? = nil
     private var activeModuleName: String? = nil
@@ -91,8 +91,6 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(menuCallback), name: .openModuleSettings, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(toggleSettingsHandler), name: .toggleSettings, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(externalModuleToggle), name: .toggleModule, object: nil)
-        
-        self.sidebarView.openMenu("Dashboard")
     }
     
     deinit {
@@ -165,6 +163,7 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
         if let title = notification.userInfo?["module"] as? String {
             var view: NSView = NSView()
             if let detectedModule = modules.first(where: { $0.config.name == title }) {
+                detectedModule.settingsWillOpen()
                 if let v = detectedModule.settings {
                     view = v
                 }
@@ -172,7 +171,10 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
                 toggleNSControlState(self.toggleButton, state: detectedModule.enabled ? .on : .off)
                 self.toggleButton?.isHidden = false
             } else if title == "Dashboard" {
-                view = self.dashboard
+                if self.dashboard == nil {
+                    self.dashboard = Dashboard()
+                }
+                view = self.dashboard!
                 self.toggleButton?.isHidden = true
             } else if title == "Settings" {
                 self.settings.viewWillAppear()
@@ -203,8 +205,14 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
     internal func setModules() {
         self.sidebarView.setModules(modules)
         if !self.pauseState && modules.filter({ $0.enabled != false && $0.available != false && !$0.menuBar.widgets.filter({ $0.isActive }).isEmpty }).isEmpty {
+            self.openDefaultIfNeeded()
             self.setIsVisible(true)
         }
+    }
+
+    internal func openDefaultIfNeeded() {
+        guard !self.mainView.hasContent else { return }
+        self.sidebarView.openMenu("Dashboard")
     }
     
     private func positionCenter() {
@@ -219,6 +227,9 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
 
 private class MainView: NSView {
     fileprivate let container: NSStackView
+    fileprivate var hasContent: Bool {
+        !self.container.arrangedSubviews.isEmpty
+    }
     
     override init(frame: NSRect) {
         self.container = NSStackView(frame: NSRect(x: 0, y: 0, width: frame.width, height: frame.height))

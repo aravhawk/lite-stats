@@ -179,6 +179,7 @@ public class SystemKit {
     public static let shared = SystemKit()
     
     public var device: device_s = device_s()
+    private let deviceLock = NSLock()
     
     public init() {
         let (modelID, serialNumber) = self.modelAndSerialNumber()
@@ -210,11 +211,43 @@ public class SystemKit {
         self.device.os = os_s(name: osDict[version] ?? localizedString("Unknown"), version: systemVersion, build: build)
         
         self.device.info.cpu = self.getCPUInfo()
-        self.device.info.ram = self.getRamInfo()
-        self.device.info.gpu = self.getGPUInfo()
-        self.device.info.disk = self.getDiskInfo()
         self.device.platform = self.getPlatform()
-        self.device.display = self.getDisplayInfo()
+    }
+
+    public func ramInfo() -> ram_s? {
+        self.deviceLock.lock()
+        defer { self.deviceLock.unlock() }
+        if self.device.info.ram == nil {
+            self.device.info.ram = self.getRamInfo()
+        }
+        return self.device.info.ram
+    }
+
+    public func gpuInfo() -> [gpu_s]? {
+        self.deviceLock.lock()
+        defer { self.deviceLock.unlock() }
+        if self.device.info.gpu == nil {
+            self.device.info.gpu = self.getGPUInfo()
+        }
+        return self.device.info.gpu
+    }
+
+    public func diskInfo() -> [disk_s]? {
+        self.deviceLock.lock()
+        defer { self.deviceLock.unlock() }
+        if self.device.info.disk == nil {
+            self.device.info.disk = self.getDiskInfo()
+        }
+        return self.device.info.disk
+    }
+
+    public func displayInfo() -> [display_s]? {
+        self.deviceLock.lock()
+        defer { self.deviceLock.unlock() }
+        if self.device.display == nil {
+            self.device.display = self.getDisplayInfo()
+        }
+        return self.device.display
     }
     
     public func getModelID() -> String? {
@@ -237,14 +270,15 @@ public class SystemKit {
     
     func modelAndSerialNumber() -> (String?, String?) {
         let service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        guard service != 0 else { return (nil, nil) }
         
         var modelIdentifier: String?
-        if let property = IORegistryEntryCreateCFProperty(service, "model" as CFString, kCFAllocatorDefault, 0), let value = property.takeUnretainedValue() as? Data {
+        if let property = IORegistryEntryCreateCFProperty(service, "model" as CFString, kCFAllocatorDefault, 0), let value = property.takeRetainedValue() as? Data {
             modelIdentifier = String(data: value, encoding: .utf8)?.trimmingCharacters(in: .controlCharacters)
         }
         
         var serialNumber: String?
-        if let property = IORegistryEntryCreateCFProperty(service, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0), let value = property.takeUnretainedValue() as? String {
+        if let property = IORegistryEntryCreateCFProperty(service, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0), let value = property.takeRetainedValue() as? String {
             serialNumber = value.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         }
         IOObjectRelease(service)
@@ -323,32 +357,28 @@ public class SystemKit {
             return nil
         }
         
-        var service: io_registry_entry_t = 1
         var list: [core_s] = []
         var pCores: Int32? = nil
         var eCores: Int32? = nil
         
-        while service != 0 {
-            service = IOIteratorNext(iterator)
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
             
             var entry: io_iterator_t = io_iterator_t()
             if IORegistryEntryGetChildIterator(service, kIOServicePlane, &entry) != kIOReturnSuccess {
                 continue
             }
-            var child: io_registry_entry_t = 1
-            while child != 0 {
-                child = IOIteratorNext(entry)
-                guard child != 0 else {
-                    continue
-                }
-                
-                guard let name = getIOName(child),
-                      let props = getIOProperties(child) else { continue }
+            defer { IOObjectRelease(entry) }
+
+            while case let child = IOIteratorNext(entry), child != 0 {
+                defer { IOObjectRelease(child) }
+
+                guard let name = getIOName(child) else { continue }
                 
                 if name.matches("^cpu\\d") {
                     var type: coreType = .unknown
                     
-                    if let rawType = props.object(forKey: "cluster-type") as? Data,
+                    if let rawType = getIOProperty(child, "cluster-type") as? Data,
                        let typ = String(data: rawType, encoding: .utf8)?.trimmed {
                         switch typ {
                         case "E":
@@ -360,25 +390,21 @@ public class SystemKit {
                         }
                     }
                     
-                    let rawCPUId = props.object(forKey: "cpu-id") as? Data
+                    let rawCPUId = getIOProperty(child, "cpu-id") as? Data
                     let id = rawCPUId?.withUnsafeBytes { pointer in
                         return pointer.load(as: Int32.self)
                     }
                     
                     list.append(core_s(id: id ?? -1, type: type))
                 } else if name.trimmed == "cpus" {
-                    eCores = (props.object(forKey: "e-core-count") as? Data)?.withUnsafeBytes { pointer in
+                    eCores = (getIOProperty(child, "e-core-count") as? Data)?.withUnsafeBytes { pointer in
                         return pointer.load(as: Int32.self)
                     }
-                    pCores = (props.object(forKey: "p-core-count") as? Data)?.withUnsafeBytes { pointer in
+                    pCores = (getIOProperty(child, "p-core-count") as? Data)?.withUnsafeBytes { pointer in
                         return pointer.load(as: Int32.self)
                     }
                 }
-                
-                IOObjectRelease(child)
             }
-            IOObjectRelease(entry)
-            IOObjectRelease(service)
         }
         IOObjectRelease(iterator)
         
@@ -534,13 +560,13 @@ public class SystemKit {
         
         while case let child = IOIteratorNext(iterator), child != 0 {
             defer { IOObjectRelease(child) }
-            guard let name = getIOName(child), name == "pmgr", let props = getIOProperties(child) else { continue }
+            guard let name = getIOName(child), name == "pmgr" else { continue }
             
-            if let data = props.value(forKey: "voltage-states1-sram") {
-                eFreq = convertCFDataToArr(data as! CFData, isM4)
+            if let data = getIOProperty(child, "voltage-states1-sram") as? Data {
+                eFreq = convertCFDataToArr(data as CFData, isM4)
             }
-            if let data = props.value(forKey: "voltage-states5-sram") {
-                pFreq = convertCFDataToArr(data as! CFData, isM4)
+            if let data = getIOProperty(child, "voltage-states5-sram") as? Data {
+                pFreq = convertCFDataToArr(data as CFData, isM4)
             }
         }
         

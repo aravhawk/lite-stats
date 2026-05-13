@@ -51,7 +51,7 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
     
     private var list: [String] = []
     
-    private let textWidgetHelpPanel: HelpHUD = HelpHUD(textWidgetHelp)
+    private lazy var textWidgetHelpPanel: HelpHUD = HelpHUD(textWidgetHelp)
     
     public init(_ module: ModuleType) {
         self.title = module.stringValue

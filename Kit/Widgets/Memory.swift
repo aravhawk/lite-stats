@@ -20,6 +20,14 @@ public class MemoryWidget: WidgetWrapper {
     private var colorState: SColor = .monochrome
     
     private let width: CGFloat = 50
+
+    private func usageBucket(_ value: Double) -> Int {
+        switch value {
+        case 0...0.6: return 0
+        case 0.6...0.8: return 1
+        default: return 2
+        }
+    }
     
     public init(title: String, config: NSDictionary?, preview: Bool = false) {
         if config != nil {
@@ -129,11 +137,17 @@ public class MemoryWidget: WidgetWrapper {
     }
     
     public func setValue(_ value: (String, String), usedPercentage: Double) {
+        let currentBucket = self.colorState == .utilization ? self.usageBucket(self.percentage) : 0
+        let newBucket = self.colorState == .utilization ? self.usageBucket(usedPercentage) : 0
+        guard self.value != value || currentBucket != newBucket else {
+            self.percentage = usedPercentage
+            return
+        }
         self.value = value
         self.percentage = usedPercentage
         
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     
@@ -141,7 +155,7 @@ public class MemoryWidget: WidgetWrapper {
         guard self.pressureLevel != newPressureLevel else { return }
         self.pressureLevel = newPressureLevel
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     

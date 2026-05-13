@@ -119,7 +119,7 @@ public class CPU: Module {
             self?.popupView.temperatureCallback(value)
         }
         
-        self.frequencyReader = FrequencyReader(.CPU, popup: false) { [weak self] value in
+        self.frequencyReader = FrequencyReader(.CPU, popup: true) { [weak self] value in
             self?.popupView.frequencyCallback(value)
         }
         

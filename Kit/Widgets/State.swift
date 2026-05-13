@@ -65,7 +65,7 @@ public class StateWidget: WidgetWrapper {
         guard self.value != value else { return }
         self.value = value
         DispatchQueue.main.async(execute: {
-            self.display()
+            self.needsDisplay = true
         })
     }
     

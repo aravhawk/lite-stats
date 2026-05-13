@@ -82,6 +82,8 @@ private class GPUView: NSStackView {
     private var utilizationChart: LineChartView? = nil
     private var renderUtilizationChart: LineChartView? = nil
     private var tilerUtilizationChart: LineChartView? = nil
+    private var circleViews: [String: HalfCircleGraphView] = [:]
+    private var chartViews: [String: LineChartView] = [:]
     
     public var sizeCallback: (() -> Void)
     
@@ -201,8 +203,8 @@ private class GPUView: NSStackView {
         var circle: HalfCircleGraphView
         var chart: LineChartView
         
-        if let view = self.circleRow?.arrangedSubviews.filter({ $0 is HalfCircleGraphView }).first(where: { ($0 as! HalfCircleGraphView).id == id }) {
-            circle = view as! HalfCircleGraphView
+        if let view = self.circleViews[id] {
+            circle = view
         } else {
             circle = HalfCircleGraphView(frame: NSRect(x: 0, y: 0, width: circleSize, height: circleSize))
             circle.id = id
@@ -213,10 +215,11 @@ private class GPUView: NSStackView {
                 row.heightAnchor.constraint(equalToConstant: row.bounds.height).isActive = true
                 row.addArrangedSubview(circle)
             }
+            self.circleViews[id] = circle
         }
         
-        if let view = self.chartRow?.arrangedSubviews.filter({ $0 is LineChartView }).first(where: { ($0 as! LineChartView).id == id }) {
-            chart = view as! LineChartView
+        if let view = self.chartViews[id] {
+            chart = view
         } else {
             chart = LineChartView(frame: NSRect(x: 0, y: 0, width: 100, height: self.chartSize), num: 120)
             chart.isTooltipEnabled = false
@@ -237,11 +240,11 @@ private class GPUView: NSStackView {
                 row.heightAnchor.constraint(equalToConstant: row.bounds.height).isActive = true
                 row.addArrangedSubview(chart)
             }
+            self.chartViews[id] = chart
         }
         
         if id == "GPU temperature" {
-            circle.setValue(value)
-            circle.setText(temperature(value))
+            circle.set(value: value, text: temperature(value))
             circle.toolTip = "\(localizedString(id)): \(temperature(value))"
             chart.suffix = UnitTemperature.current.symbol
             
@@ -249,24 +252,21 @@ private class GPUView: NSStackView {
                 self.temperatureChart = chart
             }
         } else if id == "GPU utilization" {
-            circle.setValue(value)
-            circle.setText("\(Int(value*100))%")
+            circle.set(value: value, text: "\(Int(value*100))%")
             circle.toolTip = "\(localizedString(id)): \(Int(value*100))%"
             
             if self.utilizationChart == nil {
                 self.utilizationChart = chart
             }
         } else if id == "Render utilization" {
-            circle.setValue(value)
-            circle.setText("\(Int(value*100))%")
+            circle.set(value: value, text: "\(Int(value*100))%")
             circle.toolTip = "\(localizedString(id)): \(Int(value*100))%"
             
             if self.renderUtilizationChart == nil {
                 self.renderUtilizationChart = chart
             }
         } else if id == "Tiler utilization" {
-            circle.setValue(value)
-            circle.setText("\(Int(value*100))%")
+            circle.set(value: value, text: "\(Int(value*100))%")
             circle.toolTip = "\(localizedString(id)): \(Int(value*100))%"
             
             if self.tilerUtilizationChart == nil {

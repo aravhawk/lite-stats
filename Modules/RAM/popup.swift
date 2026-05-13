@@ -247,13 +247,15 @@ internal class Popup: PopupWrapper {
                 self.freeField?.stringValue = Units(bytes: Int64(value.free)).getReadableMemory(style: .memory)
                 
                 self.circle?.toolTip = "\(localizedString("Memory usage")): \(Int(value.usage*100))%"
-                self.circle?.setValue(value.usage)
-                self.circle?.setSegments([
-                    circle_segment(value: value.app/value.total, color: self.appColor),
-                    circle_segment(value: value.wired/value.total, color: self.wiredColor),
-                    circle_segment(value: value.compressed/value.total, color: self.compressedColor)
-                ])
-                self.circle?.setNonActiveSegmentColor(self.freeColor)
+                self.circle?.set(
+                    value: value.usage,
+                    segments: [
+                        circle_segment(value: value.app/value.total, color: self.appColor),
+                        circle_segment(value: value.wired/value.total, color: self.wiredColor),
+                        circle_segment(value: value.compressed/value.total, color: self.compressedColor)
+                    ],
+                    nonActiveSegmentColor: self.freeColor
+                )
                 self.level?.setValue(value.pressure)
                 self.level?.toolTip = "\(localizedString("Memory pressure")): \(value.pressure.value.rawValue)"
                 
@@ -268,7 +270,6 @@ internal class Popup: PopupWrapper {
             if !(self.window?.isVisible ?? false) && self.processesInitialized {
                 return
             }
-            let list = list.map { $0 }
             if list.count != self.processes?.count { self.processes?.clear() }
             
             for i in 0..<list.count {

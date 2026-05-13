@@ -32,6 +32,7 @@ private struct Sensor_t: KeyValue_p {
 }
 
 internal class Popup: PopupWrapper {
+    internal var visibilityHandler: ((Bool) -> Void)?
     private var list: [String: NSView] = [:]
     
     private var unknownSensorsState: Bool { Store.shared.bool(key: "Sensors_unknown", defaultValue: false) }
@@ -161,6 +162,14 @@ internal class Popup: PopupWrapper {
             self.sensors = values
         }
         self.recalculateHeight()
+    }
+
+    public override func appear() {
+        self.visibilityHandler?(true)
+    }
+
+    public override func disappear() {
+        self.visibilityHandler?(false)
     }
     
     internal func usageCallback(_ values: [Sensor_p]) {

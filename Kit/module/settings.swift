@@ -20,7 +20,7 @@ public protocol Settings_v: NSView {
 }
 
 open class Settings: NSStackView, Settings_p {
-    private var config: UnsafePointer<module_c>
+    private var config: module_c
     private var widgets: [SWidget]
     
     private var segmentedControl: NSSegmentedControl?
@@ -46,8 +46,8 @@ open class Settings: NSStackView, Settings_p {
         Store.shared.bool(key: "OneView", defaultValue: false)
     }
     private var oneViewState: Bool {
-        get { Store.shared.bool(key: "\(self.config.pointee.name)_oneView", defaultValue: false) }
-        set { Store.shared.set(key: "\(self.config.pointee.name)_oneView", value: newValue) }
+        get { Store.shared.bool(key: "\(self.config.name)_oneView", defaultValue: false) }
+        set { Store.shared.set(key: "\(self.config.name)_oneView", value: newValue) }
     }
     
     private var isPopupSettingsAvailable: Bool
@@ -56,15 +56,15 @@ open class Settings: NSStackView, Settings_p {
     private var previewView: NSView? = nil
     private var settingsView: NSView? = nil
     
-    init(config: UnsafePointer<module_c>, widgets: UnsafeMutablePointer<[SWidget]>, moduleSettings: Settings_v?, popupSettings: Popup_p?, notificationsSettings: NotificationsWrapper?) {
+    init(config: module_c, widgets: [SWidget], moduleSettings: Settings_v?, popupSettings: Popup_p?, notificationsSettings: NotificationsWrapper?) {
         self.config = config
-        self.widgets = widgets.pointee
+        self.widgets = widgets
         self.moduleSettings = moduleSettings
         self.popupSettings = popupSettings
         self.notificationsSettings = notificationsSettings
         
-        self.isPopupSettingsAvailable = config.pointee.settingsConfig["popup"] as? Bool ?? false
-        self.isNotificationsSettingsAvailable = config.pointee.settingsConfig["notifications"] as? Bool ?? false
+        self.isPopupSettingsAvailable = config.settingsConfig["popup"] as? Bool ?? false
+        self.isNotificationsSettingsAvailable = config.settingsConfig["notifications"] as? Bool ?? false
         
         super.init(frame: NSRect.zero)
         
@@ -110,7 +110,7 @@ open class Settings: NSStackView, Settings_p {
         view.orientation = .horizontal
         view.spacing = Constants.Settings.margin
         
-        let widgetSelector = WidgetSelectorView(module: self.config.pointee.name, widgets: self.widgets, stateCallback: self.loadWidget)
+        let widgetSelector = WidgetSelectorView(module: self.config.name, widgets: self.widgets, stateCallback: self.loadWidget)
 //        let button = ButtonSelectorView { [weak self] in
 //            self?.toggleView()
 //        }
@@ -285,7 +285,7 @@ open class Settings: NSStackView, Settings_p {
     @objc private func toggleOneView(_ sender: NSControl) {
         guard !self.globalOneView else { return }
         self.oneViewState = controlState(sender)
-        NotificationCenter.default.post(name: .toggleOneView, object: nil, userInfo: ["module": self.config.pointee.name])
+        NotificationCenter.default.post(name: .toggleOneView, object: nil, userInfo: ["module": self.config.name])
     }
     
     @objc private func listenForOneView(_ notification: Notification) {

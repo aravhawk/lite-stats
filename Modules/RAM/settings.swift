@@ -43,8 +43,8 @@ You can use a combination of any of the variables.
 """
 
 internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
-    private var updateIntervalValue: Int = 1
-    private var updateTopIntervalValue: Int = 1
+    private var updateIntervalValue: Int = 3
+    private var updateTopIntervalValue: Int = 3
     private var numberOfProcesses: Int = 8
     private var splitValueState: Bool = false
     private var notificationLevel: String = "Disabled"
@@ -58,7 +58,7 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
     public var setInterval: ((_ value: Int) -> Void) = {_ in }
     public var setTopInterval: ((_ value: Int) -> Void) = {_ in }
     
-    private let textWidgetHelpPanel: HelpHUD = HelpHUD(textWidgetHelp)
+    private lazy var textWidgetHelpPanel: HelpHUD = HelpHUD(textWidgetHelp)
     
     public init(_ module: ModuleType) {
         self.title = module.stringValue
