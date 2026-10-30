@@ -22,7 +22,7 @@ class Notifications: NotificationsWrapper {
     ]
     private let temperatureList: [String] = ["30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "96", "100", "105", "110"]
     
-    public init(_ module: ModuleType) {
+    public override init(_ module: ModuleType) {
         super.init(module)
         for p in self.temperatureList {
             if let v = Double(p) {
@@ -35,14 +35,32 @@ class Notifications: NotificationsWrapper {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // the rows are only built once the view is displayed, until then the list is kept
+    private var pending: [Sensor_p]? = nil
+    
     internal func setup(_ values: [Sensor_p]? = nil) {
-        guard var values = values else { return }
+        guard let values else { return }
+        self.pending = values
+        if self.window != nil {
+            self.build()
+        }
+    }
+    
+    public override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if self.window != nil {
+            self.build()
+        }
+    }
+    
+    private func build() {
+        guard var values = self.pending else { return }
+        self.pending = nil
         values = values.filter({ $0.type == .fan || $0.type == .temperature })
         if !self.unknownSensorsState {
             values = values.filter({ $0.group != .unknown })
         }
         self.subviews.forEach({ $0.removeFromSuperview() })
-        self.initIDs(values.map{$0.key})
         
         var types: [SensorType] = []
         values.forEach { (s: Sensor_p) in
@@ -76,15 +94,22 @@ class Notifications: NotificationsWrapper {
         }
     }
     
+    // thresholds are read from the settings only after they change
+    private var thresholds: (generation: Int, values: [String: Double])? = nil
+    
     internal func usageCallback(_ values: [Sensor_p]) {
-        let sensors = values.filter({ !$0.notificationThreshold.isEmpty })
-        let title = localizedString("Sensor threshold")
+        let generation = Store.shared.generation
+        if self.thresholds?.generation != generation {
+            var thresholds: [String: Double] = [:]
+            values.forEach { s in thresholds[s.key] = Double(s.notificationThreshold) }
+            self.thresholds = (generation, thresholds)
+        }
+        guard let thresholds = self.thresholds?.values, !thresholds.isEmpty else { return }
         
-        for s in sensors {
-            if let threshold = Double(s.notificationThreshold) {
-                let subtitle = localizedString("\(localizedString(s.name)): \(s.formattedPopupValue)")
-                self.checkDouble(id: s.key, value: s.value, threshold: threshold, title: title, subtitle: subtitle)
-            }
+        for s in values {
+            guard let threshold = thresholds[s.key] else { continue }
+            self.checkDouble(id: s.key, value: s.value, threshold: threshold, title: localizedString("Sensor threshold"),
+                             subtitle: "\(localizedString(s.name)): \(s.formattedPopupValue)")
         }
     }
     

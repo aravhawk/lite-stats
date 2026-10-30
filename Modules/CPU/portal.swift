@@ -21,8 +21,6 @@ public class Portal: PortalWrapper {
     private var systemField: NSTextField? = nil
     private var userField: NSTextField? = nil
     private var idleField: NSTextField? = nil
-    private var shedulerLimitField: NSTextField? = nil
-    private var speedLimitField: NSTextField? = nil
     private var eCoresField: NSTextField? = nil
     private var pCoresField: NSTextField? = nil
     private var average1Field: NSTextField? = nil
@@ -132,43 +130,41 @@ public class Portal: PortalWrapper {
     }
     
     internal func callback(_ value: CPU_Load) {
-        DispatchQueue.main.async(execute: {
-            if (self.window?.isVisible ?? false) || !self.initialized {
-                self.systemField?.stringValue = "\(Int(value.systemLoad.rounded(toPlaces: 2) * 100))%"
-                self.userField?.stringValue = "\(Int(value.userLoad.rounded(toPlaces: 2) * 100))%"
-                self.idleField?.stringValue = "\(Int(value.idleLoad.rounded(toPlaces: 2) * 100))%"
-                
-                self.circle?.toolTip = "\(localizedString("CPU usage")): \(Int(value.totalUsage.rounded(toPlaces: 2) * 100))%"
-                self.circle?.set(
-                    value: value.totalUsage,
-                    segments: [
-                        circle_segment(value: value.systemLoad, color: self.systemColor),
-                        circle_segment(value: value.userLoad, color: self.userColor)
-                    ],
-                    nonActiveSegmentColor: self.idleColor
-                )
-                
-                if let field = self.eCoresField, let usage = value.usageECores {
-                    field.stringValue = "\(Int(usage * 100))%"
-                }
-                if let field = self.pCoresField, let usage = value.usagePCores {
-                    field.stringValue = "\(Int(usage * 100))%"
-                }
-                
-                var usagePerCore: [ColorValue] = []
-                if let cores = SystemKit.shared.device.info.cpu?.cores, cores.count == value.usagePerCore.count {
-                    for i in 0..<value.usagePerCore.count {
-                        usagePerCore.append(ColorValue(value.usagePerCore[i], color: cores[i].type == .efficiency ? self.eCoresColor : self.pCoresColor))
-                    }
-                } else {
-                    for i in 0..<value.usagePerCore.count {
-                        usagePerCore.append(ColorValue(value.usagePerCore[i], color: NSColor.systemBlue))
-                    }
-                }
-                self.barChart?.setValues(usagePerCore)
-                
-                self.initialized = true
+        if (self.window?.isVisible ?? false) || !self.initialized {
+            self.systemField?.stringValue = "\(Int(value.systemLoad.rounded(toPlaces: 2) * 100))%"
+            self.userField?.stringValue = "\(Int(value.userLoad.rounded(toPlaces: 2) * 100))%"
+            self.idleField?.stringValue = "\(Int(value.idleLoad.rounded(toPlaces: 2) * 100))%"
+            
+            self.circle?.toolTip = "\(localizedString("CPU usage")): \(Int(value.totalUsage.rounded(toPlaces: 2) * 100))%"
+            self.circle?.set(
+                value: value.totalUsage,
+                segments: [
+                    circle_segment(value: value.systemLoad, color: self.systemColor),
+                    circle_segment(value: value.userLoad, color: self.userColor)
+                ],
+                nonActiveSegmentColor: self.idleColor
+            )
+            
+            if let field = self.eCoresField, let usage = value.usageECores {
+                field.stringValue = "\(Int(usage * 100))%"
             }
-        })
+            if let field = self.pCoresField, let usage = value.usagePCores {
+                field.stringValue = "\(Int(usage * 100))%"
+            }
+            
+            var usagePerCore: [ColorValue] = []
+            if let cores = SystemKit.shared.device.info.cpu?.cores, cores.count == value.usagePerCore.count {
+                for i in 0..<value.usagePerCore.count {
+                    usagePerCore.append(ColorValue(value.usagePerCore[i], color: cores[i].type == .efficiency ? self.eCoresColor : self.pCoresColor))
+                }
+            } else {
+                for i in 0..<value.usagePerCore.count {
+                    usagePerCore.append(ColorValue(value.usagePerCore[i], color: NSColor.systemBlue))
+                }
+            }
+            self.barChart?.setValues(usagePerCore)
+            
+            self.initialized = true
+        }
     }
 }

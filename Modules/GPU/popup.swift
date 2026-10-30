@@ -289,11 +289,7 @@ private class GPUView: NSStackView {
         }
         
         if let value = gpu.temperature {
-            if let temp = Double(temperature(value).replacingOccurrences(of: "C", with: "").replacingOccurrences(of: "F", with: "").digits) {
-                self.temperatureChart?.addValue(temp/100)
-            } else {
-                self.temperatureChart?.addValue(value)
-            }
+            self.temperatureChart?.addValue(localTemperature(value).rounded()/100)
         }
         if let value = gpu.utilization {
             self.utilizationChart?.addValue(value)

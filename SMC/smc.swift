@@ -12,41 +12,11 @@
 import Foundation
 import IOKit
 
-internal enum SMCDataType: String {
-    case UI8 = "ui8 "
-    case UI16 = "ui16"
-    case UI32 = "ui32"
-    case SP1E = "sp1e"
-    case SP3C = "sp3c"
-    case SP4B = "sp5b"
-    case SP5A = "sp5a"
-    case SPA5 = "spa5"
-    case SP69 = "sp669"
-    case SP78 = "sp78"
-    case SP87 = "sp87"
-    case SP96 = "sp96"
-    case SPB4 = "spb4"
-    case SPF0 = "spf0"
-    case FLT = "flt "
-    case FPE2 = "fpe2"
-    case FP2E = "fp2e"
-    case FDS = "{fds"
-}
-
-internal enum SMCKeys: UInt8 {
-    case kernelIndex = 2
-    case readBytes = 5
-    case readIndex = 8
-    case readKeyInfo = 9
-    case readVers = 12
-}
-
-internal struct SMCKeyData_t {
-    typealias SMCBytes_t = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
-                            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
-                            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
-                            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
-                            UInt8, UInt8, UInt8, UInt8)
+private struct SMCKeyData_t {
+    typealias SMCBytes_t = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
 
     struct vers_t {
         var major: CUnsignedChar = 0
@@ -79,315 +49,149 @@ internal struct SMCKeyData_t {
     var status: UInt8 = 0
     var data8: UInt8 = 0
     var data32: UInt32 = 0
-    var bytes: SMCBytes_t = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-                             UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-                             UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-                             UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-                             UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0),
-                             UInt8(0), UInt8(0))
+    var bytes: SMCBytes_t = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 }
 
-internal struct SMCVal_t {
-    var key: String
-    var dataSize: UInt32 = 0
-    var dataType: String = ""
-    var bytes: [UInt8] = Array(repeating: 0, count: 32)
-
-    init(_ key: String) {
-        self.key = key
-    }
+private enum Selector: UInt8 {
+    case kernelIndex = 2
+    case readBytes = 5
+    case readIndex = 8
+    case readKeyInfo = 9
 }
 
-extension FourCharCode {
-    init(fromString str: String) {
-        precondition(str.count == 4)
-
-        self = str.utf8.reduce(0) { sum, character in
-            return sum << 8 | UInt32(character)
-        }
-    }
-
-    func toString() -> String {
-        return String(describing: UnicodeScalar(self >> 24 & 0xff)!) +
-               String(describing: UnicodeScalar(self >> 16 & 0xff)!) +
-               String(describing: UnicodeScalar(self >> 8  & 0xff)!) +
-               String(describing: UnicodeScalar(self       & 0xff)!)
-    }
+private func fourCC(_ str: String) -> UInt32 {
+    str.utf8.prefix(4).reduce(0) { $0 << 8 | UInt32($1) }
 }
 
-extension UInt16 {
-    init(bytes: (UInt8, UInt8)) {
-        self = UInt16(bytes.0) << 8 | UInt16(bytes.1)
-    }
+private func string(_ code: UInt32) -> String {
+    String(bytes: [UInt8(code >> 24 & 0xff), UInt8(code >> 16 & 0xff), UInt8(code >> 8 & 0xff), UInt8(code & 0xff)], encoding: .ascii) ?? ""
 }
 
-extension UInt32 {
-    init(bytes: (UInt8, UInt8, UInt8, UInt8)) {
-        self = UInt32(bytes.0) << 24 | UInt32(bytes.1) << 16 | UInt32(bytes.2) << 8 | UInt32(bytes.3)
-    }
-}
-
-extension Int {
-    init(fromFPE2 bytes: (UInt8, UInt8)) {
-        self = (Int(bytes.0) << 6) + (Int(bytes.1) >> 2)
-    }
-}
-
-extension Float {
-    init?(_ bytes: [UInt8]) {
-        self = bytes.withUnsafeBytes {
-            return $0.load(fromByteOffset: 0, as: Self.self)
-        }
-    }
-
-    var bytes: [UInt8] {
-        withUnsafeBytes(of: self, Array.init)
-    }
-}
+private let typeFLT = fourCC("flt ")
+private let typeUI8 = fourCC("ui8 ")
+private let typeUI16 = fourCC("ui16")
+private let typeUI32 = fourCC("ui32")
+private let typeFDS = fourCC("{fds")
+private let keysAllowedToBeZero: Set<UInt32> = [fourCC("FS! "), fourCC("F0Md"), fourCC("F1Md")]
 
 public class SMC {
     public static let shared = SMC()
 
     private struct KeyInfo {
+        let code: UInt32
         let dataSize: IOByteCount32
         let dataType: UInt32
     }
 
     private var conn: io_connect_t = 0
-    private let queue = DispatchQueue(label: "com.aravhawk.lite-stats.smc")
-    private var keyInfoCache: [String: KeyInfo] = [:]
+    private let lock = NSLock()
+    private var keyInfoCache: [String: KeyInfo?] = [:]
 
     public init() {
-        var result: kern_return_t
-        var iterator: io_iterator_t = 0
-        let device: io_object_t
-
-        let matchingDictionary: CFMutableDictionary = IOServiceMatching("AppleSMC")
-        result = IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &iterator)
-        if result != kIOReturnSuccess {
-            print("Error IOServiceGetMatchingServices(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-            return
-        }
-
-        device = IOIteratorNext(iterator)
-        IOObjectRelease(iterator)
-        if device == 0 {
-            print("Error IOIteratorNext(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-            return
-        }
-
-        result = IOServiceOpen(device, mach_task_self_, 0, &conn)
+        let device = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSMC"))
+        guard device != 0 else { return }
+        IOServiceOpen(device, mach_task_self_, 0, &self.conn)
         IOObjectRelease(device)
-        if result != kIOReturnSuccess {
-            print("Error IOServiceOpen(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-            return
-        }
     }
 
     deinit {
-        let result = self.close()
-        if result != kIOReturnSuccess {
-            print("error close smc connection: " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-        }
-    }
-
-    public func close() -> kern_return_t {
-        return IOServiceClose(conn)
+        IOServiceClose(self.conn)
     }
 
     public func getValue(_ key: String) -> Double? {
-        var result: kern_return_t = 0
-        var val: SMCVal_t = SMCVal_t(key)
-
-        result = read(&val)
-        if result != kIOReturnSuccess {
-            print("Error read(\(key)): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
+        guard let (info, data) = self.read(key) else { return nil }
+        let b = data.bytes
+        if !keysAllowedToBeZero.contains(info.code) && withUnsafeBytes(of: b, { !$0.prefix(Int(info.dataSize)).contains { $0 != 0 } }) {
             return nil
         }
 
-        if val.dataSize > 0 {
-            if val.bytes.first(where: { $0 != 0 }) == nil && val.key != "FS! " && val.key != "F0Md" && val.key != "F1Md" {
+        switch info.dataType {
+        case typeFLT: return Double(Float(bitPattern: UInt32(b.3) << 24 | UInt32(b.2) << 16 | UInt32(b.1) << 8 | UInt32(b.0)))
+        case typeUI8: return Double(b.0)
+        case typeUI16: return Double(UInt16(b.0) << 8 | UInt16(b.1))
+        case typeUI32: return Double(UInt32(b.0) << 24 | UInt32(b.1) << 16 | UInt32(b.2) << 8 | UInt32(b.3))
+        default:
+            // unsigned fixed point "spXY" / "fpXY": Y (hex) is the number of fraction bits
+            let prefix = info.dataType >> 16
+            guard prefix == 0x7370 || prefix == 0x6670, let bits = Int(String(UnicodeScalar(UInt8(info.dataType & 0xff))), radix: 16) else {
                 return nil
             }
-
-            switch val.dataType {
-            case SMCDataType.UI8.rawValue:
-                return Double(val.bytes[0])
-            case SMCDataType.UI16.rawValue:
-                return Double(UInt16(bytes: (val.bytes[0], val.bytes[1])))
-            case SMCDataType.UI32.rawValue:
-                return Double(UInt32(bytes: (val.bytes[0], val.bytes[1], val.bytes[2], val.bytes[3])))
-            case SMCDataType.SP1E.rawValue:
-                let result: Double = Double(UInt16(val.bytes[0]) * 256 + UInt16(val.bytes[1]))
-                return Double(result / 16384)
-            case SMCDataType.SP3C.rawValue:
-                let result: Double = Double(UInt16(val.bytes[0]) * 256 + UInt16(val.bytes[1]))
-                return Double(result / 4096)
-            case SMCDataType.SP4B.rawValue:
-                let result: Double = Double(UInt16(val.bytes[0]) * 256 + UInt16(val.bytes[1]))
-                return Double(result / 2048)
-            case SMCDataType.SP5A.rawValue:
-                let result: Double = Double(UInt16(val.bytes[0]) * 256 + UInt16(val.bytes[1]))
-                return Double(result / 1024)
-            case SMCDataType.SP69.rawValue:
-                let result: Double = Double(UInt16(val.bytes[0]) * 256 + UInt16(val.bytes[1]))
-                return Double(result / 512)
-            case SMCDataType.SP78.rawValue:
-                let intValue: Double = Double(Int(val.bytes[0]) * 256 + Int(val.bytes[1]))
-                return Double(intValue / 256)
-            case SMCDataType.SP87.rawValue:
-                let intValue: Double = Double(Int(val.bytes[0]) * 256 + Int(val.bytes[1]))
-                return Double(intValue / 128)
-            case SMCDataType.SP96.rawValue:
-                let intValue: Double = Double(Int(val.bytes[0]) * 256 + Int(val.bytes[1]))
-                return Double(intValue / 64)
-            case SMCDataType.SPA5.rawValue:
-                let result: Double = Double(UInt16(val.bytes[0]) * 256 + UInt16(val.bytes[1]))
-                return Double(result / 32)
-            case SMCDataType.SPB4.rawValue:
-                let intValue: Double = Double(Int(val.bytes[0]) * 256 + Int(val.bytes[1]))
-                return Double(intValue / 16)
-            case SMCDataType.SPF0.rawValue:
-                let intValue: Double = Double(Int(val.bytes[0]) * 256 + Int(val.bytes[1]))
-                return intValue
-            case SMCDataType.FLT.rawValue:
-                let value: Float? = Float(val.bytes)
-                if value != nil {
-                    return Double(value!)
-                }
-                return nil
-            case SMCDataType.FPE2.rawValue:
-                return Double(Int(fromFPE2: (val.bytes[0], val.bytes[1])))
-            default:
-                return nil
-            }
+            return Double(UInt16(b.0) << 8 | UInt16(b.1)) / Double(1 << bits)
         }
-
-        return nil
     }
 
     public func getStringValue(_ key: String) -> String? {
-        var result: kern_return_t = 0
-        var val: SMCVal_t = SMCVal_t(key)
+        guard let (info, data) = self.read(key), info.dataType == typeFDS else { return nil }
+        let chars = withUnsafeBytes(of: data.bytes) { Array($0[4..<16]) }
+        guard chars.contains(where: { $0 != 0 }) else { return nil }
+        return String(decoding: chars, as: UTF8.self).trimmingCharacters(in: .whitespaces.union(.controlCharacters))
+    }
 
-        result = read(&val)
-        if result != kIOReturnSuccess {
-            print("Error read(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-            return nil
-        }
-
-        if val.dataSize > 0 {
-            if val.bytes.first(where: { $0 != 0}) == nil {
-                return nil
-            }
-
-            switch val.dataType {
-            case SMCDataType.FDS.rawValue:
-                let c1  = String(UnicodeScalar(val.bytes[4]))
-                let c2  = String(UnicodeScalar(val.bytes[5]))
-                let c3  = String(UnicodeScalar(val.bytes[6]))
-                let c4  = String(UnicodeScalar(val.bytes[7]))
-                let c5  = String(UnicodeScalar(val.bytes[8]))
-                let c6  = String(UnicodeScalar(val.bytes[9]))
-                let c7  = String(UnicodeScalar(val.bytes[10]))
-                let c8  = String(UnicodeScalar(val.bytes[11]))
-                let c9  = String(UnicodeScalar(val.bytes[12]))
-                let c10 = String(UnicodeScalar(val.bytes[13]))
-                let c11 = String(UnicodeScalar(val.bytes[14]))
-                let c12 = String(UnicodeScalar(val.bytes[15]))
-
-                return (c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8 + c9 + c10 + c11 + c12).trimmingCharacters(in: .whitespaces)
-            default:
-                print("unsupported data type \(val.dataType) for key: \(key)")
-                return nil
-            }
-        }
-
-        return nil
+    public func exists(_ key: String) -> Bool {
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        return self.keyInfo(key) != nil
     }
 
     public func getAllKeys() -> [String] {
+        guard let count = self.getValue("#KEY") else { return [] }
+
+        self.lock.lock()
+        defer { self.lock.unlock() }
+
         var list: [String] = []
-
-        let keysNum: Double? = self.getValue("#KEY")
-        if keysNum == nil {
-            print("ERROR no keys count found")
-            return list
-        }
-
-        var result: kern_return_t = 0
-        var input: SMCKeyData_t = SMCKeyData_t()
-        var output: SMCKeyData_t = SMCKeyData_t()
-
-        self.queue.sync {
-            for i in 0..<Int(keysNum!) {
-                input = SMCKeyData_t()
-                output = SMCKeyData_t()
-
-                input.data8 = SMCKeys.readIndex.rawValue
-                input.data32 = UInt32(i)
-
-                result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
-                if result != kIOReturnSuccess {
-                    continue
-                }
-
-                list.append(output.key.toString())
+        list.reserveCapacity(Int(count))
+        for i in 0..<UInt32(count) {
+            var input = SMCKeyData_t()
+            var output = SMCKeyData_t()
+            input.data8 = Selector.readIndex.rawValue
+            input.data32 = i
+            if self.call(&input, &output) == kIOReturnSuccess, output.result == 0, output.keyInfo.dataSize > 0 {
+                list.append(string(output.key))
             }
         }
-
         return list
     }
 
     // MARK: - internal functions
 
-    private func read(_ value: UnsafeMutablePointer<SMCVal_t>) -> kern_return_t {
-        self.queue.sync {
-            self.readLocked(value)
-        }
-    }
+    private func read(_ key: String) -> (KeyInfo, SMCKeyData_t)? {
+        self.lock.lock()
+        defer { self.lock.unlock() }
 
-    private func readLocked(_ value: UnsafeMutablePointer<SMCVal_t>) -> kern_return_t {
-        var result: kern_return_t = 0
+        guard let info = self.keyInfo(key) else { return nil }
+
         var input = SMCKeyData_t()
         var output = SMCKeyData_t()
-        let key = value.pointee.key
+        input.key = info.code
+        input.keyInfo.dataSize = info.dataSize
+        input.data8 = Selector.readBytes.rawValue
+        guard self.call(&input, &output) == kIOReturnSuccess else { return nil }
 
-        input.key = FourCharCode(fromString: key)
-        if let cached = self.keyInfoCache[key] {
-            value.pointee.dataSize = UInt32(cached.dataSize)
-            value.pointee.dataType = cached.dataType.toString()
-            input.keyInfo.dataSize = cached.dataSize
-        } else {
-            input.data8 = SMCKeys.readKeyInfo.rawValue
-
-            result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
-            if result != kIOReturnSuccess {
-                return result
-            }
-
-            value.pointee.dataSize = UInt32(output.keyInfo.dataSize)
-            value.pointee.dataType = output.keyInfo.dataType.toString()
-            input.keyInfo.dataSize = output.keyInfo.dataSize
-            self.keyInfoCache[key] = KeyInfo(dataSize: output.keyInfo.dataSize, dataType: output.keyInfo.dataType)
-        }
-
-        input.data8 = SMCKeys.readBytes.rawValue
-
-        result = call(SMCKeys.kernelIndex.rawValue, input: &input, output: &output)
-        if result != kIOReturnSuccess {
-            return result
-        }
-
-        memcpy(&value.pointee.bytes, &output.bytes, Int(value.pointee.dataSize))
-
-        return kIOReturnSuccess
+        return (info, output)
     }
 
-    private func call(_ index: UInt8, input: inout SMCKeyData_t, output: inout SMCKeyData_t) -> kern_return_t {
-        let inputSize = MemoryLayout<SMCKeyData_t>.stride
-        var outputSize = MemoryLayout<SMCKeyData_t>.stride
+    private func keyInfo(_ key: String) -> KeyInfo? {
+        if let cached = self.keyInfoCache[key] {
+            return cached
+        }
 
-        return IOConnectCallStructMethod(conn, UInt32(index), &input, inputSize, &output, &outputSize)
+        var input = SMCKeyData_t()
+        var output = SMCKeyData_t()
+        input.key = fourCC(key)
+        input.data8 = Selector.readKeyInfo.rawValue
+
+        var info: KeyInfo? = nil
+        if self.call(&input, &output) == kIOReturnSuccess, output.result == 0, output.keyInfo.dataSize > 0 {
+            info = KeyInfo(code: input.key, dataSize: output.keyInfo.dataSize, dataType: output.keyInfo.dataType)
+        }
+        self.keyInfoCache[key] = info
+        return info
+    }
+
+    private func call(_ input: inout SMCKeyData_t, _ output: inout SMCKeyData_t) -> kern_return_t {
+        var outputSize = MemoryLayout<SMCKeyData_t>.stride
+        return IOConnectCallStructMethod(self.conn, UInt32(Selector.kernelIndex.rawValue), &input, MemoryLayout<SMCKeyData_t>.stride, &output, &outputSize)
     }
 }

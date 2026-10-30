@@ -32,12 +32,13 @@ public class StackWidget: WidgetWrapper {
     private var monospacedFontState: Bool = false
     private var alignmentState: String = "left"
     
-    private var values: [Stack_t] = []
+    fileprivate var values: [Stack_t] = []
     
     private var oneRowWidth: CGFloat = 45
     private var twoRowWidth: CGFloat = 32
     
-    private let orderTableView: OrderTableView
+    // only needed by the widget settings, an idle table view keeps waking the app up so it is created on demand
+    private var orderTableView: OrderTableView? = nil
     
     private var alignment: NSTextAlignment {
         if let alignmentPair = Alignments.first(where: { $0.key == self.alignmentState }) {
@@ -57,8 +58,6 @@ public class StackWidget: WidgetWrapper {
             }
         }
         
-        self.orderTableView = OrderTableView(&self.values)
-        
         super.init(.stack, title: title, frame: CGRect(
             x: 0,
             y: Constants.Widget.margin.y,
@@ -72,10 +71,6 @@ public class StackWidget: WidgetWrapper {
             self.monospacedFontState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_monospacedFont", defaultValue: self.monospacedFontState)
             self.alignmentState = Store.shared.string(key: "\(self.title)_\(self.type.rawValue)_alignment", defaultValue: self.alignmentState)
         }
-        
-        self.orderTableView.reorderCallback = { [weak self] in
-            self?.display()
-        }
     }
     
     required init?(coder: NSCoder) {
@@ -85,12 +80,8 @@ public class StackWidget: WidgetWrapper {
     public override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         
-        var values: [Stack_t] = []
-        var mode: StackMode = .auto
-        self.queue.sync {
-            values = self.values
-            mode = self.modeState
-        }
+        let values = self.values
+        let mode = self.modeState
         
         guard !values.isEmpty else {
             self.setWidth(0)
@@ -146,25 +137,12 @@ public class StackWidget: WidgetWrapper {
     }
     
     private func drawOneRow(_ x: CGFloat, _ element: Stack_t) -> CGFloat {
-        var monospacedFontState: Bool = false
-        var fixedSizeState: Bool = false
-        var alignment: NSTextAlignment = .left
-        self.queue.sync {
-            monospacedFontState = self.monospacedFontState
-            fixedSizeState = self.fixedSizeState
-            alignment = self.alignment
-        }
-        
-        var font: NSFont = NSFont.systemFont(ofSize: 13, weight: .regular)
-        if monospacedFontState {
-            font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
-        }
-        
+        let font = self.monospacedFontState ? NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular) : NSFont.systemFont(ofSize: 13, weight: .regular)
         let style = NSMutableParagraphStyle()
-        style.alignment = alignment
+        style.alignment = self.alignment
         
         var width: CGFloat = self.oneRowWidth
-        if !fixedSizeState {
+        if !self.fixedSizeState {
             width = element.value.widthOfString(usingFont: font).rounded(.up) + 2
         }
         
@@ -181,23 +159,9 @@ public class StackWidget: WidgetWrapper {
     
     private func drawTwoRows(_ x: CGFloat, _ topElement: Stack_t, _ bottomElement: Stack_t?) -> CGFloat {
         let rowHeight: CGFloat = self.frame.height / 2
-        var monospacedFontState: Bool = false
-        var fixedSizeState: Bool = false
-        var alignment: NSTextAlignment = .left
-        self.queue.sync {
-            monospacedFontState = self.monospacedFontState
-            fixedSizeState = self.fixedSizeState
-            alignment = self.alignment
-        }
-        
-        var font: NSFont
-        if monospacedFontState {
-            font = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .light)
-        } else {
-            font = NSFont.systemFont(ofSize: 10, weight: .light)
-        }
+        let font = self.monospacedFontState ? NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .light) : NSFont.systemFont(ofSize: 10, weight: .light)
         let style = NSMutableParagraphStyle()
-        style.alignment = alignment
+        style.alignment = self.alignment
         
         let attributes = [
             NSAttributedString.Key.font: font,
@@ -206,7 +170,7 @@ public class StackWidget: WidgetWrapper {
         ]
         
         var width: CGFloat = self.twoRowWidth
-        if !fixedSizeState {
+        if !self.fixedSizeState {
             let firstRowWidth = topElement.value.widthOfString(usingFont: font)
             let secondRowWidth = bottomElement?.value.widthOfString(usingFont: font) ?? 0
             width = max(20, max(firstRowWidth, secondRowWidth)).rounded(.up) + 2
@@ -253,7 +217,7 @@ public class StackWidget: WidgetWrapper {
             nextValues.append(contentsOf: incoming.values)
         }
 
-        self.values = nextValues.sorted(by: { $0.index < $1.index })
+        self.values = nextValues.map { ($0.index, $0) }.sorted(by: { $0.0 < $1.0 }).map { $0.1 }
         if oldKeys != self.values.map(\.key) {
             tableNeedsToBeUpdated = true
             viewNeedsToBeUpdated = true
@@ -261,12 +225,10 @@ public class StackWidget: WidgetWrapper {
 
         guard tableNeedsToBeUpdated || viewNeedsToBeUpdated else { return }
         
-        DispatchQueue.main.async(execute: {
-            if tableNeedsToBeUpdated {
-                self.orderTableView.update()
-            }
-            self.needsDisplay = true
-        })
+        if tableNeedsToBeUpdated {
+            self.orderTableView?.update()
+        }
+        self.needsDisplay = true
     }
     
     // MARK: - Settings
@@ -274,7 +236,7 @@ public class StackWidget: WidgetWrapper {
     public override func settings() -> NSView {
         let view = SettingsContainerView()
         
-        var rows = [
+        let rows = [
             PreferencesRow(localizedString("Display mode"), component: selectView(
                 action: #selector(self.changeDisplayMode),
                 items: SensorsWidgetMode,
@@ -288,17 +250,20 @@ public class StackWidget: WidgetWrapper {
                 action: #selector(self.toggleAlignment),
                 items: Alignments,
                 selected: self.alignmentState
-            ))
-        ]
-        if self.title != "Clock" {
-            rows.append(PreferencesRow(localizedString("Static width"), component: switchView(
+            )),
+            PreferencesRow(localizedString("Static width"), component: switchView(
                 action: #selector(self.toggleSize),
                 state: self.fixedSizeState
-            )))
-        }
+            ))
+        ]
         view.addArrangedSubview(PreferencesSection(rows))
         
-        view.addArrangedSubview(self.orderTableView)
+        let orderTableView = self.orderTableView ?? OrderTableView(self)
+        orderTableView.reorderCallback = { [weak self] in
+            self?.display()
+        }
+        self.orderTableView = orderTableView
+        view.addArrangedSubview(orderTableView)
         
         return view
     }
@@ -333,15 +298,19 @@ public class StackWidget: WidgetWrapper {
 }
 
 private class OrderTableView: NSView, NSTableViewDelegate, NSTableViewDataSource {
+    private weak var widget: StackWidget?
     private let scrollView = NSScrollView()
     private let tableView = NSTableView()
     private var dragDropType = NSPasteboard.PasteboardType(rawValue: "\(Bundle.main.bundleIdentifier!).sensors-row")
     
     fileprivate var reorderCallback: () -> Void = {}
-    private let list: UnsafeMutablePointer<[Stack_t]>
+    private var list: [Stack_t] {
+        get { self.widget?.values ?? [] }
+        set { self.widget?.values = newValue }
+    }
     
-    init(_ list: UnsafeMutablePointer<[Stack_t]>) {
-        self.list = list
+    init(_ widget: StackWidget) {
+        self.widget = widget
         
         super.init(frame: NSRect.zero)
         
@@ -394,12 +363,12 @@ private class OrderTableView: NSView, NSTableViewDelegate, NSTableViewDataSource
     }
     
     func numberOfRows(in tableView: NSTableView) -> Int {
-        return list.pointee.count
+        return self.list.count
     }
     
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        if !self.list.pointee.indices.contains(row) { return nil }
-        let item = self.list.pointee[row]
+        if !self.list.indices.contains(row) { return nil }
+        let item = self.list[row]
         
         let text: NSTextField = NSTextField()
         text.drawsBackground = false
@@ -457,20 +426,20 @@ private class OrderTableView: NSView, NSTableViewDelegate, NSTableViewDataSource
                 let currentIdx = oldIndex + oldIndexOffset
                 let newIdx = row - 1
                 
-                self.list.pointee[currentIdx].index = newIdx
-                self.list.pointee[newIdx].index = currentIdx
+                self.list[currentIdx].index = newIdx
+                self.list[newIdx].index = currentIdx
                 
                 oldIndexOffset -= 1
             } else {
                 let currentIdx = oldIndex
                 let newIdx = row + newIndexOffset
                 
-                self.list.pointee[currentIdx].index = newIdx
-                self.list.pointee[newIdx].index = currentIdx
+                self.list[currentIdx].index = newIdx
+                self.list[newIdx].index = currentIdx
                 
                 newIndexOffset += 1
             }
-            self.list.pointee = self.list.pointee.sorted(by: { $0.index < $1.index })
+            self.list = self.list.sorted(by: { $0.index < $1.index })
             self.reorderCallback()
             tableView.reloadData()
         }

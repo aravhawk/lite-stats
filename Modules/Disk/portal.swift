@@ -100,25 +100,21 @@ public class Portal: PortalWrapper {
     }
     
     internal func utilizationCallback(_ value: drive) {
-        DispatchQueue.main.async(execute: {
-            if (self.window?.isVisible ?? false) || !self.initialized {
-                self.nameField?.stringValue = value.mediaName
-                self.usedField?.stringValue = DiskSize(value.size - value.free).getReadableMemory()
-                self.freeField?.stringValue = DiskSize(value.free).getReadableMemory()
-                
-                self.circle?.toolTip = "\(localizedString("Disk usage")): \(Int(value.percentage*100))%"
-                self.circle?.setValue(value.percentage)
-                self.circle?.setSegments([
-                    circle_segment(value: value.percentage, color: self.valueColor)
-                ])
-                self.initialized = true
-            }
-        })
+        if (self.window?.isVisible ?? false) || !self.initialized {
+            self.nameField?.stringValue = value.mediaName
+            self.usedField?.stringValue = DiskSize(value.size - value.free).getReadableMemory()
+            self.freeField?.stringValue = DiskSize(value.free).getReadableMemory()
+            
+            self.circle?.toolTip = "\(localizedString("Disk usage")): \(Int(value.percentage*100))%"
+            self.circle?.setValue(value.percentage)
+            self.circle?.setSegments([
+                circle_segment(value: value.percentage, color: self.valueColor)
+            ])
+            self.initialized = true
+        }
     }
     
     internal func activityCallback(_ value: drive) {
-        DispatchQueue.main.async(execute: {
-            self.chart?.addValue(upload: Double(value.activity.write), download: Double(value.activity.read))
-        })
+        self.chart?.addValue(upload: Double(value.activity.write), download: Double(value.activity.read))
     }
 }

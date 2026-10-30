@@ -43,8 +43,6 @@ public class PieChart: WidgetWrapper {
             height: Constants.Widget.height - (Constants.Widget.margin.y*2)
         ))
         
-        self.canDrawConcurrently = true
-        
         if preview {
             if self.title == "CPU" {
                 self.chart.setSegments([
@@ -90,17 +88,11 @@ public class PieChart: WidgetWrapper {
     }
     
     public func setValue(_ list: [circle_segment]) {
-        var segments = list
-        
-        if self.monochromeState {
-            for i in 0..<segments.count {
-                segments[i].color = segments[i].color.grayscaled()
-            }
+        // half a percent is below what the small menu bar chart can show
+        let segments = list.map {
+            circle_segment(value: ($0.value * 200).rounded() / 200, color: self.monochromeState ? $0.color.grayscaled() : $0.color)
         }
-        
-        DispatchQueue.main.async(execute: {
-            self.chart.setSegments(segments)
-        })
+        self.chart.setSegments(segments)
     }
     
     // MARK: - Settings

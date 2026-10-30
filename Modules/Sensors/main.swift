@@ -43,7 +43,7 @@ public class Sensors: Module {
         
         self.settingsView.callback = { [weak self] in
             self?.ensureReader()
-            self?.sensorsReader?.read()
+            self?.sensorsReader?.refresh()
         }
         self.settingsView.setInterval = { [weak self] value in
             self?.ensureReader()
@@ -51,39 +51,23 @@ public class Sensors: Module {
         }
         self.settingsView.HIDcallback = { [weak self] in
             self?.ensureReader()
-            DispatchQueue.global(qos: .background).async {
-                self?.sensorsReader?.HIDCallback()
-                DispatchQueue.main.async {
-                    self?.reloadSensorViews()
-                }
-            }
+            self?.sensorsReader?.HIDCallback()
+            self?.reloadSensorViews()
         }
         self.settingsView.unknownCallback = { [weak self] in
             self?.ensureReader()
-            DispatchQueue.global(qos: .background).async {
-                self?.sensorsReader?.unknownCallback()
-                DispatchQueue.main.async {
-                    self?.reloadSensorViews()
-                }
-            }
+            self?.sensorsReader?.unknownCallback()
+            self?.reloadSensorViews()
         }
         self.selectedSensor = Store.shared.string(key: "\(ModuleType.sensors.stringValue)_sensor", defaultValue: self.selectedSensor)
         self.settingsView.selectedHandler = { [weak self] value in
             self?.selectedSensor = value
             self?.ensureReader()
-            self?.sensorsReader?.read()
+            self?.sensorsReader?.refresh()
         }
         self.settingsView.loadCallback = { [weak self] in
             self?.ensureReader()
         }
-        self.popupView.visibilityHandler = { [weak self] visible in
-            self?.sensorsReader?.setPopupVisible(visible)
-            guard visible else { return }
-            DispatchQueue.global(qos: .utility).async {
-                self?.sensorsReader?.read()
-            }
-        }
-        
         if self.enabled {
             self.ensureReader()
         }
@@ -95,6 +79,19 @@ public class Sensors: Module {
 
     public override func settingsWillOpen() {
         self.ensureReader()
+    }
+    
+    // the popup and the portal show the sensors enabled for the popup, they are only read while one of them is visible
+    public override func visibilityCallback(_ state: Bool) {
+        super.visibilityCallback(state)
+        self.portalVisibilityCallback(state)
+    }
+    
+    public override func portalVisibilityCallback(_ state: Bool) {
+        self.sensorsReader?.setPopupVisible(state)
+        if state && self.enabled {
+            self.sensorsReader?.refresh()
+        }
     }
 
     private func ensureReader() {
@@ -109,23 +106,24 @@ public class Sensors: Module {
     }
 
     private func reloadSensorViews() {
-        self.settingsView.setList(self.sensorsReader?.list.sensors)
-        self.popupView.setup(self.sensorsReader?.list.sensors)
-        self.portalView.setup(self.sensorsReader?.list.sensors)
-        self.notificationsView.setup(self.sensorsReader?.list.sensors)
+        let list = self.sensorsReader?.list
+        self.settingsView.setList(list)
+        self.popupView.setup(list)
+        self.portalView.setup(list)
+        self.notificationsView.setup(list)
     }
     
-    private func usageCallback(_ raw: Sensors_List?) {
-        guard let value = raw, self.enabled else { return }
+    private func usageCallback(_ raw: [Sensor_p]?) {
+        guard let sensors = raw, self.enabled else { return }
         
-        self.popupView.usageCallback(value.sensors)
-        self.portalView.usageCallback(value.sensors)
-        self.notificationsView.usageCallback(value.sensors)
+        self.popupView.usageCallback(sensors)
+        self.portalView.usageCallback(sensors)
+        self.notificationsView.usageCallback(sensors)
         
         self.menuBar.widgets.filter{ $0.isActive }.forEach { (w: SWidget) in
             switch w.item {
             case let widget as Mini:
-                if let active = value.sensors.first(where: { $0.key == self.selectedSensor }) {
+                if let active = sensors.first(where: { $0.key == self.selectedSensor }) {
                     var value: Double = active.localValue/100
                     var unit: String = active.miniUnit
                     if let fan = active as? Fan, self.fanValueState == .percentage {
@@ -141,7 +139,7 @@ public class Sensors: Module {
             case let widget as StackWidget:
                 var list: [Stack_t] = []
                 
-                value.sensors.forEach { (s: Sensor_p) in
+                sensors.forEach { (s: Sensor_p) in
                     if s.state {
                         var value = s.formattedMiniValue
                         if let f = s as? Fan {
@@ -156,7 +154,7 @@ public class Sensors: Module {
                 widget.setValues(list)
             case let widget as BarChart:
                 var flatList: [[ColorValue]] = []
-                value.sensors.filter{ $0 is Fan }.forEach { (s: Sensor_p) in
+                sensors.filter{ $0 is Fan }.forEach { (s: Sensor_p) in
                     if s.state, let f = s as? Fan {
                         flatList.append([ColorValue(((f.value*100)/f.maxSpeed)/100)])
                     }

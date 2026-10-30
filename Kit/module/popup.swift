@@ -17,6 +17,7 @@ public protocol Popup_p: NSView {
     
     func settings() -> NSView?
     
+    func prepare()
     func appear()
     func disappear()
     func setKeyboardShortcut(_ binding: [UInt16])
@@ -39,12 +40,15 @@ open class PopupWrapper: NSStackView, Popup_p {
     }
     
     open func settings() -> NSView? { return nil }
+    // called before the popup window is created, to build views deferred until the popup is used
+    open func prepare() {}
     open func appear() {}
     open func disappear() {}
     
     open func setKeyboardShortcut(_ binding: [UInt16]) {
         self.keyboardShortcut = binding
         Store.shared.set(key: "\(self.title)_popup_keyboardShortcut", value: binding)
+        NotificationCenter.default.post(name: .keyboardShortcutsChanged, object: nil)
     }
 }
 
@@ -128,6 +132,8 @@ internal class PopupViewController: NSViewController {
         
         self.popup.appear()
         self.visibilityCallback(true)
+        // views are not redrawn while the popup is hidden
+        self.view.setNeedsDisplayRecursively()
     }
     
     override func viewWillDisappear() {
@@ -326,11 +332,9 @@ internal class HeaderView: NSStackView {
     private var title: String = ""
     private var isCloseAction: Bool = false
     private let activityMonitor: URL?
-    private let calendar: URL?
     
     init(frame: NSRect, module: ModuleType) {
         self.activityMonitor = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.ActivityMonitor")
-        self.calendar = URL(fileURLWithPath: "/System/Applications/Calendar.app")
         
         super.init(frame: CGRect(x: frame.origin.x, y: frame.origin.y, width: frame.width, height: frame.height))
         
@@ -402,11 +406,6 @@ internal class HeaderView: NSStackView {
     
     @objc func openActivityMonitor() {
         guard let app = self.activityMonitor else { return }
-        NSWorkspace.shared.open([], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
-    }
-    
-    @objc func openCalendar() {
-        guard let app = self.calendar else { return }
         NSWorkspace.shared.open([], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
     }
     

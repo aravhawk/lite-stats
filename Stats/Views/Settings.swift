@@ -28,10 +28,6 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
     private var toggleButton: NSControl? = nil
     private var activeModuleName: String? = nil
     
-    private var pauseState: Bool {
-        Store.shared.bool(key: "pause", defaultValue: false)
-    }
-    
     init() {
         super.init(
             contentRect: NSRect(
@@ -89,12 +85,12 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
         ])
         
         NotificationCenter.default.addObserver(self, selector: #selector(menuCallback), name: .openModuleSettings, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(toggleSettingsHandler), name: .toggleSettings, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(externalModuleToggle), name: .toggleModule, object: nil)
+        
+        self.sidebarView.setModules(modules)
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self, name: .toggleSettings, object: nil)
         NotificationCenter.default.removeObserver(self, name: .openModuleSettings, object: nil)
         NotificationCenter.default.removeObserver(self, name: .toggleModule, object: nil)
     }
@@ -144,7 +140,8 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
         return [.flexibleSpace, .toggleButton]
     }
     
-    @objc private func toggleSettingsHandler(_ notification: Notification) {
+    // the window is created on first use, so the app delegate forwards the toggle notifications
+    internal func toggleSettingsHandler(_ notification: Notification) {
         if !self.isVisible {
             self.setIsVisible(true)
             self.makeKeyAndOrderFront(nil)
@@ -202,14 +199,6 @@ class SettingsWindow: NSWindow, NSWindowDelegate, NSToolbarDelegate {
         }
     }
     
-    internal func setModules() {
-        self.sidebarView.setModules(modules)
-        if !self.pauseState && modules.filter({ $0.enabled != false && $0.available != false && !$0.menuBar.widgets.filter({ $0.isActive }).isEmpty }).isEmpty {
-            self.openDefaultIfNeeded()
-            self.setIsVisible(true)
-        }
-    }
-
     internal func openDefaultIfNeeded() {
         guard !self.mainView.hasContent else { return }
         self.sidebarView.openMenu("Dashboard")

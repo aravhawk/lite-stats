@@ -168,8 +168,11 @@ extension NextLog {
     }
 }
 
-public func debug(_ message: String, log: NextLog = NextLog.shared, file: String = #file, line: UInt = #line) {
-    log.log(level: .debug, message: message, file: file, line: line)
+// debug messages are only built and written in debug builds
+public func debug(_ message: @autoclosure () -> String, log: @autoclosure () -> NextLog = NextLog.shared, file: String = #file, line: UInt = #line) {
+    #if DEBUG
+    log().log(level: .debug, message: message(), file: file, line: line)
+    #endif
 }
 
 public func info(_ message: String, log: NextLog = NextLog.shared, file: String = #file, line: UInt = #line) {
@@ -177,9 +180,5 @@ public func info(_ message: String, log: NextLog = NextLog.shared, file: String 
 }
 
 public func error(_ message: String, log: NextLog = NextLog.shared, file: String = #file, line: UInt = #line) {
-    log.log(level: .error, message: message, file: file, line: line)
-}
-
-public func error_msg(_ message: String, log: NextLog = NextLog.shared, file: String = #file, line: UInt = #line) {
     log.log(level: .error, message: message, file: file, line: line)
 }

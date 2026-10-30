@@ -143,7 +143,6 @@ public class LineChartView: NSView {
     public var id: String = UUID().uuidString
 
     private let dateFormatter = DateFormatter()
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.charts.line", attributes: .concurrent)
 
     public var points: [DoubleValue?]
     public var shadowPoints: [DoubleValue?] = []
@@ -163,7 +162,7 @@ public class LineChartView: NSView {
     private var stop: Bool = false
 
     public init(frame: NSRect, num: Int, suffix: String = "%", color: NSColor = .controlAccentColor, scale: Scale = .none, fixedScale: Double = 1, zeroValue: Double = 0.01) {
-        self.points = Array(repeating: nil, count: max(num, 1))
+        self.points = Array(repeating: nil, count: min(max(num, 1), 1000))
         self.suffix = suffix
         self.color = color
         self.scale = scale
@@ -192,28 +191,16 @@ public class LineChartView: NSView {
     public override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
 
-        var originalPoints: [DoubleValue?] = []
-        var shadowPoints: [DoubleValue?] = []
-        var transparent: Bool = true
-        var flipY: Bool = false
-        var minMax: Bool = false
-        var color: NSColor = .controlAccentColor
-        var suffix: String = "%"
-        var toolTipFunc: ((DoubleValue) -> String)?
-        var isTooltipEnabled: Bool = true
-        self.queue.sync {
-            originalPoints = self.points
-            shadowPoints = self.shadowPoints
-            transparent = self.transparent
-            flipY = self.flipY
-            minMax = self.minMax
-            color = self.color
-            suffix = self.suffix
-            toolTipFunc = self.toolTipFunc
-            isTooltipEnabled = self.isTooltipEnabled
-        }
+        let originalPoints = self.points
+        let transparent = self.transparent
+        let flipY = self.flipY
+        let minMax = self.minMax
+        let color = self.color
+        let suffix = self.suffix
+        let toolTipFunc = self.toolTipFunc
+        let isTooltipEnabled = self.isTooltipEnabled
 
-        let points = stop ? shadowPoints : originalPoints
+        let points = self.stop ? self.shadowPoints : originalPoints
         guard let context = NSGraphicsContext.current?.cgContext, !points.isEmpty else { return }
         context.setShouldAntialias(true)
         var maxValue = 0.0
@@ -393,12 +380,9 @@ public class LineChartView: NSView {
     }
 
     public func addValue(_ value: DoubleValue) {
-        self.queue.async(flags: .barrier) {
-            guard !self.points.isEmpty else { return }
-            self.points.remove(at: 0)
-            self.points.append(value)
-        }
-
+        guard !self.points.isEmpty else { return }
+        self.points.removeFirst()
+        self.points.append(value)
         if self.window?.isVisible ?? false {
             self.needsDisplay = true
         }
@@ -409,6 +393,7 @@ public class LineChartView: NSView {
     }
 
     public func reinit(_ num: Int = 60) {
+        let num = min(max(num, 1), 1000)
         guard self.points.count != num else { return }
 
         if num < self.points.count {
@@ -571,7 +556,6 @@ public class PieChartView: NSView {
 
     private var value: Double? = nil
     private var segments: [circle_segment] = []
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.charts.pie")
 
     public init(frame: NSRect, segments: [circle_segment], filled: Bool = false, drawValue: Bool = false) {
         self.filled = filled
@@ -588,18 +572,11 @@ public class PieChartView: NSView {
     }
 
     public override func draw(_ rect: CGRect) {
-        var filled: Bool = false
-        var drawValue: Bool = false
-        var nonActiveSegmentColor: NSColor = NSColor.lightGray
-        var value: Double? = nil
-        var segments: [circle_segment] = []
-        self.queue.sync {
-            filled = self.filled
-            drawValue = self.drawValue
-            nonActiveSegmentColor = self.nonActiveSegmentColor
-            value = self.value
-            segments = self.segments
-        }
+        let filled = self.filled
+        let drawValue = self.drawValue
+        let nonActiveSegmentColor = self.nonActiveSegmentColor
+        let value = self.value
+        var segments = self.segments
 
         let arcWidth: CGFloat = filled ? min(self.frame.width, self.frame.height) / 2 : 7
         let fullCircle = 2 * CGFloat.pi
@@ -646,69 +623,29 @@ public class PieChartView: NSView {
     }
 
     public func setValue(_ value: Double) {
-        var changed = false
-        self.queue.sync {
-            if self.value != value {
-                self.value = value
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard self.value != value else { return }
+        self.value = value
+        self.redrawIfVisible()
     }
 
     public func set(value: Double, segments: [circle_segment], nonActiveSegmentColor: NSColor) {
-        var changed = false
-        self.queue.sync {
-            if self.value != value {
-                self.value = value
-                changed = true
-            }
-            if !sameSegments(self.segments, segments) {
-                self.segments = segments
-                changed = true
-            }
-            if self.nonActiveSegmentColor != nonActiveSegmentColor {
-                self.nonActiveSegmentColor = nonActiveSegmentColor
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard self.value != value || !sameSegments(self.segments, segments) || self.nonActiveSegmentColor != nonActiveSegmentColor else { return }
+        self.value = value
+        self.segments = segments
+        self.nonActiveSegmentColor = nonActiveSegmentColor
+        self.redrawIfVisible()
     }
 
     public func setSegments(_ segments: [circle_segment]) {
-        var changed = false
-        self.queue.sync {
-            if !sameSegments(self.segments, segments) {
-                self.segments = segments
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard !sameSegments(self.segments, segments) else { return }
+        self.segments = segments
+        self.redrawIfVisible()
     }
 
     public func setFrame(_ frame: NSRect) {
         var original = self.frame
         original = frame
         self.frame = original
-    }
-
-    public func setNonActiveSegmentColor(_ newColor: NSColor) {
-        var changed = false
-        self.queue.sync {
-            if self.nonActiveSegmentColor != newColor {
-                self.nonActiveSegmentColor = newColor
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
     }
 }
 
@@ -717,7 +654,6 @@ public class HalfCircleGraphView: NSView {
 
     private var value: Double = 0.0
     private var text: String? = nil
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.charts.halfcircle")
 
     public var color: NSColor = NSColor.systemBlue
 
@@ -731,14 +667,9 @@ public class HalfCircleGraphView: NSView {
     }
 
     public override func draw(_ rect: CGRect) {
-        var value: Double = 0.0
-        var text: String? = nil
-        var color: NSColor = NSColor.systemBlue
-        self.queue.sync {
-            value = self.value
-            text = self.text
-            color = self.color
-        }
+        let value = self.value
+        let text = self.text
+        let color = self.color
 
         let arcWidth: CGFloat = 7.0
         let radius = (min(self.frame.width, self.frame.height) - arcWidth) / 2
@@ -795,54 +726,23 @@ public class HalfCircleGraphView: NSView {
 
     public func setValue(_ value: Double) {
         let normalized = value > 1 ? value/100 : value
-        var changed = false
-        self.queue.sync {
-            if self.value != normalized {
-                self.value = normalized
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
-    }
-
-    public func setText(_ value: String) {
-        var changed = false
-        self.queue.sync {
-            if self.text != value {
-                self.text = value
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard self.value != normalized else { return }
+        self.value = normalized
+        self.redrawIfVisible()
     }
 
     public func set(value: Double, text: String) {
         let normalized = value > 1 ? value/100 : value
-        var changed = false
-        self.queue.sync {
-            if self.value != normalized {
-                self.value = normalized
-                changed = true
-            }
-            if self.text != text {
-                self.text = text
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard self.value != normalized || self.text != text else { return }
+        self.value = normalized
+        self.text = text
+        self.redrawIfVisible()
     }
 }
 
 internal class TachometerGraphView: NSView {
     private var filled: Bool
     private var segments: [circle_segment]
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.charts.tachometer")
 
     internal init(frame: NSRect, segments: [circle_segment], filled: Bool = true) {
         self.filled = filled
@@ -856,12 +756,8 @@ internal class TachometerGraphView: NSView {
     }
 
     public override func draw(_ rect: CGRect) {
-        var filled: Bool = false
-        var segments: [circle_segment] = []
-        self.queue.sync {
-            filled = self.filled
-            segments = self.segments
-        }
+        let filled = self.filled
+        var segments = self.segments
 
         let arcWidth: CGFloat = filled ? min(self.frame.width, self.frame.height) / 2 : 7
         let totalAmount = segments.reduce(0) { $0 + $1.value }
@@ -896,16 +792,9 @@ internal class TachometerGraphView: NSView {
     }
 
     internal func setSegments(_ segments: [circle_segment]) {
-        var changed = false
-        self.queue.sync {
-            if !sameSegments(self.segments, segments) {
-                self.segments = segments
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard !sameSegments(self.segments, segments) else { return }
+        self.segments = segments
+        self.redrawIfVisible()
     }
 
     internal func setFrame(_ frame: NSRect) {
@@ -918,7 +807,6 @@ internal class TachometerGraphView: NSView {
 public class BarChartView: NSView {
     private var values: [ColorValue] = []
     private var cursor: CGPoint? = nil
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.charts.bar")
 
     public init(frame: NSRect = NSRect.zero, num: Int) {
         super.init(frame: frame)
@@ -940,11 +828,7 @@ public class BarChartView: NSView {
     }
 
     public override func draw(_ dirtyRect: NSRect) {
-        var values: [ColorValue] = []
-        self.queue.sync {
-            values = self.values
-        }
-
+        let values = self.values
         guard !values.isEmpty else { return }
 
         let blocks: Int = 16
@@ -1013,16 +897,9 @@ public class BarChartView: NSView {
     }
 
     public func setValues(_ values: [ColorValue]) {
-        var changed = false
-        self.queue.sync {
-            if !sameColorValues(self.values, values) {
-                self.values = values
-                changed = true
-            }
-        }
-        if changed && self.window?.isVisible ?? false {
-            self.needsDisplay = true
-        }
+        guard !sameColorValues(self.values, values) else { return }
+        self.values = values
+        self.redrawIfVisible()
     }
 
     public override func mouseEntered(with event: NSEvent) {
@@ -1043,64 +920,16 @@ public class BarChartView: NSView {
     }
 }
 
-public class GridChartView: NSView {
-    private let okColor: NSColor = .systemGreen
-    private let notOkColor: NSColor = .systemRed
-    private let inactiveColor: NSColor = .underPageBackgroundColor.withAlphaComponent(0.4)
-
-    private var values: [NSColor] = []
-    private let grid: (rows: Int, columns: Int)
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.charts.grid")
-
-    public init(frame: NSRect, grid: (rows: Int, columns: Int)) {
-        self.grid = grid
-        super.init(frame: frame)
-        let totalCells = max(grid.rows * grid.columns, 1)
-        self.values = Array(repeating: self.inactiveColor, count: totalCells)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    public override func draw(_ dirtyRect: NSRect) {
-        var grid: (rows: Int, columns: Int) = (0, 0)
-        var values: [NSColor] = []
-        self.queue.sync {
-            grid = self.grid
-            values = self.values
-        }
-
-        let spacing: CGFloat = 2
-        let size: CGSize = CGSize(
-            width: (self.frame.width - ((CGFloat(grid.rows)-1) * spacing)) / CGFloat(grid.rows),
-            height: (self.frame.height - ((CGFloat(grid.columns)-1) * spacing)) / CGFloat(grid.columns)
-        )
-        var origin: CGPoint = CGPoint(x: 0, y: (size.height + spacing) * CGFloat(grid.columns - 1))
-
-        var i: Int = 0
-        for _ in 0..<grid.columns {
-            for _ in 0..<grid.rows {
-                let box = NSBezierPath(roundedRect: NSRect(origin: origin, size: size), xRadius: 1, yRadius: 1)
-                values[i].setFill()
-                box.fill()
-                box.close()
-                i += 1
-                origin.x += size.width + spacing
-            }
-            origin.x = 0
-            origin.y -= size.height + spacing
-        }
-    }
-
-    public func addValue(_ value: Bool) {
-        self.queue.async(flags: .barrier) {
-            self.values.remove(at: 0)
-            self.values.append(value ? self.okColor : self.notOkColor)
-        }
-
+public extension NSView {
+    // views in a hidden window are not drawn, the popups redraw everything when they appear
+    func redrawIfVisible() {
         if self.window?.isVisible ?? false {
             self.needsDisplay = true
         }
+    }
+    
+    func setNeedsDisplayRecursively() {
+        self.needsDisplay = true
+        self.subviews.forEach { $0.setNeedsDisplayRecursively() }
     }
 }

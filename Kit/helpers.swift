@@ -13,7 +13,6 @@
 import Cocoa
 import ServiceManagement
 import UserNotifications
-import WebKit
 
 public struct LaunchAtLogin {
     private static let id = "\(Bundle.main.bundleIdentifier!).LaunchAtLogin"
@@ -39,7 +38,7 @@ public struct LaunchAtLogin {
                     }
                 }
             } catch {
-                print("failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
+                Kit.error("failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
             }
         }
     }
@@ -102,26 +101,6 @@ public struct Units {
     }
     public var terabytes: Double {
         return gigabytes / 1_000
-    }
-    
-    public func getReadableTuple(base: DataSizeBase = .byte) -> (String, String) {
-        let stringBase = base == .byte ? "B" : "b"
-        let multiplier: Double = base == .byte ? 1 : 8
-        
-        switch bytes {
-        case 0..<1_000:
-            return ("0", "K\(stringBase)/s")
-        case 1_000..<(1_000 * 1_000):
-            return (String(format: "%.0f", kilobytes*multiplier), "K\(stringBase)/s")
-        case 1_000..<(1_000 * 1_000 * 100):
-            return (String(format: "%.1f", megabytes*multiplier), "M\(stringBase)/s")
-        case (1_000 * 1_000 * 100)..<(1_000 * 1_000 * 1_000):
-            return (String(format: "%.0f", megabytes*multiplier), "M\(stringBase)/s")
-        case (1_000 * 1_000 * 1_000)...Int64.max:
-            return (String(format: "%.1f", gigabytes*multiplier), "G\(stringBase)/s")
-        default:
-            return (String(format: "%.0f", kilobytes*multiplier), "K\(stringBase)B/s")
-        }
     }
     
     public func getReadableSpeed(base: DataSizeBase = .byte, omitUnits: Bool = false) -> String {
@@ -263,24 +242,6 @@ public class ValueField: NSTextField {
 }
 
 public extension NSBezierPath {
-    func addArrow(start: CGPoint, end: CGPoint, pointerLineLength: CGFloat, arrowAngle: CGFloat) {
-        self.move(to: start)
-        self.line(to: end)
-        
-        let startEndAngle = atan((end.y - start.y) / (end.x - start.x)) + ((end.x - start.x) < 0 ? CGFloat(Double.pi) : 0)
-        let arrowLine1 = CGPoint(
-            x: end.x + pointerLineLength * cos(CGFloat(Double.pi) - startEndAngle + arrowAngle),
-            y: end.y - pointerLineLength * sin(CGFloat(Double.pi) - startEndAngle + arrowAngle)
-        )
-        let arrowLine2 = CGPoint(
-            x: end.x + pointerLineLength * cos(CGFloat(Double.pi) - startEndAngle - arrowAngle),
-            y: end.y - pointerLineLength * sin(CGFloat(Double.pi) - startEndAngle - arrowAngle)
-        )
-        
-        self.line(to: arrowLine1)
-        self.move(to: end)
-        self.line(to: arrowLine2)
-    }
 }
 
 public func separatorView(_ title: String, origin: NSPoint = NSPoint(x: 0, y: 0), width: CGFloat = 0) -> NSView {
@@ -399,11 +360,6 @@ public func portalWithColorRow(_ v: NSStackView, color: NSColor, title: String) 
 }
 
 public extension Array where Element: Hashable {
-    func difference(from other: [Element]) -> [Element] {
-        let thisSet = Set(self)
-        let otherSet = Set(other)
-        return Array(thisSet.symmetricDifference(otherSet))
-    }
 }
 
 public func toggleNSControlState(_ control: NSControl?, state: NSControl.StateValue) {
@@ -535,9 +491,9 @@ public func showNotification(title: String, subtitle: String? = nil, userInfo: [
     center.delegate = delegate
     
     NotificationAuthorization.requestIfNeeded(center: center)
-    center.add(request) { (error: Error?) in
-        if let err = error {
-            print(err)
+    center.add(request) { (err: Error?) in
+        if let err {
+            error("add notification: \(err.localizedDescription)")
         }
     }
     
@@ -569,70 +525,6 @@ public struct TopProcess: Codable, Process_p {
     }
 }
 
-public func fetchIOService(_ name: String) -> [NSDictionary]? {
-    var iterator: io_iterator_t = io_iterator_t()
-    var obj: io_registry_entry_t = 1
-    var list: [NSDictionary] = []
-    
-    let result = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching(name), &iterator)
-    if result != kIOReturnSuccess {
-        print("Error IOServiceGetMatchingServices(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-        return nil
-    }
-    
-    while obj != 0 {
-        obj = IOIteratorNext(iterator)
-        if let props = getIOProperties(obj) {
-            list.append(props)
-        }
-        IOObjectRelease(obj)
-    }
-    IOObjectRelease(iterator)
-    
-    return list.isEmpty ? nil : list
-}
-
-public func fetchIOServiceProperties(_ name: String, keys: [String]) -> [[String: Any]]? {
-    var iterator: io_iterator_t = io_iterator_t()
-    var obj: io_registry_entry_t = 1
-    var list: [[String: Any]] = []
-
-    let result = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching(name), &iterator)
-    if result != kIOReturnSuccess {
-        print("Error IOServiceGetMatchingServices(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
-        return nil
-    }
-    defer { IOObjectRelease(iterator) }
-
-    while obj != 0 {
-        obj = IOIteratorNext(iterator)
-        guard obj != 0 else { continue }
-        defer { IOObjectRelease(obj) }
-
-        var properties: [String: Any] = [:]
-        for key in keys {
-            if let value = getIOProperty(obj, key) {
-                properties[key] = value
-            }
-        }
-        if !properties.isEmpty {
-            list.append(properties)
-        }
-    }
-
-    return list.isEmpty ? nil : list
-}
-
-public func getIOProperties(_ entry: io_registry_entry_t) -> NSDictionary? {
-    var properties: Unmanaged<CFMutableDictionary>? = nil
-    
-    if IORegistryEntryCreateCFProperties(entry, &properties, kCFAllocatorDefault, 0) != kIOReturnSuccess {
-        return nil
-    }
-    
-    return properties?.takeRetainedValue()
-}
-
 public func getIOProperty(_ entry: io_registry_entry_t, _ key: String) -> Any? {
     guard let property = IORegistryEntryCreateCFProperty(entry, key as CFString, kCFAllocatorDefault, 0) else {
         return nil
@@ -646,33 +538,27 @@ internal func getIOName(_ entry: io_registry_entry_t) -> String? {
     
     let result = IORegistryEntryGetName(entry, pointer)
     if result != kIOReturnSuccess {
-        print("Error IORegistryEntryGetName(): " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
+        error("IORegistryEntryGetName(): \(String(cString: mach_error_string(result)))")
         return nil
     }
     
     return String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
 }
 
+// the first 32 bits of an IORegistry data property, nil when it is missing or too short
+internal func int32(_ property: Any?) -> Int32? {
+    guard let data = property as? Data, data.count >= 4 else { return nil }
+    return data.withUnsafeBytes { Int32(littleEndian: $0.loadUnaligned(as: Int32.self)) }
+}
+
+// voltage states are 8-byte records starting with the frequency in Hz (kHz on M4)
 internal func convertCFDataToArr(_ data: CFData, _ isM4: Bool = false) -> [Int32] {
-    let length = CFDataGetLength(data)
-    var bytes = [UInt8](repeating: 0, count: length)
-    CFDataGetBytes(data, CFRange(location: 0, length: length), &bytes)
-    
-    var multiplier: UInt32 = 1000 * 1000
-    if isM4 {
-        multiplier = 1000
+    let bytes = data as Data
+    let divider: UInt32 = isM4 ? 1000 : 1000 * 1000
+    return stride(from: 0, to: bytes.count - 3, by: 8).map { offset in
+        let value = bytes.withUnsafeBytes { UInt32(littleEndian: $0.loadUnaligned(fromByteOffset: offset, as: UInt32.self)) }
+        return Int32(value / divider)
     }
-    
-    var arr: [Int32] = []
-    var chunks = stride(from: 0, to: bytes.count, by: 8).map { Array(bytes[$0..<min($0 + 8, bytes.count)])}
-    for chunk in chunks {
-        let v = UInt32(chunk[0]) | UInt32(chunk[1]) << 8 | UInt32(chunk[2]) << 16 | UInt32(chunk[3]) << 24
-        arr.append(Int32(v / multiplier))
-    }
-    bytes.removeAll()
-    chunks.removeAll()
-    
-    return arr
 }
 
 public class ColorView: NSView {
@@ -722,47 +608,85 @@ public func localizedString(_ key: String, _ params: String..., comment: String 
 
 public extension UnitTemperature {
     static var system: UnitTemperature {
-        let measureFormatter = MeasurementFormatter()
-        let measurement = Measurement(value: 0, unit: UnitTemperature.celsius)
-        return measureFormatter.string(from: measurement).hasSuffix("C") ? .celsius : .fahrenheit
+        TemperatureCache.shared.system
     }
     
     static var current: UnitTemperature {
-        let stringUnit: String = Store.shared.string(key: "temperature_units", defaultValue: "system")
-        var unit = UnitTemperature.system
-        if stringUnit != "system" {
-            if let value = TemperatureUnits.first(where: { $0.key == stringUnit }), let temperatureUnit = value.additional as? UnitTemperature {
-                unit = temperatureUnit
-            }
+        TemperatureCache.shared.current
+    }
+}
+
+// resolving the unit or creating a formatter loads ICU unit preferences, so both are cached
+private final class TemperatureCache {
+    static let shared = TemperatureCache()
+    
+    private let lock = NSLock()
+    private var _system: UnitTemperature? = nil
+    private var _current: (generation: Int, unit: UnitTemperature)? = nil
+    private var formatters: [Int: MeasurementFormatter] = [:]
+    
+    init() {
+        NotificationCenter.default.addObserver(forName: NSLocale.currentLocaleDidChangeNotification, object: nil, queue: nil) { [weak self] _ in
+            guard let self else { return }
+            self.lock.lock()
+            self._system = nil
+            self._current = nil
+            self.lock.unlock()
         }
+    }
+    
+    var system: UnitTemperature {
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        return self.systemLocked()
+    }
+    
+    var current: UnitTemperature {
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        let generation = Store.shared.generation
+        if let current = self._current, current.generation == generation {
+            return current.unit
+        }
+        let key = Store.shared.string(key: "temperature_units", defaultValue: "system")
+        let unit = TemperatureUnits.first(where: { $0.key == key })?.additional as? UnitTemperature ?? self.systemLocked()
+        self._current = (generation, unit)
         return unit
+    }
+    
+    private func systemLocked() -> UnitTemperature {
+        if let unit = self._system {
+            return unit
+        }
+        let unit: UnitTemperature = MeasurementFormatter().string(from: Measurement(value: 0, unit: UnitTemperature.celsius)).hasSuffix("C") ? .celsius : .fahrenheit
+        self._system = unit
+        return unit
+    }
+    
+    func format(_ measurement: Measurement<UnitTemperature>, fractionDigits: Int) -> String {
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        if let formatter = self.formatters[fractionDigits] {
+            return formatter.string(from: measurement)
+        }
+        let formatter = MeasurementFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.numberFormatter.maximumFractionDigits = fractionDigits
+        formatter.numberFormatter.minimumFractionDigits = fractionDigits
+        formatter.unitOptions = .providedUnit
+        self.formatters[fractionDigits] = formatter
+        return formatter.string(from: measurement)
     }
 }
 
 public func temperature(_ value: Double, defaultUnit: UnitTemperature = UnitTemperature.celsius, fractionDigits: Int = 0) -> String {
-    let formatter = MeasurementFormatter()
-    formatter.locale = Locale.init(identifier: "en_US")
-    formatter.numberFormatter.maximumFractionDigits = fractionDigits
-    if fractionDigits != 0 {
-        formatter.numberFormatter.minimumFractionDigits = fractionDigits
-    }
-    formatter.unitOptions = .providedUnit
-    
-    var measurement = Measurement(value: value, unit: defaultUnit)
-    measurement.convert(to: UnitTemperature.current)
-    
-    return formatter.string(from: measurement)
+    let measurement = Measurement(value: value, unit: defaultUnit).converted(to: UnitTemperature.current)
+    return TemperatureCache.shared.format(measurement, fractionDigits: fractionDigits)
 }
 
-public func sysctlByName(_ name: String) -> Int64 {
-    var num: Int64 = 0
-    var size = MemoryLayout<Int64>.size
-    
-    if sysctlbyname(name, &num, &size, nil, 0) != 0 {
-        print(POSIXError.Code(rawValue: errno).map { POSIXError($0) } ?? CocoaError(.fileReadUnknown))
-    }
-    
-    return num
+// value converted to the selected temperature unit
+public func localTemperature(_ value: Double, defaultUnit: UnitTemperature = UnitTemperature.celsius) -> Double {
+    Measurement(value: value, unit: defaultUnit).converted(to: UnitTemperature.current).value
 }
 
 internal class WidgetLabelView: NSView {
@@ -1044,19 +968,8 @@ public func iconFromSymbol(name: String, scale: NSImage.SymbolScale) -> NSImage?
     return nil
 }
 
-public func showAlert(_ message: String, _ information: String? = nil, _ style: NSAlert.Style = .informational) {
-    let alert = NSAlert()
-    alert.messageText = message
-    if let information = information {
-        alert.informativeText = information
-    }
-    alert.addButton(withTitle: "OK")
-    alert.alertStyle = style
-    alert.runModal()
-}
-
 var isDarkMode: Bool {
-    switch NSAppearance.current.name {
+    switch NSAppearance.currentDrawing().name {
     case .darkAqua, .vibrantDark, .accessibilityHighContrastDarkAqua, .accessibilityHighContrastVibrantDark:
         return true
     default:
@@ -1271,7 +1184,8 @@ public class PreferencesRow: NSStackView {
 public func restartApp(_ sender: Any, afterDelay seconds: TimeInterval = 0.5) -> Never {
     let task = Process()
     task.executableURL = URL(fileURLWithPath: "/bin/sh")
-    task.arguments = ["-c", "sleep \(seconds); open \"\(Bundle.main.bundlePath)\""]
+    // the bundle path is passed as an argument, never interpolated into the script, so it can't inject shell code
+    task.arguments = ["-c", "sleep \"$1\"; exec /usr/bin/open \"$2\"", "restart", String(seconds), Bundle.main.bundlePath]
     task.standardOutput = FileHandle.nullDevice
     task.standardError = FileHandle.nullDevice
     try? task.run()
@@ -1453,29 +1367,23 @@ public class HelpHUD: NSPanel {
         self.level = .floating
         self.title = "Help"
         
-        let webView = WKWebView()
-        webView.setValue(false, forKey: "drawsBackground")
-        webView.loadHTMLString("<html><body style='color: #ffffff;margin: 10px;'>\(text)</body></html>", baseURL: nil)
-        self.contentView = webView
+        let textView = NSTextView(frame: NSRect(origin: .zero, size: size))
+        textView.isEditable = false
+        textView.drawsBackground = false
+        textView.textContainerInset = NSSize(width: 6, height: 6)
+        if let data = "<html><body style='color: #ffffff; font-family: -apple-system;'>\(text)</body></html>".data(using: .utf8),
+           let html = NSAttributedString(html: data, documentAttributes: nil) {
+            textView.textStorage?.setAttributedString(html)
+        }
+        let scrollView = NSScrollView(frame: NSRect(origin: .zero, size: size))
+        scrollView.drawsBackground = false
+        scrollView.hasVerticalScroller = true
+        scrollView.documentView = textView
+        self.contentView = scrollView
     }
     
     public func show() {
         self.makeKeyAndOrderFront(self)
         self.center()
-    }
-}
-
-public class VerticallyCenteredTextFieldCell: NSTextFieldCell {
-    public override func titleRect(forBounds rect: NSRect) -> NSRect {
-        var titleRect = super.titleRect(forBounds: rect)
-        let textSize = self.attributedStringValue.size()
-        let verticalOffset = (rect.size.height - textSize.height) / 2.0
-        titleRect.origin.y += verticalOffset
-        return titleRect
-    }
-    
-    public override func drawInterior(withFrame cellFrame: NSRect, in controlView: NSView) {
-        let titleRect = self.titleRect(forBounds: cellFrame)
-        self.attributedStringValue.draw(in: titleRect)
     }
 }

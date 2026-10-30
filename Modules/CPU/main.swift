@@ -9,7 +9,7 @@
 import Cocoa
 import Kit
 
-public struct CPU_Load: Codable {
+public struct CPU_Load {
     public var totalUsage: Double = 0
     var usagePerCore: [Double] = []
     var usageECores: Double? = nil
@@ -20,13 +20,13 @@ public struct CPU_Load: Codable {
     var idleLoad: Double = 0
 }
 
-public struct CPU_Frequency: Codable {
+public struct CPU_Frequency {
     var value: Double = 0
     var eCore: Double = 0
     var pCore: Double = 0
 }
 
-public struct CPU_AverageLoad: Codable {
+public struct CPU_AverageLoad {
     var load1: Double = 0
     var load5: Double = 0
     var load15: Double = 0
@@ -53,39 +53,10 @@ public class CPU: Module {
     private var groupByClustersState: Bool {
         Store.shared.bool(key: "\(self.config.name)_clustersGroup", defaultValue: false)
     }
-    private var systemColor: NSColor {
-        let color = SColor.secondRed
-        let key = Store.shared.string(key: "\(self.config.name)_systemColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
-    private var userColor: NSColor {
-        let color = SColor.secondBlue
-        let key = Store.shared.string(key: "\(self.config.name)_userColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
-    
-    private var eCoreColor: NSColor {
-        let color = SColor.teal
-        let key = Store.shared.string(key: "\(self.config.name)_eCoresColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
-    private var pCoreColor: NSColor {
-        let color = SColor.indigo
-        let key = Store.shared.string(key: "\(self.config.name)_pCoresColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
+    private var systemColor: NSColor { SColor.stored("\(self.config.name)_systemColor", defaultValue: .secondRed) }
+    private var userColor: NSColor { SColor.stored("\(self.config.name)_userColor", defaultValue: .secondBlue) }
+    private var eCoreColor: NSColor { SColor.stored("\(self.config.name)_eCoresColor", defaultValue: .teal) }
+    private var pCoreColor: NSColor { SColor.stored("\(self.config.name)_pCoresColor", defaultValue: .indigo) }
     private lazy var coreTypesById: [Int32: coreType] = {
         guard let cores = SystemKit.shared.device.info.cpu?.cores else { return [:] }
         return Dictionary(uniqueKeysWithValues: cores.map { ($0.id, $0.type) })
@@ -124,13 +95,11 @@ public class CPU: Module {
         }
         
         self.settingsView.callback = { [weak self] in
-            self?.loadReader?.read()
+            self?.loadReader?.refresh()
         }
-        self.settingsView.callbackWhenUpdateNumberOfProcesses = {
-            self.popupView.numberOfProcessesUpdated()
-            DispatchQueue.global(qos: .background).async {
-                self.processReader?.read()
-            }
+        self.settingsView.callbackWhenUpdateNumberOfProcesses = { [weak self] in
+            self?.popupView.numberOfProcessesUpdated()
+            self?.processReader?.refresh()
         }
         self.settingsView.setInterval = { [weak self] value in
             self?.loadReader?.setInterval(value)

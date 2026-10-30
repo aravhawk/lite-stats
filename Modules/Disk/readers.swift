@@ -33,198 +33,120 @@ let kIOCFPlugInInterfaceID = CFUUIDGetConstantUUIDWithBytes(nil,
                                                             0xE4, 0xC6, 0x42, 0x6F
 )
 
-internal class CapacityReader: Reader<Disks> {
-    private struct MountedVolume {
+// Mounted volumes, refreshed only after a mount, unmount or rename notification.
+private final class VolumeInventory {
+    static let shared = VolumeInventory()
+    
+    struct Volume {
         let url: URL
         let BSDName: String
+        let disk: DADisk
     }
-
-    internal var list: Disks = Disks()
-    private lazy var session: DASession? = DASessionCreate(kCFAllocatorDefault)
-    private let volumeInventoryLock = NSLock()
-    private var volumeInventoryDirty: Bool = true
-    private var mountedVolumes: [MountedVolume] = []
-    private var observingVolumes: Bool = false
-
-    override func setup() {
-        self.defaultInterval = 10
+    
+    let session: DASession? = DASessionCreate(kCFAllocatorDefault)
+    private let lock = NSLock()
+    private var dirty: Bool = true
+    private var cache: (generation: Int, volumes: [Volume]) = (0, [])
+    
+    init() {
+        let center = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didMountNotification, NSWorkspace.didUnmountNotification, NSWorkspace.didRenameVolumeNotification] {
+            center.addObserver(forName: name, object: nil, queue: nil) { [weak self] _ in
+                guard let self else { return }
+                self.lock.lock()
+                self.dirty = true
+                self.lock.unlock()
+            }
+        }
     }
-
-    override func start() {
-        self.startObservingVolumes()
-        self.markVolumeInventoryDirty()
-        super.start()
+    
+    func volumes() -> (generation: Int, volumes: [Volume]) {
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        guard self.dirty, let session = self.session else { return self.cache }
+        
+        let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: nil, options: [.skipHiddenVolumes]) ?? []
+        let volumes: [Volume] = urls.compactMap { url in
+            guard url.pathComponents.count == 1 || url.pathComponents[1] == "Volumes",
+                  let disk = DADiskCreateFromVolumePath(kCFAllocatorDefault, session, url as CFURL),
+                  let name = DADiskGetBSDName(disk) else { return nil }
+            return Volume(url: url, BSDName: String(cString: name), disk: disk)
+        }
+        self.cache = (self.cache.generation + 1, volumes)
+        self.dirty = false
+        return self.cache
     }
+}
 
-    override func stop() {
-        super.stop()
-        self.stopObservingVolumes()
-    }
-
-    deinit {
-        self.stopObservingVolumes()
-    }
-
+internal class CapacityReader: Reader<Disks> {
+    private var list: Disks = Disks()
+    private var purgeableCache: [URL: (date: Date, value: Int64)] = [:]
+    private var smartCache: [String: (date: Date, value: smart_t?)] = [:]
+    
     private var SMART: Bool {
         Store.shared.bool(key: "\(ModuleType.disk.stringValue)_SMART", defaultValue: true)
     }
-    private var purgableSpace: [URL: (Date, Int64)] = [:]
-    private var smartCache: [String: (date: Date, value: smart_t?)] = [:]
+    
+    override func setup() {
+        self.defaultInterval = 15
+        self.blocking = true
+    }
     
     public override func read() {
         let removableState = Store.shared.bool(key: "Disk_removable", defaultValue: false)
+        var list = Disks()
         
-        guard let session = self.session else {
-            error("cannot create main DASessionCreate()", log: self.log)
-            return
-        }
-        
-        var active: [String] = []
-        for volume in self.mountedVolumeSnapshot(session: session) {
-            let BSDName = volume.BSDName
-            active.append(BSDName)
-
-            if let d = self.list.first(where: { $0.BSDName == BSDName}), let idx = self.list.index(where: { $0.BSDName == BSDName}) {
-                if d.removable && !removableState {
-                    self.list.remove(at: idx)
-                    continue
-                }
-
-                if let path = d.path {
-                    self.list.updateFreeSize(idx, newValue: self.freeDiskSpaceInBytes(path))
-                    self.list.updateSMARTData(idx, smart: self.getSMARTDetails(for: BSDName))
-                }
-
-                continue
+        for volume in VolumeInventory.shared.volumes().volumes {
+            var d: drive
+            if let existing = self.list.first(where: { $0.BSDName == volume.BSDName }) {
+                guard !existing.removable || removableState else { continue }
+                d = existing
+            } else {
+                guard let details = driveDetails(volume.disk, removableState: removableState), let path = details.path else { continue }
+                d = details
+                d.size = self.totalDiskSpaceInBytes(path)
+                guard d.size != 0 else { continue }
             }
-
-            guard let disk = DADiskCreateFromVolumePath(kCFAllocatorDefault, session, volume.url as CFURL),
-                  var d = driveDetails(disk, removableState: removableState, includeParent: false) else {
-                continue
-            }
-
             if let path = d.path {
                 d.free = self.freeDiskSpaceInBytes(path)
-                d.size = self.totalDiskSpaceInBytes(path)
             }
-            d.smart = self.getSMARTDetails(for: BSDName)
-            guard d.size != 0 else { continue }
-            self.list.append(d)
-            self.list.sort()
+            d.smart = self.getSMARTDetails(for: volume.BSDName)
+            list.append(d)
         }
         
-        active.difference(from: self.list.map{ $0.BSDName }).forEach { (BSDName: String) in
-            if let idx = self.list.index(where: { $0.BSDName == BSDName }) {
-                self.list.remove(at: idx)
-            }
-        }
-        
-        self.callback(self.list)
-    }
-
-    @objc private func markVolumeInventoryDirty() {
-        self.volumeInventoryLock.lock()
-        self.volumeInventoryDirty = true
-        self.volumeInventoryLock.unlock()
-    }
-
-    private func startObservingVolumes() {
-        guard !self.observingVolumes else { return }
-        let notificationCenter = NSWorkspace.shared.notificationCenter
-        notificationCenter.addObserver(self, selector: #selector(markVolumeInventoryDirty), name: NSWorkspace.didMountNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(markVolumeInventoryDirty), name: NSWorkspace.didUnmountNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(markVolumeInventoryDirty), name: NSWorkspace.didRenameVolumeNotification, object: nil)
-        self.observingVolumes = true
-    }
-
-    private func stopObservingVolumes() {
-        guard self.observingVolumes else { return }
-        NSWorkspace.shared.notificationCenter.removeObserver(self)
-        self.observingVolumes = false
-    }
-
-    private func mountedVolumeSnapshot(session: DASession) -> [MountedVolume] {
-        self.volumeInventoryLock.lock()
-        let dirty = self.volumeInventoryDirty
-        let cached = self.mountedVolumes
-        self.volumeInventoryLock.unlock()
-
-        guard dirty || cached.isEmpty else { return cached }
-
-        let keys: [URLResourceKey] = [.volumeNameKey]
-        let paths = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) ?? []
-        let volumes: [MountedVolume] = paths.compactMap { url in
-            guard url.pathComponents.count == 1 || (url.pathComponents.count > 1 && url.pathComponents[1] == "Volumes"),
-                  let disk = DADiskCreateFromVolumePath(kCFAllocatorDefault, session, url as CFURL),
-                  let diskName = DADiskGetBSDName(disk) else {
-                return nil
-            }
-            return MountedVolume(url: url, BSDName: String(cString: diskName))
-        }
-
-        self.volumeInventoryLock.lock()
-        self.mountedVolumes = volumes
-        self.volumeInventoryDirty = false
-        self.volumeInventoryLock.unlock()
-
-        return volumes
+        list.sort()
+        self.list = list
+        self.callback(list)
     }
     
     private func freeDiskSpaceInBytes(_ path: URL) -> Int64 {
         var stat = statfs()
         if statfs(path.path, &stat) == 0 {
-            var purgeable: Int64 = 0
-            if self.purgableSpace[path] == nil {
-                let value = CSDiskSpaceGetRecoveryEstimate(path as NSURL)
-                purgeable = Int64(value)
-                self.purgableSpace[path] = (Date(), purgeable)
-            } else if let pair = self.purgableSpace[path] {
-                let delta = Date().timeIntervalSince(pair.0)
-                if delta > 30 {
-                    let value = CSDiskSpaceGetRecoveryEstimate(path as NSURL)
-                    purgeable = Int64(value)
-                    self.purgableSpace[path] = (Date(), purgeable)
-                } else {
-                    purgeable = pair.1
-                }
+            // the purgeable space estimate is expensive to compute and changes slowly
+            let now = Date()
+            var purgeable = self.purgeableCache[path]
+            if purgeable == nil || now.timeIntervalSince(purgeable!.date) > 120 {
+                purgeable = (now, Int64(CSDiskSpaceGetRecoveryEstimate(path as NSURL)))
+                self.purgeableCache[path] = purgeable
             }
-            return (Int64(stat.f_bfree) * Int64(stat.f_bsize)) + Int64(purgeable)
+            return Int64(stat.f_bfree) * Int64(stat.f_bsize) + purgeable!.value
         }
         
-        do {
-            if let url = URL(string: path.absoluteString) {
-                let values = try url.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-                if let capacity = values.volumeAvailableCapacityForImportantUsage, capacity != 0 {
-                    return capacity
-                }
-            }
-        } catch let err {
-            error("error retrieving free space #1: \(err.localizedDescription)", log: self.log)
+        if let values = try? path.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]),
+           let capacity = values.volumeAvailableCapacityForImportantUsage, capacity != 0 {
+            return capacity
         }
-        
-        do {
-            let systemAttributes = try FileManager.default.attributesOfFileSystem(forPath: path.path)
-            if let freeSpace = (systemAttributes[FileAttributeKey.systemFreeSize] as? NSNumber)?.int64Value {
-                return freeSpace
-            }
-        } catch let err {
-            error("error retrieving free space: \(err.localizedDescription)", log: self.log)
+        if let attributes = try? FileManager.default.attributesOfFileSystem(forPath: path.path),
+           let freeSpace = (attributes[.systemFreeSize] as? NSNumber)?.int64Value {
+            return freeSpace
         }
-        
+        error("error retrieving free space for \(path.path)", log: self.log)
         return 0
     }
     
     private func totalDiskSpaceInBytes(_ path: URL) -> Int64 {
-        do {
-            let systemAttributes = try FileManager.default.attributesOfFileSystem(forPath: path.path)
-            if let totalSpace = (systemAttributes[FileAttributeKey.systemSize] as? NSNumber)?.int64Value {
-                return totalSpace
-            }
-        } catch let err {
-            error("error retrieving total space: \(err.localizedDescription)", log: self.log)
-        }
-        
-        return 0
+        let attributes = try? FileManager.default.attributesOfFileSystem(forPath: path.path)
+        return (attributes?[.systemSize] as? NSNumber)?.int64Value ?? 0
     }
     
     private func getSMARTDetails(for BSDName: String) -> smart_t? {
@@ -241,7 +163,7 @@ internal class CapacityReader: Reader<Disks> {
 
     private func readSMARTDetails(for BSDName: String) -> smart_t? {
         
-        var disk = IOServiceGetMatchingService(kIOMasterPortDefault, IOBSDNameMatching(kIOMasterPortDefault, 0, BSDName.cString(using: .utf8)))
+        var disk = IOServiceGetMatchingService(kIOMainPortDefault, IOBSDNameMatching(kIOMainPortDefault, 0, BSDName.cString(using: .utf8)))
         guard disk != 0 else { return nil }
         defer { IOObjectRelease(disk) }
         
@@ -288,206 +210,111 @@ internal class CapacityReader: Reader<Disks> {
         var smartData: nvme_smart_log = nvme_smart_log()
         guard smart.pointee.SMARTReadData(smartInterface, &smartData) == kIOReturnSuccess else { return nil }
         
-        let temperatures: [UInt8] = [UInt8(smartData.temperature.1), UInt8(smartData.temperature.0)]
-        var temperature: UInt16 = 0
-        let data = NSData(bytes: temperatures, length: 2)
-        data.getBytes(&temperature, length: 2)
-        
-        let dataUnitsRead = self.extractUInt128(smartData.data_units_read)
-        let dataUnitsWritten = self.extractUInt128(smartData.data_units_written)
+        // the values come from the device, so none of the conversions are allowed to trap
+        let kelvin = Int(smartData.temperature.0) | Int(smartData.temperature.1) << 8
         let bytesPerDataUnit: Int64 = 512 * 1000
+        func bytes(_ units: Int64) -> Int64 {
+            let (value, overflow) = units.multipliedReportingOverflow(by: bytesPerDataUnit)
+            return overflow ? Int64.max : value
+        }
         
-        let powerCycles = withUnsafeBytes(of: smartData.power_cycles) { $0.load(as: UInt32.self) }
-        let powerOnHours = withUnsafeBytes(of: smartData.power_on_hours) { $0.load(as: UInt32.self) }
+        let powerCycles = withUnsafeBytes(of: smartData.power_cycles) { $0.loadUnaligned(as: UInt32.self) }
+        let powerOnHours = withUnsafeBytes(of: smartData.power_on_hours) { $0.loadUnaligned(as: UInt32.self) }
         
         return smart_t(
-            temperature: Int(UInt16(bigEndian: temperature) - 273),
-            life: 100 - Int(smartData.percent_used),
-            totalRead: dataUnitsRead * bytesPerDataUnit,
-            totalWritten: dataUnitsWritten * bytesPerDataUnit,
+            temperature: kelvin > 273 ? kelvin - 273 : 0,
+            life: max(100 - Int(smartData.percent_used), 0),
+            totalRead: bytes(self.extractUInt128(smartData.data_units_read)),
+            totalWritten: bytes(self.extractUInt128(smartData.data_units_written)),
             powerCycles: Int(powerCycles),
             powerOnHours: Int(powerOnHours)
         )
     }
     
+    // little-endian 128-bit counter, saturated to Int64
     private func extractUInt128(_ tuple: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)) -> Int64 {
-        let byteArray: [UInt8] = [
-            tuple.0, tuple.1, tuple.2, tuple.3, tuple.4, tuple.5, tuple.6, tuple.7,
-            tuple.8, tuple.9, tuple.10, tuple.11, tuple.12, tuple.13, tuple.14, tuple.15
-        ]
-        
-        let uint64Value = byteArray.prefix(8).withUnsafeBytes { $0.load(as: UInt64.self) }
-        let hasHigherBytes = byteArray.suffix(8).contains(where: { $0 != 0 })
-        
-        if hasHigherBytes || uint64Value > UInt64(Int64.max) {
-            return Int64.max
+        withUnsafeBytes(of: tuple) { bytes in
+            let low = bytes.loadUnaligned(fromByteOffset: 0, as: UInt64.self).littleEndian
+            let high = bytes.loadUnaligned(fromByteOffset: 8, as: UInt64.self)
+            return high != 0 || low > UInt64(Int64.max) ? Int64.max : Int64(low)
         }
-        
-        return Int64(uint64Value)
     }
 }
 
 internal class ActivityReader: Reader<Disks> {
-    internal var list: Disks = Disks()
-    private lazy var session: DASession? = DASessionCreate(kCFAllocatorDefault)
-    private let inventoryLock = NSLock()
-    private var inventoryDirty = true
-    private var lastInventoryRefresh: Date?
-    private var lastRemovableState: Bool?
+    private var list: Disks = Disks()
+    private var parents: [String: io_registry_entry_t] = [:]
+    private var inventory: (generation: Int, removable: Bool)? = nil
     private var lastStatsRead: [String: Date] = [:]
-    private var observingVolumes: Bool = false
     
     override func setup() {
+        self.popup = true
+        self.blocking = true
         self.setInterval(3)
     }
-
-    override func start() {
-        self.startObservingVolumes()
-        self.markInventoryDirty()
-        super.start()
-    }
-
-    override func stop() {
-        super.stop()
-        self.stopObservingVolumes()
+    
+    deinit {
+        self.parents.values.forEach { IOObjectRelease($0) }
     }
     
-    override func terminate() {
-        self.stopObservingVolumes()
-    }
-
     public override func read() {
         let removableState = Store.shared.bool(key: "Disk_removable", defaultValue: false)
+        let (generation, volumes) = VolumeInventory.shared.volumes()
+        if self.inventory?.generation != generation || self.inventory?.removable != removableState {
+            self.refreshInventory(volumes, removableState: removableState)
+            self.inventory = (generation, removableState)
+        }
+        
         let now = Date()
-
-        if self.shouldRefreshInventory(removableState: removableState, now: now) {
-            self.refreshInventory(removableState: removableState, now: now)
+        for i in self.list.array.indices {
+            self.driveStats(&self.list.array[i], now: now)
         }
-
-        self.list.array.enumerated().forEach { (idx, disk) in
-            self.driveStats(idx, disk, now: now)
-        }
-
+        
         self.callback(self.list)
     }
-
-    @objc private func markInventoryDirty() {
-        self.inventoryLock.lock()
-        self.inventoryDirty = true
-        self.inventoryLock.unlock()
-    }
-
-    private func startObservingVolumes() {
-        guard !self.observingVolumes else { return }
-        let notificationCenter = NSWorkspace.shared.notificationCenter
-        notificationCenter.addObserver(self, selector: #selector(markInventoryDirty), name: NSWorkspace.didMountNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(markInventoryDirty), name: NSWorkspace.didUnmountNotification, object: nil)
-        notificationCenter.addObserver(self, selector: #selector(markInventoryDirty), name: NSWorkspace.didRenameVolumeNotification, object: nil)
-        self.observingVolumes = true
-    }
-
-    private func stopObservingVolumes() {
-        guard self.observingVolumes else { return }
-        NSWorkspace.shared.notificationCenter.removeObserver(self)
-        self.observingVolumes = false
-    }
-
-    private func shouldRefreshInventory(removableState: Bool, now: Date) -> Bool {
-        self.inventoryLock.lock()
-        let inventoryDirty = self.inventoryDirty
-        let lastInventoryRefresh = self.lastInventoryRefresh
-        let lastRemovableState = self.lastRemovableState
-        self.inventoryLock.unlock()
-
-        if inventoryDirty || self.list.isEmpty || lastRemovableState != removableState {
-            return true
-        }
-        guard let lastInventoryRefresh else { return true }
-        return now.timeIntervalSince(lastInventoryRefresh) > 30
-    }
-
-    private func refreshInventory(removableState: Bool, now: Date) {
-        let keys: [URLResourceKey] = [.volumeNameKey]
-        let paths = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys)!
+    
+    private func refreshInventory(_ volumes: [VolumeInventory.Volume], removableState: Bool) {
+        var list = Disks()
+        var parents: [String: io_registry_entry_t] = [:]
         
-        guard let session = self.session else {
-            error("cannot create a DASessionCreate()", log: self.log)
-            return
-        }
-        
-        var active: [String] = []
-        for url in paths {
-            if url.pathComponents.count == 1 || (url.pathComponents.count > 1 && url.pathComponents[1] == "Volumes") {
-                if let disk = DADiskCreateFromVolumePath(kCFAllocatorDefault, session, url as CFURL) {
-                    if let diskName = DADiskGetBSDName(disk) {
-                        let BSDName: String = String(cString: diskName)
-                        active.append(BSDName)
-                        
-                        if let d = self.list.first(where: { $0.BSDName == BSDName}), let idx = self.list.index(where: { $0.BSDName == BSDName}) {
-                            if d.removable && !removableState {
-                                self.list.remove(at: idx)
-                                continue
-                            }
-                            
-                            continue
-                        }
-                        
-                        if let d = driveDetails(disk, removableState: removableState) {
-                            self.list.append(d)
-                            self.list.sort()
-                        }
-                    }
+        for volume in volumes {
+            if let existing = self.list.first(where: { $0.BSDName == volume.BSDName }), let parent = self.parents.removeValue(forKey: volume.BSDName) {
+                guard !existing.removable || removableState else {
+                    IOObjectRelease(parent)
+                    continue
                 }
+                list.append(existing)
+                parents[volume.BSDName] = parent
+            } else if let d = driveDetails(volume.disk, removableState: removableState), let parent = ioParent(volume.disk, BSDName: d.BSDName) {
+                list.append(d)
+                parents[volume.BSDName] = parent
             }
         }
         
-        active.difference(from: self.list.map{ $0.BSDName }).forEach { (BSDName: String) in
-            if let idx = self.list.index(where: { $0.BSDName == BSDName }) {
-                self.list.remove(at: idx)
-            }
-        }
-        let activeSet = Set(active)
-        self.lastStatsRead = self.lastStatsRead.filter { activeSet.contains($0.key) }
-
-        self.inventoryLock.lock()
-        self.inventoryDirty = false
-        self.lastInventoryRefresh = now
-        self.lastRemovableState = removableState
-        self.inventoryLock.unlock()
+        self.parents.values.forEach { IOObjectRelease($0) }
+        self.parents = parents
+        list.sort()
+        self.list = list
+        self.lastStatsRead = self.lastStatsRead.filter { parents[$0.key] != nil }
     }
     
-    private func driveStats(_ idx: Int, _ d: drive, now: Date) {
-        if let statistics = getIOProperty(d.parent, "Statistics") as? NSDictionary {
-            let readBytes = statistics.object(forKey: "Bytes (Read)") as? Int64 ?? 0
-            let writeBytes = statistics.object(forKey: "Bytes (Write)") as? Int64 ?? 0
-            let elapsed = self.lastStatsRead[d.BSDName].map { now.timeIntervalSince($0) } ?? 0
-            
-            if d.activity.readBytes != 0 && elapsed > 0 {
-                let read = ProcessSampler.bytesPerSecond(
-                    current: UInt64(max(readBytes, 0)),
-                    previous: UInt64(max(d.activity.readBytes, 0)),
-                    elapsed: elapsed
-                )
-                self.list.updateRead(idx, newValue: Int64(read))
-            }
-            if d.activity.writeBytes != 0 && elapsed > 0 {
-                let write = ProcessSampler.bytesPerSecond(
-                    current: UInt64(max(writeBytes, 0)),
-                    previous: UInt64(max(d.activity.writeBytes, 0)),
-                    elapsed: elapsed
-                )
-                self.list.updateWrite(idx, newValue: Int64(write))
-            }
-            self.lastStatsRead[d.BSDName] = now
-            
-            self.list.updateReadWrite(idx, read: readBytes, write: writeBytes)
-        }
+    private func driveStats(_ d: inout drive, now: Date) {
+        guard let parent = self.parents[d.BSDName], let statistics = getIOProperty(parent, "Statistics") as? NSDictionary else { return }
+        let readBytes = statistics.object(forKey: "Bytes (Read)") as? Int64 ?? 0
+        let writeBytes = statistics.object(forKey: "Bytes (Write)") as? Int64 ?? 0
         
-        return
+        if let last = self.lastStatsRead[d.BSDName], now > last {
+            let elapsed = now.timeIntervalSince(last)
+            d.activity.read = Int64(ProcessSampler.bytesPerSecond(current: UInt64(max(readBytes, 0)), previous: UInt64(max(d.activity.readBytes, 0)), elapsed: elapsed))
+            d.activity.write = Int64(ProcessSampler.bytesPerSecond(current: UInt64(max(writeBytes, 0)), previous: UInt64(max(d.activity.writeBytes, 0)), elapsed: elapsed))
+        }
+        self.lastStatsRead[d.BSDName] = now
+        d.activity.readBytes = readBytes
+        d.activity.writeBytes = writeBytes
     }
 }
 
-private func driveDetails(_ disk: DADisk, removableState: Bool, includeParent: Bool = true) -> drive? {
+private func driveDetails(_ disk: DADisk, removableState: Bool) -> drive? {
     var d: drive = drive()
     
     if let bsdName = DADiskGetBSDName(disk) {
@@ -556,18 +383,15 @@ private func driveDetails(_ disk: DADisk, removableState: Bool, includeParent: B
         d.uuid = d.BSDName
     }
     
-    if includeParent {
-        let partitionLevel = d.BSDName.filter { "0"..."9" ~= $0 }.count
-        let media = DADiskCopyIOMedia(disk)
-        if media != 0 {
-            defer { IOObjectRelease(media) }
-            if let parent = getDeviceIOParent(media, level: Int(partitionLevel)) {
-                d.parent = parent
-            }
-        }
-    }
-    
     return d
+}
+
+// the physical device of a volume, where the read/write statistics are kept
+private func ioParent(_ disk: DADisk, BSDName: String) -> io_registry_entry_t? {
+    let media = DADiskCopyIOMedia(disk)
+    guard media != 0 else { return nil }
+    defer { IOObjectRelease(media) }
+    return getDeviceIOParent(media, level: BSDName.filter { "0"..."9" ~= $0 }.count)
 }
 
 // https://opensource.apple.com/source/bless/bless-152/libbless/APFS/BLAPFSUtilities.c.auto.html
@@ -594,18 +418,14 @@ public func getDeviceIOParent(_ obj: io_registry_entry_t, level: Int) -> io_regi
     return current
 }
 
-struct io {
-    var read: Int
-    var write: Int
-}
-
 public class ProcessReader: Reader<[Disk_process]> {
     private var numberOfProcesses: Int {
-        Store.shared.int(key: "\(ModuleType.disk.stringValue)_processes", defaultValue: 5)
+        Kit.numberOfProcesses(ModuleType.disk.stringValue, defaultValue: 5)
     }
     
     public override func setup() {
         self.popup = true
+        self.blocking = true
         self.setInterval(3)
     }
     

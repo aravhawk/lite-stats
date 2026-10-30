@@ -64,35 +64,48 @@ internal class Settings: NSStackView, Settings_v {
         self.loadCallback()
     }
     
+    // the menu is only updated while the settings are displayed, the latest list is applied when they appear
+    private var pendingList: GPUs? = nil
+    
+    public override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if self.window != nil, let list = self.pendingList {
+            self.setList(list)
+        }
+    }
+    
     internal func setList(_ gpus: GPUs) {
+        guard self.window != nil else {
+            self.pendingList = gpus
+            return
+        }
+        self.pendingList = nil
         var list: [KeyValue_t] = [
             KeyValue_t(key: "automatic", value: "Automatic"),
             KeyValue_t(key: "separator", value: "separator")
         ]
         gpus.active().forEach{ list.append(KeyValue_t(key: $0.model, value: $0.model)) }
         
-        DispatchQueue.main.async(execute: {
-            guard let button = self.button else { return }
-            if button.menu?.items.count != list.count {
-                let menu = NSMenu()
-                
-                list.forEach { (item) in
-                    if item.key.contains("separator") {
-                        menu.addItem(NSMenuItem.separator())
-                    } else {
-                        let interfaceMenu = NSMenuItem(title: localizedString(item.value), action: nil, keyEquivalent: "")
-                        interfaceMenu.representedObject = item.key
-                        menu.addItem(interfaceMenu)
-                        if self.selectedGPU == item.key {
-                            interfaceMenu.state = .on
-                        }
+        guard let button = self.button else { return }
+        if button.menu?.items.count != list.count {
+            let menu = NSMenu()
+            
+            list.forEach { (item) in
+                if item.key.contains("separator") {
+                    menu.addItem(NSMenuItem.separator())
+                } else {
+                    let interfaceMenu = NSMenuItem(title: localizedString(item.value), action: nil, keyEquivalent: "")
+                    interfaceMenu.representedObject = item.key
+                    menu.addItem(interfaceMenu)
+                    if self.selectedGPU == item.key {
+                        interfaceMenu.state = .on
                     }
                 }
-                
-                button.menu = menu
-                button.sizeToFit()
             }
-        })
+            
+            button.menu = menu
+            button.sizeToFit()
+        }
     }
     
     @objc private func changeUpdateInterval(_ sender: NSMenuItem) {

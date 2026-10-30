@@ -14,11 +14,11 @@ Carthage
 build
 xcuserdata
 
-Stats.dmg
-Stats.app
+*.dmg
+*.app
+*.xcarchive
 create-dmg
 dSYMs.zip
-Stats.dmg.zip
 
 Cartfile.resolved
 web

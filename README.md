@@ -21,13 +21,22 @@ Lite Stats is a trimmed, Apple Silicon-only fork of https://github.com/exelban/s
 - `LaunchAtLogin`: login item using `SMAppService`
 - No privileged helper or fan control components
 
+## Efficiency model
+- Readers are driven from the main thread: one phase-aligned timer per interval (`Kit/plugins/Repeater.swift`), so all modules sharing an interval read and redraw in a single wakeup. Readers that can block (disk, processes) set `blocking` and run on one background queue.
+- Popup readers (processes, frequency, temperature, disk activity) only run while their popup or the combined popup is visible.
+- Widgets only redraw when the displayed value changes (integer percent, device pixel, or a flat chart history).
+- Views that are rarely seen (popup process lists, per-sensor rows, portals, notification settings) are built the first time they are displayed.
+- Nothing is persisted on a timer; settings changes bump `Store.generation`, which hot paths use to cache derived values.
+
 ## Installation
 - Download from Releases: https://github.com/aravhawk/lite-stats/releases
 - Move `Lite Stats.app` to `/Applications`
 
 ## Development
-- Open `Stats.xcodeproj` in Xcode 15+
-- Build the `Stats` scheme (arm64 only)
+- Open `Stats.xcodeproj` in Xcode 16.3 or later
+- Build and run the `Lite Stats` scheme (arm64 only)
+- `make build` archives, notarizes, staples and packages a DMG (expects a `AC_PASSWORD` notarytool keychain profile)
+- `python3 Kit/scripts/i18n.py` checks that all localizations have the same keys
 
 ## Localization
 Supported locales (from `Stats/Supporting Files/*.lproj`):

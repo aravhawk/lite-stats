@@ -87,44 +87,6 @@
 			<key>Order</key>
 			<integer>4</integer>
 		</dict>
-		<key>speed</key>
-		<dict>
-			<key>Default</key>
-			<false/>
-			<key>Icon</key>
-			<string>chars</string>
-			<key>Symbols</key>
-			<dict>
-				<key>Output</key>
-				<string>W</string>
-				<key>Input</key>
-				<string>R</string>
-			</dict>
-			<key>Words</key>
-			<dict>
-				<key>Output</key>
-				<string>Write speed</string>
-				<key>Input</key>
-				<string>Read speed</string>
-			</dict>
-			<key>Order</key>
-			<integer>5</integer>
-		</dict>
-		<key>network_chart</key>
-		<dict>
-			<key>Default</key>
-			<false/>
-			<key>Title</key>
-			<string>SSD</string>
-			<key>Order</key>
-			<integer>6</integer>
-			<key>Unsupported colors</key>
-			<array>
-				<string>utilization</string>
-				<string>pressure</string>
-				<string>system</string>
-			</array>
-		</dict>
 		<key>text</key>
 		<dict>
 			<key>Default</key>

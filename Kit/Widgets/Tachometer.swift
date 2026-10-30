@@ -37,8 +37,6 @@ public class Tachometer: WidgetWrapper {
             height: Constants.Widget.height - (2*Constants.Widget.margin.y)
         ))
         
-        self.canDrawConcurrently = true
-        
         if preview {
             self.chart.setSegments([
                 circle_segment(value: 0.20, color: NSColor.systemRed),
@@ -72,17 +70,11 @@ public class Tachometer: WidgetWrapper {
     }
     
     public func setValue(_ list: [circle_segment]) {
-        var segments = list
-        
-        if self.monochromeState {
-            for i in 0..<segments.count {
-                segments[i].color = segments[i].color.grayscaled()
-            }
+        // half a percent is below what the small menu bar chart can show
+        let segments = list.map {
+            circle_segment(value: ($0.value * 200).rounded() / 200, color: self.monochromeState ? $0.color.grayscaled() : $0.color)
         }
-        
-        DispatchQueue.main.async(execute: {
-            self.chart.setSegments(segments)
-        })
+        self.chart.setSegments(segments)
     }
     
     // MARK: - Settings

@@ -12,7 +12,7 @@
 import Kit
 import Cocoa
 
-public enum SensorGroup: String, Codable {
+public enum SensorGroup: String {
     case CPU = "CPU"
     case GPU = "GPU"
     case system = "Systems"
@@ -21,7 +21,7 @@ public enum SensorGroup: String, Codable {
     case unknown = "Unknown"
 }
 
-public enum SensorType: String, Codable {
+public enum SensorType: String {
     case temperature = "Temperature"
     case voltage = "Voltage"
     case current = "Current"
@@ -52,80 +52,7 @@ public protocol Sensor_p {
     var formattedPopupValue: String { get }
 }
 
-public class Sensors_List: Codable {
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Sensors.SynchronizedArray", attributes: .concurrent)
-    
-    private var list: [Sensor_p] = []
-    public var sensors: [Sensor_p] {
-        get {
-            self.queue.sync{ self.list }
-        }
-        set {
-            self.queue.sync(flags: .barrier) {
-                self.list = newValue
-            }
-        }
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case sensors
-    }
-    
-    public init() {}
-    
-    public func encode(to encoder: Encoder) throws {
-        let wrappers = sensors.map { Sensor_w($0) }
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(wrappers, forKey: .sensors)
-    }
-    
-    required public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let wrappers = try container.decode([Sensor_w].self, forKey: .sensors)
-        self.sensors = wrappers.map { $0.sensor }
-    }
-}
-
-public struct Sensor_w: Codable {
-    let sensor: Sensor_p
-    
-    private enum CodingKeys: String, CodingKey {
-        case base, payload
-    }
-    
-    private enum Typ: Int, Codable {
-        case sensor
-        case fan
-    }
-    
-    init(_ sensor: Sensor_p) {
-        self.sensor = sensor
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let base = try container.decode(Typ.self, forKey: .base)
-        switch base {
-        case .sensor: self.sensor = try container.decode(Sensor.self, forKey: .payload)
-        case .fan: self.sensor = try container.decode(Fan.self, forKey: .payload)
-        }
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        switch sensor {
-        case let payload as Sensor:
-            try container.encode(Typ.sensor, forKey: .base)
-            try container.encode(payload, forKey: .payload)
-        case let payload as Fan:
-            try container.encode(Typ.fan, forKey: .base)
-            try container.encode(payload, forKey: .payload)
-        default: break
-        }
-    }
-}
-
-public struct Sensor: Sensor_p, Codable {
+public struct Sensor: Sensor_p {
     public var key: String
     public var name: String
     
@@ -217,7 +144,7 @@ public struct Sensor: Sensor_p, Codable {
     }
     public var localValue: Double {
         if self.type == .temperature {
-            return Double(self.formattedMiniValue.digits) ?? self.value
+            return localTemperature(self.value).rounded()
         }
         return self.value
     }
@@ -245,7 +172,7 @@ public struct Sensor: Sensor_p, Codable {
     }
 }
 
-public struct Fan: Sensor_p, Codable {
+public struct Fan: Sensor_p {
     public let id: Int
     public var key: String
     public var name: String

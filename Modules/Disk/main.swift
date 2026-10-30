@@ -13,7 +13,7 @@ import Cocoa
 import IOKit
 import Kit
 
-public struct stats: Codable {
+public struct stats {
     var read: Int64 = 0
     var write: Int64 = 0
     
@@ -21,7 +21,7 @@ public struct stats: Codable {
     var writeBytes: Int64 = 0
 }
 
-public struct smart_t: Codable {
+public struct smart_t {
     var temperature: Int = 0
     var life: Int = 0
     var totalRead: Int64 = 0
@@ -30,9 +30,7 @@ public struct smart_t: Codable {
     var powerOnHours: Int = 0
 }
 
-public struct drive: Codable {
-    var parent: io_object_t = 0
-    
+public struct drive {
     var uuid: String = ""
     var mediaName: String = ""
     var BSDName: String = ""
@@ -50,31 +48,9 @@ public struct drive: Codable {
     
     var activity: stats = stats()
     var smart: smart_t? = nil
-
-    enum CodingKeys: String, CodingKey {
-        case uuid
-        case mediaName
-        case BSDName
-        case root
-        case removable
-        case model
-        case path
-        case connectionType
-        case fileSystem
-        case size
-        case free
-        case activity
-        case smart
-    }
     
     public var percentage: Double {
-        let total = self.size
-        let free = self.free
-        var usedSpace = total - free
-        if usedSpace < 0 {
-            usedSpace = 0
-        }
-        return Double(usedSpace) / Double(total)
+        Double(max(self.size - self.free, 0)) / Double(self.size)
     }
     
     public var popupState: Bool {
@@ -82,115 +58,41 @@ public struct drive: Codable {
     }
 }
 
-public class Disks: Codable {
-    private var queue: DispatchQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Disk.SynchronizedArray")
-    private var _array: [drive] = []
-    public var array: [drive] {
-        get { self.queue.sync { self._array } }
-        set {
-            self.queue.sync {
-                self._array.forEach { releaseParent($0.parent) }
-                self._array = newValue
-            }
-        }
-    }
+public struct Disks {
+    public var array: [drive] = []
     
-    enum CodingKeys: String, CodingKey {
-        case array
-    }
-    
-    required public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.array = try container.decode(Array<drive>.self, forKey: CodingKeys.array)
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(array, forKey: .array)
-    }
-    
-    init() {}
-    
-    public var count: Int {
-        self.queue.sync { self._array.count }
-    }
-    
-    // swiftlint:disable empty_count
-    public var isEmpty: Bool {
-        self.count == 0
-    }
-    // swiftlint:enable empty_count
+    public var count: Int { self.array.count }
+    public var isEmpty: Bool { self.array.isEmpty }
     
     public func first(where predicate: (drive) -> Bool) -> drive? {
-        self.queue.sync { self._array.first(where: predicate) }
-    }
-    
-    public func index(where predicate: (drive) -> Bool) -> Int? {
-        self.queue.sync { self._array.firstIndex(where: predicate) }
+        self.array.first(where: predicate)
     }
     
     public func map<ElementOfResult>(_ transform: (drive) -> ElementOfResult?) -> [ElementOfResult] {
-        self.queue.sync { self._array.compactMap(transform) }
+        self.array.compactMap(transform)
     }
     
     public func reversed() -> [drive] {
-        self.queue.sync { self._array.reversed() }
+        self.array.reversed()
     }
     
     func forEach(_ body: (drive) -> Void) {
-        self.queue.sync { self._array.forEach(body) }
+        self.array.forEach(body)
     }
     
-    public func append( _ element: drive) {
-        self.queue.sync {
-            if !self._array.contains(where: {$0.BSDName == element.BSDName}) {
-                self._array.append(element)
-            }
+    mutating func append(_ element: drive) {
+        if !self.array.contains(where: { $0.BSDName == element.BSDName }) {
+            self.array.append(element)
         }
     }
     
-    public func remove(at index: Int) {
-        self.queue.sync {
-            let removed = self._array.remove(at: index)
-            releaseParent(removed.parent)
-        }
-    }
-    
-    public func sort() {
-        self.queue.sync { self._array.sort{ $1.removable } }
-    }
-    
-    func updateFreeSize(_ idx: Int, newValue: Int64) {
-        self.queue.sync { self._array[idx].free = newValue }
-    }
-    
-    func updateReadWrite(_ idx: Int, read: Int64, write: Int64) {
-        self.queue.sync {
-            self._array[idx].activity.readBytes = read
-            self._array[idx].activity.writeBytes = write
-        }
-    }
-    
-    func updateRead(_ idx: Int, newValue: Int64) {
-        self.queue.sync { self._array[idx].activity.read = newValue }
-    }
-    
-    func updateWrite(_ idx: Int, newValue: Int64) {
-        self.queue.sync { self._array[idx].activity.write = newValue }
-    }
-    
-    func updateSMARTData(_ idx: Int, smart: smart_t?) {
-        self.queue.sync { self._array[idx].smart = smart }
+    // fixed disks first
+    mutating func sort() {
+        self.array = self.array.filter { !$0.removable } + self.array.filter { $0.removable }
     }
 }
 
-private func releaseParent(_ parent: io_object_t) {
-    if parent != 0 {
-        IOObjectRelease(parent)
-    }
-}
-
-public struct Disk_process: Process_p, Codable {
+public struct Disk_process: Process_p {
     public var base: DataSizeBase {
         DataSizeBase(rawValue: Store.shared.string(key: "\(ModuleType.disk.stringValue)_base", defaultValue: "byte")) ?? .byte
     }
@@ -212,12 +114,6 @@ public struct Disk_process: Process_p, Codable {
         self.name = name
         self.read = read
         self.write = write
-        
-        if let app = NSRunningApplication(processIdentifier: pid_t(pid)) {
-            if let name = app.localizedName {
-                self.name = name
-            }
-        }
     }
 }
 
@@ -267,30 +163,31 @@ public class Disk: Module {
         
         self.settingsView.selectedDiskHandler = { [weak self] value in
             self?.selectedDisk = value
-            self?.capacityReader?.read()
+            self?.capacityReader?.refresh()
         }
         self.settingsView.callback = { [weak self] in
-            self?.capacityReader?.read()
+            self?.capacityReader?.refresh()
         }
         self.settingsView.setInterval = { [weak self] value in
             self?.capacityReader?.setInterval(value)
         }
         self.settingsView.callbackWhenUpdateNumberOfProcesses = { [weak self] in
             self?.popupView.numberOfProcessesUpdated()
-            DispatchQueue.global(qos: .background).async {
-                self?.processReader?.read()
-            }
+            self?.processReader?.refresh()
         }
         
         self.setReaders([self.capacityReader, self.activityReader, self.processReader])
     }
     
+    // the portal shows the disk activity, only read while the popup or the portal is visible
+    public override func portalVisibilityCallback(_ state: Bool) {
+        state ? self.activityReader?.start() : self.activityReader?.stop()
+    }
+    
     private func capacityCallback(_ value: Disks) {
         guard self.enabled else { return }
         
-        DispatchQueue.main.async(execute: {
-            self.popupView.capacityCallback(value)
-        })
+        self.popupView.capacityCallback(value)
         self.settingsView.setList(value)
         
         guard let d = value.first(where: { $0.mediaName == self.selectedDisk }) ?? value.first(where: { $0.root }) else {
@@ -349,20 +246,10 @@ public class Disk: Module {
     private func activityCallback(_ value: Disks) {
         guard self.enabled else { return }
         
-        DispatchQueue.main.async(execute: {
-            self.popupView.activityCallback(value)
-        })
+        self.popupView.activityCallback(value)
         
-        guard let d = value.first(where: { $0.mediaName == self.selectedDisk }) ?? value.first(where: { $0.root }) else {
-            return
-        }
-        
-        self.portalView.activityCallback(d)
-        
-        self.menuBar.widgets.filter{ $0.isActive }.forEach { (w: SWidget) in
-            switch w.item {
-            default: break
-            }
+        if let d = value.first(where: { $0.mediaName == self.selectedDisk }) ?? value.first(where: { $0.root }) {
+            self.portalView.activityCallback(d)
         }
     }
 }

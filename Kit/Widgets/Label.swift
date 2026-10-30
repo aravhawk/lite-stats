@@ -27,8 +27,6 @@ internal class Label: WidgetWrapper {
             width: 6 + (2*Constants.Widget.margin.x),
             height: Constants.Widget.height - (2*Constants.Widget.margin.y)
         ))
-        
-        self.canDrawConcurrently = true
     }
     
     required init?(coder: NSCoder) {

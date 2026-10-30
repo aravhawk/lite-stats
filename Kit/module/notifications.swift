@@ -17,10 +17,9 @@ open class NotificationsWrapper: NSStackView {
     
     private var ids: [String: Bool?] = [:]
     
-    public init(_ module: ModuleType, _ ids: [String] = []) {
+    public init(_ module: ModuleType) {
         self.module = module.stringValue
         super.init(frame: NSRect.zero)
-        self.initIDs(ids)
         
         self.orientation = .vertical
         self.distribution = .gravityAreas
@@ -32,21 +31,25 @@ open class NotificationsWrapper: NSStackView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // the settings are only built when they are first displayed
+    private var loaded: Bool = false
+    open func load() {}
+    
+    open override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard self.window != nil, !self.loaded else { return }
+        self.loaded = true
+        self.load()
+    }
+    
     public func willTerminate() {
         for id in self.ids {
             removeNotification(id.key)
         }
     }
     
-    public func initIDs(_ ids: [String]) {
-        for id in ids {
-            let notificationID = "Stats_\(self.module)_\(id)"
-            self.ids[notificationID] = nil
-            removeNotification(notificationID)
-        }
-    }
-    
-    public func checkDouble(id rid: String, value: Double, threshold: Double, title: String, subtitle: String, less: Bool = false) {
+    // the texts are only built when a notification is shown
+    public func checkDouble(id rid: String, value: Double, threshold: Double, title: @autoclosure () -> String, subtitle: @autoclosure () -> String, less: Bool = false) {
         let id = "Stats_\(self.module)_\(rid)"
         let first = less ? value > threshold : value < threshold
         let second = less ? value <= threshold : value >= threshold
@@ -57,28 +60,8 @@ open class NotificationsWrapper: NSStackView {
         }
         
         if self.ids[id] == nil && second {
-            self.showNotification(id: id, title: title, subtitle: subtitle)
+            self.showNotification(id: id, title: title(), subtitle: subtitle())
             self.ids[id] = true
-        }
-    }
-    
-    public func newNotification(id rid: String, title: String, subtitle: String? = nil) {
-        let id = "Stats_\(self.module)_\(rid)"
-        
-        if self.ids[id] != nil {
-            removeNotification(id)
-            self.ids[id] = nil
-        }
-        
-        self.showNotification(id: id, title: title, subtitle: subtitle)
-        self.ids[id] = true
-    }
-    
-    public func hideNotification(_ rid: String) {
-        let id = "Stats_\(self.module)_\(rid)"
-        if self.ids[id] != nil {
-            removeNotification(id)
-            self.ids[id] = nil
         }
     }
     
@@ -94,9 +77,9 @@ open class NotificationsWrapper: NSStackView {
         let center = UNUserNotificationCenter.current()
         
         center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
-        center.add(request) { (error: Error?) in
-            if let err = error {
-                print(err)
+        center.add(request) { (err: Error?) in
+            if let err {
+                error("add notification: \(err.localizedDescription)")
             }
         }
     }

@@ -14,25 +14,27 @@ import Cocoa
 public class Store {
     public static let shared = Store()
     private let defaults = UserDefaults.standard
-    private let bundleId = Bundle.main.bundleIdentifier
+    private let lock = NSLock()
     private var cache: [String: Any] = [:]
-    private let cacheQueue = DispatchQueue(label: "com.aravhawk.lite-stats.Store.cache", attributes: .concurrent)
+    
+    // incremented on every change, lets hot paths cache values derived from settings
+    private var _generation: Int = 0
+    public var generation: Int {
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        return self._generation
+    }
     
     public init() {
-        self.loadCache()
+        if let bundleId = Bundle.main.bundleIdentifier {
+            self.cache = self.defaults.persistentDomain(forName: bundleId) ?? [:]
+            // reader values were persisted in a separate domain by earlier versions
+            self.defaults.removePersistentDomain(forName: "\(bundleId).db")
+        }
         self.cleanupLegacy()
     }
     
-    private func loadCache() {
-        guard let bundleId = self.bundleId,
-              let domain = self.defaults.persistentDomain(forName: bundleId) else { return }
-        self.cache = domain
-    }
-    
     private func cleanupLegacy() {
-        guard let bundleId = self.bundleId,
-              let domain = self.defaults.persistentDomain(forName: bundleId) else { return }
-        
         let legacyPrefixes = ["Battery_", "Net_"]
         let legacyKeys: Set<String> = [
             "Sensors_saveFanSpeed",
@@ -43,77 +45,45 @@ public class Store {
             "Sensors_fansMode",
             "Sensors_fanSpeed"
         ]
-        
-        var keysToRemove = Set<String>()
-        domain.keys.forEach { key in
-            if legacyPrefixes.contains(where: { key.hasPrefix($0) }) {
-                keysToRemove.insert(key)
-            }
+        self.cache.keys.filter { key in legacyKeys.contains(key) || legacyPrefixes.contains(where: { key.hasPrefix($0) }) }.forEach {
+            self.cache.removeValue(forKey: $0)
+            self.defaults.removeObject(forKey: $0)
         }
-        keysToRemove.formUnion(legacyKeys)
-        
-        guard !keysToRemove.isEmpty else { return }
-        
-        self.cacheQueue.async(flags: .barrier) {
-            keysToRemove.forEach { self.cache.removeValue(forKey: $0) }
-        }
-        keysToRemove.forEach { self.defaults.removeObject(forKey: $0) }
     }
     
     private func getValue<T>(for key: String, type: T.Type) -> T? {
-        return self.cacheQueue.sync {
-            return self.cache[key] as? T
-        }
+        self.lock.lock()
+        defer { self.lock.unlock() }
+        return self.cache[key] as? T
     }
     
     private func setValue(_ value: Any?, for key: String) {
-        var shouldWrite = false
-        self.cacheQueue.sync(flags: .barrier) {
-            let oldValue = self.cache[key]
-            guard !Store.isEqual(oldValue, value) else { return }
-
-            if let value {
-                self.cache[key] = value
-            } else {
-                self.cache.removeValue(forKey: key)
-            }
-            shouldWrite = true
+        self.lock.lock()
+        let changed = !Store.isEqual(self.cache[key], value)
+        if changed {
+            self.cache[key] = value
+            self._generation += 1
         }
-
-        guard shouldWrite else { return }
+        self.lock.unlock()
         
-        if let value = value {
+        guard changed else { return }
+        if let value {
             self.defaults.set(value, forKey: key)
         } else {
             self.defaults.removeObject(forKey: key)
         }
     }
-
+    
     private static func isEqual(_ lhs: Any?, _ rhs: Any?) -> Bool {
         switch (lhs, rhs) {
-        case (nil, nil):
-            return true
-        case let (left as Bool, right as Bool):
-            return left == right
-        case let (left as Int, right as Int):
-            return left == right
-        case let (left as String, right as String):
-            return left == right
-        case let (left as Data, right as Data):
-            return left == right
-        case let (left as NSArray, right as NSArray):
-            return left.isEqual(right)
-        case let (left as NSObject, right as NSObject):
-            return left.isEqual(right)
-        default:
-            return false
+        case (nil, nil): return true
+        case let (left as NSObject, right as NSObject): return left.isEqual(right)
+        default: return false
         }
     }
     
     public func exist(key: String) -> Bool {
-        return self.cacheQueue.sync {
-            self.cache.keys.contains(key) || self.defaults.object(forKey: key) != nil
-        }
+        return self.getValue(for: key, type: Any.self) != nil || self.defaults.object(forKey: key) != nil
     }
     
     public func remove(_ key: String) {
@@ -161,42 +131,45 @@ public class Store {
     }
     
     public func reset() {
-        self.cacheQueue.async(flags: .barrier) {
-            self.cache.removeAll()
-        }
+        self.lock.lock()
+        self.cache.removeAll()
+        self._generation += 1
+        self.lock.unlock()
         
-        self.defaults.dictionaryRepresentation().keys.forEach { key in
-            self.defaults.removeObject(forKey: key)
+        if let bundleId = Bundle.main.bundleIdentifier {
+            self.defaults.removePersistentDomain(forName: bundleId)
         }
     }
     
+    // keys of the removed telemetry and remote features, never exported or imported
+    private static let privateKeys: Set<String> = ["telemetry_id", "remote_id", "access_token", "refresh_token"]
+    
     public func export(to url: URL) {
-        guard let id = Bundle.main.bundleIdentifier,
-              var dictionary = self.defaults.persistentDomain(forName: id) else { return }
-        dictionary.removeValue(forKey: "telemetry_id")
-        dictionary.removeValue(forKey: "access_token")
-        dictionary.removeValue(forKey: "refresh_token")
+        guard let id = Bundle.main.bundleIdentifier, var dictionary = self.defaults.persistentDomain(forName: id) else { return }
+        Store.privateKeys.forEach { dictionary.removeValue(forKey: $0) }
         NSDictionary(dictionary: dictionary).write(to: url, atomically: true)
     }
     
+    // the settings are only replaced by a reasonably sized property list with a dictionary at its root,
+    // values used for sizes and intervals are bounded where they are read
     public func `import`(from url: URL) {
         guard let id = Bundle.main.bundleIdentifier,
-              let dict = NSDictionary(contentsOf: url) as? [String: Any] else { return }
-        
-        let keysToPreserve = ["telemetry_id", "access_token", "refresh_token"]
-        var importedDict = dict
-        
-        for key in keysToPreserve {
-            if let existingValue = getValue(for: key, type: String.self) {
-                importedDict[key] = existingValue
-            }
+              let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize, size <= 1_000_000,
+              let data = try? Data(contentsOf: url),
+              var dict = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? [String: Any] else {
+            let alert = NSAlert()
+            alert.messageText = localizedString("Invalid settings file")
+            alert.alertStyle = .warning
+            alert.runModal()
+            return
         }
+        Store.privateKeys.forEach { dict.removeValue(forKey: $0) }
         
-        self.cacheQueue.async(flags: .barrier) {
-            self.cache = importedDict
-        }
-        
-        self.defaults.setPersistentDomain(importedDict, forName: id)
+        self.lock.lock()
+        self.cache = dict
+        self._generation += 1
+        self.lock.unlock()
+        self.defaults.setPersistentDomain(dict, forName: id)
         restartApp(self)
     }
 }

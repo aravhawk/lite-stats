@@ -210,6 +210,8 @@ class Dashboard: NSStackView {
     }
     
     private var uptimeField: NSTextField?
+    private var deviceImageView: NSImageView?
+    private var deviceNameField: NSTextField?
     
     init() {
         super.init(frame: NSRect.zero)
@@ -225,19 +227,40 @@ class Dashboard: NSStackView {
         
         scrollView.stackView.addArrangedSubview(self.deviceView())
         
+        // memory, graphics and disks come from system_profiler/diskutil, they are loaded without blocking the window
+        let memoryField = textView("…", alignment: .right)
+        let graphicsField = textView("…", alignment: .right)
+        let disksField = textView("…", alignment: .right)
+        let yearField = textView("\(SystemKit.shared.device.model.year)")
+        
         scrollView.stackView.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Processor"), "", component: textView(self.processorValue, alignment: .right)),
-            PreferencesRow(localizedString("Memory"), component: textView(self.memoryValue, alignment: .right)),
-            PreferencesRow(localizedString("Graphics"), component: textView(self.graphicsValue, alignment: .right)),
-            PreferencesRow(localizedString("Disks"), component: textView(self.disksValue, alignment: .right)),
+            PreferencesRow(localizedString("Memory"), component: memoryField),
+            PreferencesRow(localizedString("Graphics"), component: graphicsField),
+            PreferencesRow(localizedString("Disks"), component: disksField),
             PreferencesRow(localizedString("Display"), "", component: textView(self.displaysValue, alignment: .right))
         ]))
         
         scrollView.stackView.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Model identifier"), component: textView(SystemKit.shared.device.model.id)),
-            PreferencesRow(localizedString("Production year"), component: textView("\(SystemKit.shared.device.model.year)")),
+            PreferencesRow(localizedString("Production year"), component: yearField),
             PreferencesRow(localizedString("Serial number"), component: textView(SystemKit.shared.device.serialNumber ?? localizedString("Unknown")))
         ]))
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            let memory = self.memoryValue
+            let graphics = self.graphicsValue
+            let disks = self.disksValue
+            let model = SystemKit.shared.modelInfo()
+            DispatchQueue.main.async {
+                memoryField.stringValue = memory
+                graphicsField.stringValue = graphics
+                disksField.stringValue = disks
+                yearField.stringValue = "\(model.year)"
+                self.deviceImageView?.image = model.icon
+                self.deviceNameField?.stringValue = model.name
+            }
+        }
         
         self.uptimeField = textView(self.uptimeValue)
         scrollView.stackView.addArrangedSubview(PreferencesSection([
@@ -266,6 +289,7 @@ class Dashboard: NSStackView {
         container.xPlacement = .center
         
         let deviceImageView: NSImageView = NSImageView(image: SystemKit.shared.device.model.icon)
+        self.deviceImageView = deviceImageView
         deviceImageView.widthAnchor.constraint(equalToConstant: 140).isActive = true
         deviceImageView.heightAnchor.constraint(equalToConstant: 140).isActive = true
         
@@ -273,6 +297,7 @@ class Dashboard: NSStackView {
         deviceNameField.alignment = .center
         deviceNameField.font = NSFont.systemFont(ofSize: 17, weight: .semibold)
         deviceNameField.stringValue = SystemKit.shared.device.model.name
+        self.deviceNameField = deviceNameField
         deviceNameField.isSelectable = true
         deviceNameField.toolTip = SystemKit.shared.device.model.id
         

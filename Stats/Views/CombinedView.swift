@@ -22,7 +22,7 @@ internal class CombinedView: NSObject, NSGestureRecognizerDelegate {
         Store.shared.bool(key: "CombinedModules", defaultValue: false)
     }
     private var spacing: CGFloat {
-        CGFloat(Int(Store.shared.string(key: "CombinedModules_spacing", defaultValue: "")) ?? 0)
+        CGFloat(min(max(Int(Store.shared.string(key: "CombinedModules_spacing", defaultValue: "")) ?? 0, 0), 8))
     }
     private var separator: Bool {
         Store.shared.bool(key: "CombinedModules_separator", defaultValue: false)
@@ -49,8 +49,6 @@ internal class CombinedView: NSObject, NSGestureRecognizerDelegate {
                 }
             }
         }
-        
-        self.popup = PopupWindow(title: "Combined modules", module: .combined, view: Popup()) { _ in }
         
         if self.status {
             self.enable()
@@ -168,11 +166,12 @@ internal class CombinedView: NSObject, NSGestureRecognizerDelegate {
         }
     }
     
-    // call when popup appear/disappear
-    private func visibilityCallback(_ state: Bool) {}
-    
     @objc private func togglePopup(_ sender: NSButton) {
-        guard let popup = self.popup, let item = self.menuBarItem, let window = item.button?.window else { return }
+        guard let item = self.menuBarItem, let window = item.button?.window else { return }
+        let popup = self.popup ?? PopupWindow(title: "Combined modules", module: .combined, view: Popup()) { state in
+            modules.filter{ $0.enabled }.forEach { $0.portalVisibilityCallback(state) }
+        }
+        self.popup = popup
         let openedWindows = NSApplication.shared.windows.filter{ $0 is NSPanel }
         openedWindows.forEach{ $0.setIsVisible(false) }
         
@@ -290,6 +289,7 @@ private class Popup: NSStackView, Popup_p {
     }
     
     fileprivate func settings() -> NSView? { return nil }
+    fileprivate func prepare() {}
     fileprivate func appear() {}
     fileprivate func disappear() {}
     fileprivate func setKeyboardShortcut(_ binding: [UInt16]) {

@@ -35,7 +35,7 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
     private let title: String
     
     private var removableState: Bool = false
-    private var updateIntervalValue: Int = 10
+    private var updateIntervalValue: Int = 15
     private var numberOfProcesses: Int = 5
     private var baseValue: String = "byte"
     private var SMARTState: Bool = true
@@ -59,7 +59,7 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
         self.selectedDisk = Store.shared.string(key: "\(self.title)_disk", defaultValue: "")
         self.removableState = Store.shared.bool(key: "\(self.title)_removable", defaultValue: self.removableState)
         self.updateIntervalValue = Store.shared.int(key: "\(self.title)_updateInterval", defaultValue: self.updateIntervalValue)
-        self.numberOfProcesses = Store.shared.int(key: "\(self.title)_processes", defaultValue: self.numberOfProcesses)
+        self.numberOfProcesses = Kit.numberOfProcesses(self.title, defaultValue: self.numberOfProcesses)
         self.baseValue = Store.shared.string(key: "\(self.title)_base", defaultValue: self.baseValue)
         self.SMARTState = Store.shared.bool(key: "\(self.title)_SMART", defaultValue: self.SMARTState)
         self.textValue = Store.shared.string(key: "\(self.title)_textWidgetValue", defaultValue: self.textValue)
@@ -123,20 +123,33 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
         }
     }
     
+    // the menu is only updated while the settings are displayed, the latest list is applied when they appear
+    private var pendingList: Disks? = nil
+    
+    public override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if self.window != nil, let list = self.pendingList {
+            self.setList(list)
+        }
+    }
+    
     internal func setList(_ list: Disks) {
-        DispatchQueue.main.async(execute: {
-            let disks = list.map{ $0.mediaName }
-            if self.button?.itemTitles.count != disks.count {
-                self.button?.removeAllItems()
+        guard self.window != nil else {
+            self.pendingList = list
+            return
+        }
+        self.pendingList = nil
+        let disks = list.map{ $0.mediaName }
+        if self.button?.itemTitles.count != disks.count {
+            self.button?.removeAllItems()
+        }
+        if disks != self.button?.itemTitles {
+            self.button?.addItems(withTitles: disks)
+            self.list = disks
+            if self.selectedDisk != "" {
+                self.button?.selectItem(withTitle: self.selectedDisk)
             }
-            if disks != self.button?.itemTitles {
-                self.button?.addItems(withTitles: disks)
-                self.list = disks
-                if self.selectedDisk != "" {
-                    self.button?.selectItem(withTitle: self.selectedDisk)
-                }
-            }
-        })
+        }
     }
     
     private func inputField(id: String, value: String, placeholder: String) -> NSView {
@@ -182,12 +195,6 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
         self.updateIntervalValue = value
         Store.shared.set(key: "\(self.title)_updateInterval", value: value)
         self.setInterval(value)
-    }
-    
-    @objc private func toggleBase(_ sender: NSMenuItem) {
-        guard let key = sender.representedObject as? String else { return }
-        self.baseValue = key
-        Store.shared.set(key: "\(self.title)_base", value: self.baseValue)
     }
     @objc private func toggleSMART(_ sender: NSControl) {
         self.SMARTState = controlState(sender)

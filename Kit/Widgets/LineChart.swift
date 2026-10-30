@@ -30,6 +30,7 @@ public class LineChart: WidgetWrapper {
     private var colors: [SColor] = SColor.allCases.filter({ $0 != SColor.cluster })
     private var _value: Double = 0
     private var _pressureLevel: RAMPressure = .normal
+    private var flatCount: Int = 0
     
     private var historyNumbers: [KeyValue_p] = [
         KeyValue_t(key: "30", value: "30"),
@@ -91,8 +92,6 @@ public class LineChart: WidgetWrapper {
             height: Constants.Widget.height - (2*Constants.Widget.margin.y)
         ))
         
-        self.canDrawConcurrently = true
-        
         if !preview {
             self.boxState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_box", defaultValue: self.boxState)
             self.frameState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_frame", defaultValue: self.frameState)
@@ -143,12 +142,8 @@ public class LineChart: WidgetWrapper {
         
         guard let context = NSGraphicsContext.current?.cgContext else { return }
         
-        var value: Double = 0
-        var pressureLevel: RAMPressure = .normal
-        self.queue.sync {
-            value = self._value
-            pressureLevel = self._pressureLevel
-        }
+        let value = self._value
+        let pressureLevel = self._pressureLevel
         
         var width = self.width + (Constants.Widget.margin.x*2)
         var x: CGFloat = 0
@@ -249,19 +244,20 @@ public class LineChart: WidgetWrapper {
     }
     
     public func setValue(_ newValue: Double) {
+        // a chart whose whole history has the same (1% resolution) value looks the same after the shift
+        let step = Int((newValue * 100).rounded())
+        self.flatCount = step == Int((self._value * 100).rounded()) ? self.flatCount + 1 : 0
         self._value = newValue
-        DispatchQueue.main.async(execute: {
-            self.chart.addValue(newValue)
+        self.chart.addValue(newValue)
+        if self.flatCount < self.historyCount {
             self.needsDisplay = true
-        })
+        }
     }
     
     public func setPressure(_ newPressureLevel: RAMPressure) {
         guard self._pressureLevel != newPressureLevel else { return }
         self._pressureLevel = newPressureLevel
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     // MARK: - Settings

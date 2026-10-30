@@ -17,11 +17,10 @@ public protocol Portal_p: NSView {
 
 open class PortalWrapper: NSStackView, Portal_p {
     public var name: String
-    private let header: PortalHeader
+    private var loaded: Bool = false
     
     public init(_ type: ModuleType, height: CGFloat = Constants.Popup.portalHeight) {
         self.name = type.stringValue
-        self.header = PortalHeader(type.stringValue)
         
         super.init(frame: NSRect(x: 0, y: 0, width: Constants.Popup.width, height: height))
         
@@ -38,10 +37,6 @@ open class PortalWrapper: NSStackView, Portal_p {
             bottom: Constants.Popup.spacing*2,
             right: Constants.Popup.spacing*2
         )
-        self.addArrangedSubview(self.header)
-        
-        self.load()
-        
         self.heightAnchor.constraint(equalToConstant: Constants.Popup.portalHeight).isActive = true
     }
     
@@ -51,6 +46,15 @@ open class PortalWrapper: NSStackView, Portal_p {
     
     public override func updateLayer() {
         self.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+    }
+    
+    // portals are only shown in the combined modules popup, their content is built when it is first displayed
+    open override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard self.window != nil, !self.loaded else { return }
+        self.loaded = true
+        self.addArrangedSubview(PortalHeader(self.name))
+        self.load()
     }
     
     open func load() {

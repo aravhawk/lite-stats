@@ -18,21 +18,14 @@ class Notifications: NotificationsWrapper {
     private var usageState: Bool = false
     private var usageLevel: Int = 75
     
-    public init(_ module: ModuleType) {
-        super.init(module, [self.usageID])
-        
-        if Store.shared.exist(key: "\(self.module)_notifications_usage") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_usage", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_usage_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_usage_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_usage")
-            }
-        }
+    public override init(_ module: ModuleType) {
+        super.init(module)
         
         self.usageState = Store.shared.bool(key: "\(self.module)_notifications_usage_state", defaultValue: self.usageState)
         self.usageLevel = Store.shared.int(key: "\(self.module)_notifications_usage_value", defaultValue: self.usageLevel)
-        
+    }
+
+    public override func load() {
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Usage"), component: PreferencesSwitch(
                 action: self.toggleUsage, state: self.usageState,
@@ -46,11 +39,10 @@ class Notifications: NotificationsWrapper {
     }
     
     internal func usageCallback(_ value: Double) {
-        let title = localizedString("GPU usage threshold")
-        
         if self.usageState {
-            let subtitle = localizedString("GPU usage is", "\(Int((value)*100))%")
-            self.checkDouble(id: self.usageID, value: value, threshold: Double(self.usageLevel)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.usageID, value: value, threshold: Double(self.usageLevel)/100,
+                             title: localizedString("GPU usage threshold"),
+                             subtitle: localizedString("GPU usage is", "\(Int((value)*100))%"))
         }
     }
     

@@ -11,6 +11,6 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **Details:**
- - Device: [e.g. Macbook Pro 2016]
- - macOS: [e.g. 10.15.5]
- - Application version: [e.g. 2.1.11]
+ - Device: [e.g. MacBook Pro M3]
+ - macOS: [e.g. 15.5]
+ - Application version: [e.g. 1.1.0]

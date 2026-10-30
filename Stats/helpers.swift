@@ -10,6 +10,7 @@
 //
 
 import Cocoa
+import Carbon
 import Kit
 import UserNotifications
 
@@ -31,41 +32,6 @@ extension AppDelegate {
                         module.unmount()
                     }
                 }
-            }
-        }
-        
-        if let mountIndex = args.firstIndex(of: "--mount-path") {
-            if args.indices.contains(mountIndex+1) {
-                let mountPath = args[mountIndex+1]
-                DispatchQueue.global(qos: .utility).async {
-                    let task = Process()
-                    task.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
-                    task.arguments = ["detach", mountPath]
-                    task.qualityOfService = .utility
-                    task.standardOutput = FileHandle.nullDevice
-                    task.standardError = FileHandle.nullDevice
-                    do {
-                        try task.run()
-                        task.waitUntilExit()
-                    } catch {
-                        debug("hdiutil detach failed: \(error.localizedDescription)")
-                    }
-                    
-                    try? FileManager.default.removeItem(atPath: mountPath)
-                }
-                
-                debug("DMG was unmounted and mountPath deleted")
-            }
-        }
-        
-        if let dmgIndex = args.firstIndex(of: "--dmg-path") {
-            if args.indices.contains(dmgIndex+1) {
-                let dmgPath = args[dmgIndex+1]
-                DispatchQueue.global(qos: .utility).async {
-                    try? FileManager.default.removeItem(atPath: dmgPath)
-                }
-                
-                debug("DMG was deleted")
             }
         }
     }
@@ -156,30 +122,99 @@ extension AppDelegate {
         }
     }
     
+    @objc internal func toggleSettings(_ notification: Notification) {
+        self.settingsWindow.toggleSettingsHandler(notification)
+    }
+    
     @objc internal func openSettings() {
         NotificationCenter.default.post(name: .toggleSettings, object: nil, userInfo: ["module": "Dashboard"])
     }
     
-    internal func handleKeyEvent(_ event: NSEvent) {
-        guard modules.contains(where: { $0.enabled && !$0.popupKeyboardShortcut.isEmpty }) else { return }
+    @objc internal func registerHotKeys() {
+        HotKeys.shared.register(modules.map { m in
+            (keys: m.popupKeyboardShortcut, action: { [weak m] in
+                guard let m, m.enabled,
+                      let widget = m.menuBar.widgets.first(where: { $0.isActive }),
+                      let window = widget.item.window else { return }
+                NotificationCenter.default.post(name: .togglePopup, object: nil, userInfo: [
+                    "module": m.name,
+                    "widget": widget.type,
+                    "origin": window.frame.origin,
+                    "center": window.frame.width/2
+                ])
+            })
+        })
+    }
+}
 
-        var keyCodes: [UInt16] = []
-        if event.modifierFlags.contains(.control) { keyCodes.append(59) }
-        if event.modifierFlags.contains(.shift) { keyCodes.append(60) }
-        if event.modifierFlags.contains(.command) { keyCodes.append(55) }
-        if event.modifierFlags.contains(.option) { keyCodes.append(58) }
-        keyCodes.append(event.keyCode)
+// System-wide popup shortcuts. Carbon hot keys cost nothing until pressed and need no accessibility access, only
+// combinations macOS refuses to register as hot keys (Option/Shift only) fall back to keyboard event monitors.
+private final class HotKeys {
+    static let shared = HotKeys()
+    
+    private static let modifiers: [UInt16: (flag: NSEvent.ModifierFlags, carbon: Int)] = [
+        59: (.control, controlKey), 60: (.shift, shiftKey), 55: (.command, cmdKey), 58: (.option, optionKey)
+    ]
+    
+    private var refs: [EventHotKeyRef] = []
+    private var actions: [() -> Void] = []
+    private var fallback: [(keys: [UInt16], action: () -> Void)] = []
+    private var monitors: [Any] = []
+    private var handlerInstalled: Bool = false
+    
+    func register(_ bindings: [(keys: [UInt16], action: () -> Void)]) {
+        self.refs.forEach { UnregisterEventHotKey($0) }
+        self.refs = []
+        self.actions = []
+        self.fallback = []
+        self.monitors.forEach { NSEvent.removeMonitor($0) }
+        self.monitors = []
         
-        guard !keyCodes.isEmpty,
-              let module = modules.first(where: { $0.enabled && $0.popupKeyboardShortcut == keyCodes }),
-              let widget = module.menuBar.widgets.first(where: { $0.isActive }),
-              let window = widget.item.window else { return }
+        for binding in bindings {
+            guard let key = binding.keys.last, HotKeys.modifiers[key] == nil else { continue }
+            let mods = binding.keys.dropLast().compactMap { HotKeys.modifiers[$0]?.carbon }.reduce(0, |)
+            
+            var ref: EventHotKeyRef?
+            let id = EventHotKeyID(signature: OSType(0x4C53484B), id: UInt32(self.actions.count)) // 'LSHK'
+            if mods & (cmdKey | controlKey) != 0,
+               RegisterEventHotKey(UInt32(key), UInt32(mods), id, GetApplicationEventTarget(), 0, &ref) == noErr, let ref {
+                self.refs.append(ref)
+                self.actions.append(binding.action)
+            } else {
+                self.fallback.append(binding)
+            }
+        }
         
-        NotificationCenter.default.post(name: .togglePopup, object: nil, userInfo: [
-            "module": module.name,
-            "widget": widget.type,
-            "origin": window.frame.origin,
-            "center": window.frame.width/2
-        ])
+        if !self.actions.isEmpty && !self.handlerInstalled {
+            var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+            InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
+                var id = EventHotKeyID()
+                GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID), nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
+                let actions = HotKeys.shared.actions
+                if actions.indices.contains(Int(id.id)) {
+                    actions[Int(id.id)]()
+                }
+                return noErr
+            }, 1, &spec, nil, nil)
+            self.handlerInstalled = true
+        }
+        
+        if !self.fallback.isEmpty {
+            _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
+            if let monitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] in self?.handle($0) }) {
+                self.monitors.append(monitor)
+            }
+            if let monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] in
+                self?.handle($0)
+                return $0
+            }) {
+                self.monitors.append(monitor)
+            }
+        }
+    }
+    
+    private func handle(_ event: NSEvent) {
+        let keys = [59, 60, 55, 58].filter { event.modifierFlags.contains(HotKeys.modifiers[$0]!.flag) } + [event.keyCode]
+        self.fallback.first(where: { $0.keys == keys })?.action()
     }
 }

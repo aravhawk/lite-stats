@@ -17,7 +17,6 @@
 		5C23BC0829A03D1200DBA990 /* portal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C23BC0729A03D1200DBA990 /* portal.swift */; };
 		5C23BC0A29A0EDA300DBA990 /* portal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C23BC0929A0EDA300DBA990 /* portal.swift */; };
 		5C23BC1029A3B5AE00DBA990 /* portal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C23BC0F29A3B5AE00DBA990 /* portal.swift */; };
-		5C4E8BC72B6EF98800F148B6 /* DB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C4E8BC62B6EF98800F148B6 /* DB.swift */; };
 		5C4E8BE92B71031A00F148B6 /* Kit.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C4E8BE82B7102A700F148B6 /* Kit.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5C621D822B4770D6004ED7AF /* process.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C621D812B4770D6004ED7AF /* process.swift */; };
 		5CA518382B543FE600EBCCC4 /* portal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA518372B543FE600EBCCC4 /* portal.swift */; };
@@ -60,8 +59,6 @@
 		9A302614286A2A3B00B41D57 /* Repeater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A302613286A2A3B00B41D57 /* Repeater.swift */; };
 		9A34353B243E278D006B19F9 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A34353A243E278D006B19F9 /* main.swift */; };
 		9A34353C243E27E8006B19F9 /* LaunchAtLogin.app in Copy Files */ = {isa = PBXBuildFile; fileRef = 9A343527243E26A0006B19F9 /* LaunchAtLogin.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		9A46C05F266D85F8001A1117 /* smc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADE7038265D059000D2FBA8 /* smc.swift */; };
-		9A46C06B266D8602001A1117 /* smc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADE7038265D059000D2FBA8 /* smc.swift */; };
 		9A53EBF924EAFA5200648841 /* settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A53EBF824EAFA5200648841 /* settings.swift */; };
 		9A53EBFB24EB041E00648841 /* popup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A53EBFA24EB041E00648841 /* popup.swift */; };
 		9A58DE9E24B363D800716A9F /* popup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A58DE9D24B363D800716A9F /* popup.swift */; };
@@ -106,7 +103,6 @@
 		9AE29AF6249A52B00071B02D /* config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9AE29AF4249A52870071B02D /* config.plist */; };
 		9AE29AFB249A53DC0071B02D /* readers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE29AF9249A53780071B02D /* readers.swift */; };
 		9AE29AFC249A53DC0071B02D /* values.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE29AF7249A53420071B02D /* values.swift */; };
-		9AEBBE4D28D773430082A6A1 /* State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEBBE4C28D773430082A6A1 /* State.swift */; };
 		9AF9EE0924648751005D2270 /* Disk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AF9EE0224648751005D2270 /* Disk.framework */; };
 		9AF9EE0A24648751005D2270 /* Disk.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9AF9EE0224648751005D2270 /* Disk.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9AF9EE0F2464875F005D2270 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF9EE0E2464875F005D2270 /* main.swift */; };
@@ -263,7 +259,6 @@
 		5C23BC0929A0EDA300DBA990 /* portal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = portal.swift; sourceTree = "<group>"; };
 		5C23BC0F29A3B5AE00DBA990 /* portal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = portal.swift; sourceTree = "<group>"; };
 		5C32910A2C315A250010012D /* en-GB */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "en-GB"; path = "en-GB.lproj/Localizable.strings"; sourceTree = "<group>"; };
-		5C4E8BC62B6EF98800F148B6 /* DB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DB.swift; sourceTree = "<group>"; };
 		5C4E8BE82B7102A700F148B6 /* Kit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Kit.h; sourceTree = "<group>"; };
 		5C621D812B4770D6004ED7AF /* process.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = process.swift; sourceTree = "<group>"; };
 		5C9F90A02A76B30500D41748 /* et */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = et; path = et.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -375,7 +370,6 @@
 		9AE29AF4249A52870071B02D /* config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = config.plist; path = Modules/Sensors/config.plist; sourceTree = SOURCE_ROOT; };
 		9AE29AF7249A53420071B02D /* values.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = values.swift; path = Modules/Sensors/values.swift; sourceTree = SOURCE_ROOT; };
 		9AE29AF9249A53780071B02D /* readers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = readers.swift; path = Modules/Sensors/readers.swift; sourceTree = SOURCE_ROOT; };
-		9AEBBE4C28D773430082A6A1 /* State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = State.swift; sourceTree = "<group>"; };
 		9AF9EE0224648751005D2270 /* Disk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Disk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AF9EE0524648751005D2270 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9AF9EE0E2464875F005D2270 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -549,7 +543,6 @@
 				9A28475B2666AA2700EC1F6D /* Memory.swift */,
 				9A28475E2666AA2700EC1F6D /* Stack.swift */,
 				9A9B8C9C27149A3700218374 /* Tachometer.swift */,
-				9AEBBE4C28D773430082A6A1 /* State.swift */,
 				5CAA50712C8E417700B13E13 /* Text.swift */,
 			);
 			path = Widgets;
@@ -687,7 +680,6 @@
 				9A2848032666AB2F00EC1F6D /* SystemKit.swift */,
 				9A6EEBBD2685259500897371 /* Logger.swift */,
 				9A302613286A2A3B00B41D57 /* Repeater.swift */,
-				5C4E8BC62B6EF98800F148B6 /* DB.swift */,
 			);
 			path = plugins;
 			sourceTree = "<group>";
@@ -1241,11 +1233,9 @@
 				9A2847632666AA2700EC1F6D /* Mini.swift in Sources */,
 				5CF2210D2B1E7EAF006C583F /* notifications.swift in Sources */,
 				9A6EEBBE2685259500897371 /* Logger.swift in Sources */,
-				5C4E8BC72B6EF98800F148B6 /* DB.swift in Sources */,
 				5C23BC0429A014AC00DBA990 /* portal.swift in Sources */,
 				9A2847792666AA5000EC1F6D /* module.swift in Sources */,
 				9A2847682666AA2700EC1F6D /* Stack.swift in Sources */,
-				9AEBBE4D28D773430082A6A1 /* State.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1274,7 +1264,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A46C06B266D8602001A1117 /* smc.swift in Sources */,
 				9A90E1A324EAD66600471E9A /* reader.swift in Sources */,
 				9A90E19624EAD35F00471E9A /* main.swift in Sources */,
 				5C23BC0A29A0EDA300DBA990 /* portal.swift in Sources */,
@@ -1311,7 +1300,6 @@
 			files = (
 				5CA518382B543FE600EBCCC4 /* portal.swift in Sources */,
 				5CF2211B2B1F8CEF006C583F /* notifications.swift in Sources */,
-				9A46C05F266D85F8001A1117 /* smc.swift in Sources */,
 				9AB6D03926447CAA003215A5 /* reader.m in Sources */,
 				9AE29AFB249A53DC0071B02D /* readers.swift in Sources */,
 				9AE29AFC249A53DC0071B02D /* values.swift in Sources */,
@@ -1677,8 +1665,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1714,8 +1701,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1806,8 +1792,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1841,8 +1826,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1875,8 +1859,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1911,8 +1894,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1946,8 +1928,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1988,8 +1969,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2027,7 +2007,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2052,7 +2032,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2079,8 +2059,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2115,8 +2094,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2151,8 +2129,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2188,8 +2165,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RP2S87B72W;
+				DEVELOPMENT_TEAM = XLR6H6DKHH;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";

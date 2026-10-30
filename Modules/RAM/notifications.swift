@@ -34,40 +34,8 @@ class Notifications: NotificationsWrapper {
     private var swap: Int = 1
     private var swapUnit: SizeUnit = .GB
     
-    public init(_ module: ModuleType) {
-        super.init(module, [self.totalID, self.freeID, self.pressureID, self.swapID])
-        
-        if Store.shared.exist(key: "\(self.module)_notifications_totalUsage") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_totalUsage", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_total_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_total_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_totalUsage")
-            }
-        }
-        if Store.shared.exist(key: "\(self.module)_notifications_free") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_free", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_free_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_free_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_free")
-            }
-        }
-        if Store.shared.exist(key: "\(self.module)_notifications_pressure") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_pressure", defaultValue: "")
-            if value != "" {
-                Store.shared.set(key: "\(self.module)_notifications_pressure_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_pressure_value", value: value)
-                Store.shared.remove("\(self.module)_notifications_pressure")
-            }
-        }
-        if Store.shared.exist(key: "\(self.module)_notifications_swap") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_swap", defaultValue: "")
-            if value != ""  {
-                Store.shared.set(key: "\(self.module)_notifications_swap_state", value: true)
-                Store.shared.remove("\(self.module)_notifications_swap")
-            }
-        }
+    public override init(_ module: ModuleType) {
+        super.init(module)
         
         self.totalState = Store.shared.bool(key: "\(self.module)_notifications_total_state", defaultValue: self.totalState)
         self.total = Store.shared.int(key: "\(self.module)_notifications_total_value", defaultValue: self.total)
@@ -78,7 +46,9 @@ class Notifications: NotificationsWrapper {
         self.swapState = Store.shared.bool(key: "\(self.module)_notifications_swap_state", defaultValue: self.swapState)
         self.swap = Store.shared.int(key: "\(self.module)_notifications_swap_value", defaultValue: self.swap)
         self.swapUnit = SizeUnit.fromString(Store.shared.string(key: "\(self.module)_notifications_swap_unit", defaultValue: self.swapUnit.key))
-        
+    }
+
+    public override func load() {
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Usage"), component: PreferencesSwitch(
                 action: self.toggleTotal, state: self.totalState, with: StepperInput(self.total, callback: self.changeTotal)
@@ -110,16 +80,16 @@ class Notifications: NotificationsWrapper {
     }
     
     internal func loadCallback(_ value: RAM_Usage) {
-        let title = localizedString("RAM utilization threshold")
-        
         if self.totalState {
-            let subtitle = localizedString("RAM utilization is", "\(Int((value.usage)*100))%")
-            self.checkDouble(id: self.totalID, value: value.usage, threshold: Double(self.total)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.totalID, value: value.usage, threshold: Double(self.total)/100,
+                             title: localizedString("RAM utilization threshold"),
+                             subtitle: localizedString("RAM utilization is", "\(Int((value.usage)*100))%"))
         }
         if self.freeState {
             let free = value.free / value.total
-            let subtitle = localizedString("Free RAM is", "\(Int((free)*100))%")
-            self.checkDouble(id: self.freeID, value: free, threshold: Double(self.free)/100, title: title, subtitle: subtitle, less: true)
+            self.checkDouble(id: self.freeID, value: free, threshold: Double(self.free)/100,
+                             title: localizedString("RAM utilization threshold"),
+                             subtitle: localizedString("Free RAM is", "\(Int((free)*100))%"), less: true)
         }
         
         if self.pressureState, self.pressure != "", let thresholdPair = memoryPressureLevels.first(where: {$0.key == self.pressure}) {
@@ -128,7 +98,7 @@ class Notifications: NotificationsWrapper {
                     id: self.pressureID,
                     value: Double(value.pressure.level),
                     threshold: Double(threshold.rawValue),
-                    title: title,
+                    title: localizedString("RAM utilization threshold"),
                     subtitle: "\(localizedString("Memory pressure")): \(localizedString(thresholdPair.value))"
                 )
             }
@@ -136,8 +106,9 @@ class Notifications: NotificationsWrapper {
         
         if self.swapState {
             let value = Units(bytes: Int64(value.swap.used))
-            let subtitle = "\(localizedString("Swap size")): \(value.getReadableMemory())"
-            self.checkDouble(id: self.swapID, value: value.toUnit(self.swapUnit), threshold: Double(self.swap), title: title, subtitle: subtitle)
+            self.checkDouble(id: self.swapID, value: value.toUnit(self.swapUnit), threshold: Double(self.swap),
+                             title: localizedString("RAM utilization threshold"),
+                             subtitle: "\(localizedString("Swap size")): \(value.getReadableMemory())")
         }
     }
     

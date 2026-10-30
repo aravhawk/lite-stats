@@ -54,8 +54,6 @@ public class MemoryWidget: WidgetWrapper {
             height: Constants.Widget.height - (2*Constants.Widget.margin.y)
         ))
         
-        self.canDrawConcurrently = true
-        
         if !preview {
             self.orderReversedState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_orderReversed", defaultValue: self.orderReversedState)
             self.symbolsState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_symbols", defaultValue: self.symbolsState)
@@ -146,17 +144,13 @@ public class MemoryWidget: WidgetWrapper {
         self.value = value
         self.percentage = usedPercentage
         
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     public func setPressure(_ newPressureLevel: RAMPressure) {
         guard self.pressureLevel != newPressureLevel else { return }
         self.pressureLevel = newPressureLevel
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     public override func settings() -> NSView {

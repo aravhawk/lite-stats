@@ -15,10 +15,6 @@ import Carbon
 extension String: @retroactive LocalizedError {
     public var errorDescription: String? { return self }
     
-    public var digits: String {
-        return components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-    }
-    
     public func widthOfString(usingFont font: NSFont) -> CGFloat {
         let fontAttributes = [NSAttributedString.Key.font: font]
         let size = self.size(withAttributes: fontAttributes)
@@ -28,25 +24,6 @@ extension String: @retroactive LocalizedError {
     public func condenseWhitespace() -> String {
         let components = self.components(separatedBy: .whitespacesAndNewlines)
         return components.filter { !$0.isEmpty }.joined(separator: " ")
-    }
-    
-    public func findAndCrop(pattern: String) -> (cropped: String, remain: String) {
-        do {
-            let regex = try NSRegularExpression(pattern: pattern)
-            let range = NSRange(self.startIndex..., in: self)
-            
-            if let match = regex.firstMatch(in: self, options: [], range: range) {
-                if let range = Range(match.range, in: self) {
-                    let cropped = String(self[range]).trimmingCharacters(in: .whitespaces)
-                    let remaining = self.replacingOccurrences(of: cropped, with: "", options: .regularExpression).trimmingCharacters(in: .whitespaces)
-                    return (cropped, remaining)
-                }
-            }
-        } catch {
-            print("Error creating regex: \(error.localizedDescription)")
-        }
-        
-        return ("", self)
     }
     
     public func find(pattern: String) -> String {
@@ -117,90 +94,18 @@ public extension DispatchSource.MemoryPressureEvent {
 }
 
 public extension Double {
-    func roundTo(decimalPlaces: Int) -> String {
-        return NSString(format: "%.\(decimalPlaces)f" as NSString, self) as String
-    }
     
     func rounded(toPlaces places: Int) -> Double {
         let divisor = pow(10.0, Double(places))
         return (self * divisor).rounded() / divisor
     }
     
-    func usageColor(zones: colorZones = (0.6, 0.8), reversed: Bool = false) -> NSColor {
-        let firstColor: NSColor = NSColor.systemBlue
-        let secondColor: NSColor = NSColor.orange
-        let thirdColor: NSColor = NSColor.red
-        
-        if reversed {
-            switch self {
-            case 0...zones.orange:
-                return thirdColor
-            case zones.orange...zones.red:
-                return secondColor
-            default:
-                return firstColor
-            }
-        } else {
-            switch self {
-            case 0...zones.orange:
-                return firstColor
-            case zones.orange...zones.red:
-                return secondColor
-            default:
-                return thirdColor
-            }
-        }
-    }
-    
-    func batteryColor(color: Bool = false, lowPowerMode: Bool? = nil) -> NSColor {
-        if let mode = lowPowerMode, mode {
-            return NSColor.systemOrange
-        }
-        
+    func usageColor(zones: colorZones = (0.6, 0.8)) -> NSColor {
         switch self {
-        case 0.2...0.4:
-            if !color {
-                return NSColor.textColor
-            }
-            return NSColor.systemOrange
-        case 0.4...1:
-            if self == 1 {
-                return NSColor.textColor
-            }
-            if !color {
-                return NSColor.textColor
-            }
-            return NSColor.systemGreen
-        default:
-            return NSColor.systemRed
+        case 0...zones.orange: return NSColor.systemBlue
+        case zones.orange...zones.red: return NSColor.orange
+        default: return NSColor.red
         }
-    }
-    
-    func secondsToHoursMinutesSeconds() -> (Int, Int) {
-        let mins = (self.truncatingRemainder(dividingBy: 3600)) / 60
-        return (Int(self / 3600), Int(mins))
-    }
-    
-    func printSecondsToHoursMinutesSeconds(short: Bool = false) -> String {
-        let (h, m) = self.secondsToHoursMinutesSeconds()
-        
-        if self == 0 || h < 0 || m < 0 {
-            return "n/a"
-        }
-        
-        let minutes = m > 9 ? "\(m)" : "0\(m)"
-        
-        if short {
-            return "\(h):\(minutes)"
-        }
-        
-        if h == 0 {
-            return "\(minutes)min"
-        } else if m == 0 {
-            return "\(h)h"
-        }
-        
-        return "\(h)h \(minutes)min"
     }
     
     func power(_ unit: String) -> Double {
@@ -225,54 +130,6 @@ public extension NSView {
         default:
             return false
         }
-    }
-    
-    func toggleSettingRow(title: String, action: Selector, state: Bool) -> NSView {
-        let view: NSStackView = NSStackView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(equalToConstant: Constants.Settings.row).isActive = true
-        view.orientation = .horizontal
-        view.alignment = .centerY
-        view.distribution = .fill
-        view.spacing = 0
-        
-        let titleField: NSTextField = LabelField(frame: NSRect(x: 0, y: 0, width: 0, height: 0), title)
-        titleField.font = NSFont.systemFont(ofSize: 12, weight: .regular)
-        titleField.textColor = .textColor
-        
-        let toggle = NSSwitch()
-        toggle.state = state ? .on : .off
-        toggle.action = action
-        toggle.target = self
-        
-        view.addArrangedSubview(titleField)
-        view.addArrangedSubview(NSView())
-        view.addArrangedSubview(toggle)
-        
-        return view
-    }
-    
-    func selectSettingsRow(title: String, action: Selector, items: [KeyValue_p], selected: String) -> NSView {
-        let view = NSStackView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.heightAnchor.constraint(equalToConstant: Constants.Settings.row).isActive = true
-        view.orientation = .horizontal
-        view.alignment = .centerY
-        view.distribution = .fill
-        view.spacing = 0
-        
-        let titleField: NSTextField = LabelField(frame: NSRect(x: 0, y: 0, width: 0, height: 0), title)
-        titleField.font = NSFont.systemFont(ofSize: 12, weight: .regular)
-        titleField.textColor = .textColor
-        
-        let select: NSPopUpButton = selectView(action: action, items: items, selected: selected)
-        select.sizeToFit()
-        
-        view.addArrangedSubview(titleField)
-        view.addArrangedSubview(NSView())
-        view.addArrangedSubview(select)
-        
-        return view
     }
     
     func selectView(action: Selector, items: [KeyValue_p], selected: String) -> NSPopUpButton {
@@ -407,9 +264,6 @@ public extension OperatingSystemVersion {
 }
 
 extension URL {
-    func checkFileExist() -> Bool {
-        return FileManager.default.fileExists(atPath: self.path)
-    }
 }
 
 public extension NSColor {
@@ -516,60 +370,6 @@ extension NSTextView {
     }
 }
 
-public extension Data {
-    var socketAddress: sockaddr {
-        return withUnsafeBytes { $0.load(as: sockaddr.self) }
-    }
-}
-
-public extension Date {
-    func convertToTimeZone(_ timeZone: TimeZone) -> Date {
-        return addingTimeInterval(TimeInterval(timeZone.secondsFromGMT(for: self) - TimeZone.current.secondsFromGMT(for: self)))
-    }
-    
-    func currentTimeSeconds() -> Int {
-        return Int(self.timeIntervalSince1970)
-    }
-}
-
-public extension TimeZone {
-    init(from: String) {
-        if let tz = TimeZone(identifier: from) {
-            self = tz
-            return
-        }
-        
-        if from == "local" {
-            self = TimeZone.current
-            return
-        }
-        
-        let arr = from.split(separator: ":")
-        guard !arr.isEmpty else {
-            self = TimeZone.current
-            return
-        }
-        
-        var secondsFromGMT = 0
-        if arr.indices.contains(0), let h = Int(arr[0]) {
-            secondsFromGMT += h*3600
-        }
-        if arr.indices.contains(1), let m = Int(arr[1]) {
-            if secondsFromGMT < 0 {
-                secondsFromGMT -= m*60
-            } else {
-                secondsFromGMT += m*60
-            }
-        }
-        
-        if let tz = TimeZone(secondsFromGMT: secondsFromGMT) {
-            self = tz
-        } else {
-            self = TimeZone.current
-        }
-    }
-}
-
 extension CGFloat {
     func roundedUpToNearestTen() -> CGFloat {
         return ceil(self / 10) * 10
@@ -636,7 +436,6 @@ public class KeyboardShartcutView: NSStackView {
     }
     
     @objc private func startListening() {
-        guard AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary) else { return }
         if let btn = self.stopButton {
             self.startButton?.removeFromSuperview()
             self.addArrangedSubview(btn)

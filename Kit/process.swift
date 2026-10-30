@@ -30,16 +30,6 @@ public struct DiskProcessUsage {
 public final class ProcessSampler {
     public static let shared = ProcessSampler()
 
-    public struct Snapshot {
-        public let pid: Int
-        public let name: String
-        public let cpuTime: UInt64
-        public let residentSize: UInt64
-        public let readBytes: UInt64
-        public let writtenBytes: UInt64
-        public let startTime: UInt64
-    }
-
     private struct PreviousCPU {
         let cpuTime: UInt64
         let startTime: UInt64

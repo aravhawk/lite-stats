@@ -31,50 +31,8 @@ class Notifications: NotificationsWrapper {
     private var eCoresLoad: Int = 75
     private var pCoresLoad: Int = 75
     
-    public init(_ module: ModuleType) {
-        super.init(module, [self.totalLoadID, self.systemLoadID, self.userLoadID, self.eCoresLoadID, self.pCoresLoadID])
-        
-        if Store.shared.exist(key: "\(self.module)_notifications_totalLoad") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_totalLoad", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_totalLoad_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_totalLoad_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_totalLoad")
-            }
-        }
-        if Store.shared.exist(key: "\(self.module)_notifications_systemLoad") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_systemLoad", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_systemLoad_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_systemLoad_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_systemLoad")
-            }
-        }
-        if Store.shared.exist(key: "\(self.module)_notifications_userLoad") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_userLoad", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_userLoad_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_userLoad_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_userLoad")
-            }
-        }
-        
-        if Store.shared.exist(key: "\(self.module)_notifications_eCoresLoad") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_eCoresLoad", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_eCoresLoad_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_eCoresLoad_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_eCoresLoad")
-            }
-        }
-        if Store.shared.exist(key: "\(self.module)_notifications_pCoresLoad") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_pCoresLoad", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_pCoresLoad_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_pCoresLoad_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notifications_pCoresLoad")
-            }
-        }
+    public override init(_ module: ModuleType) {
+        super.init(module)
         
         self.totalLoadState = Store.shared.bool(key: "\(self.module)_notifications_totalLoad_state", defaultValue: self.totalLoadState)
         self.totalLoad = Store.shared.int(key: "\(self.module)_notifications_totalLoad_value", defaultValue: self.totalLoad)
@@ -87,7 +45,9 @@ class Notifications: NotificationsWrapper {
         self.eCoresLoad = Store.shared.int(key: "\(self.module)_notifications_eCoresLoad_value", defaultValue: self.eCoresLoad)
         self.pCoresLoadState = Store.shared.bool(key: "\(self.module)_notifications_pCoresLoad_state", defaultValue: self.pCoresLoadState)
         self.pCoresLoad = Store.shared.int(key: "\(self.module)_notifications_pCoresLoad_value", defaultValue: self.pCoresLoad)
-        
+    }
+
+    public override func load() {
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Total load"), component: PreferencesSwitch(
                 action: self.toggleTotalLoad, state: self.totalLoadState,
@@ -120,31 +80,34 @@ class Notifications: NotificationsWrapper {
     }
     
     internal func loadCallback(_ value: CPU_Load) {
-        let title = localizedString("CPU usage threshold")
-        
         if self.totalLoadState {
-            let subtitle = "\(localizedString("Total load")): \(Int((value.totalUsage)*100))%"
-            self.checkDouble(id: self.totalLoadID, value: value.totalUsage, threshold: Double(self.totalLoad)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.totalLoadID, value: value.totalUsage, threshold: Double(self.totalLoad)/100,
+                             title: localizedString("CPU usage threshold"),
+                             subtitle: "\(localizedString("Total load")): \(Int((value.totalUsage)*100))%")
         }
         
         if self.systemLoadState {
-            let subtitle = "\(localizedString("System load")): \(Int((value.systemLoad)*100))%"
-            self.checkDouble(id: self.systemLoadID, value: value.systemLoad, threshold: Double(self.systemLoad)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.systemLoadID, value: value.systemLoad, threshold: Double(self.systemLoad)/100,
+                             title: localizedString("CPU usage threshold"),
+                             subtitle: "\(localizedString("System load")): \(Int((value.systemLoad)*100))%")
         }
         
         if self.userLoadState {
-            let subtitle = "\(localizedString("User load")): \(Int((value.userLoad)*100))%"
-            self.checkDouble(id: self.userLoadID, value: value.userLoad, threshold: Double(self.userLoad)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.userLoadID, value: value.userLoad, threshold: Double(self.userLoad)/100,
+                             title: localizedString("CPU usage threshold"),
+                             subtitle: "\(localizedString("User load")): \(Int((value.userLoad)*100))%")
         }
         
         if self.eCoresLoadState, let usage = value.usageECores {
-            let subtitle = "\(localizedString("Efficiency cores load")): \(Int((usage)*100))%"
-            self.checkDouble(id: self.eCoresLoadID, value: usage, threshold: Double(self.eCoresLoad)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.eCoresLoadID, value: usage, threshold: Double(self.eCoresLoad)/100,
+                             title: localizedString("CPU usage threshold"),
+                             subtitle: "\(localizedString("Efficiency cores load")): \(Int((usage)*100))%")
         }
         
         if self.pCoresLoadState, let usage = value.usagePCores {
-            let subtitle = "\(localizedString("Performance cores load")): \(Int((usage)*100))%"
-            self.checkDouble(id: self.pCoresLoadID, value: usage, threshold: Double(self.pCoresLoad)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.pCoresLoadID, value: usage, threshold: Double(self.pCoresLoad)/100,
+                             title: localizedString("CPU usage threshold"),
+                             subtitle: "\(localizedString("Performance cores load")): \(Int((usage)*100))%")
         }
     }
     

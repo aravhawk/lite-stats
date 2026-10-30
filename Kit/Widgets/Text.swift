@@ -26,8 +26,6 @@ public class TextWidget: WidgetWrapper {
         if preview {
             self.value = "Text"
         }
-        
-        self.canDrawConcurrently = true
     }
     
     required public init?(coder: NSCoder) {
@@ -37,11 +35,7 @@ public class TextWidget: WidgetWrapper {
     public override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         
-        var value: String = ""
-        self.queue.sync {
-            value = self.value
-        }
-        
+        let value = self.value
         if value.isEmpty {
             self.setWidth(0)
             return
@@ -71,9 +65,7 @@ public class TextWidget: WidgetWrapper {
     public func setValue(_ newValue: String) {
         guard self.value != newValue else { return }
         self.value = newValue
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     static public func parseText(_ raw: String) -> [KeyValue_t] {

@@ -60,8 +60,27 @@ public class Portal: NSStackView, Portal_p {
         self.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
     }
     
+    // the rows are only built once the view is displayed, until then the list is kept
+    private var pending: [Sensor_p]? = nil
+    
     public func setup(_ values: [Sensor_p]? = nil) {
-        guard var list = values else { return }
+        guard let values else { return }
+        self.pending = values
+        if self.window != nil {
+            self.build()
+        }
+    }
+    
+    public override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if self.window != nil {
+            self.build()
+        }
+    }
+    
+    private func build() {
+        guard var list = self.pending else { return }
+        self.pending = nil
         list = list.filter{ $0.popupState }
         if !self.unknownSensorsState {
             list = list.filter({ $0.group != .unknown })
@@ -84,15 +103,13 @@ public class Portal: NSStackView, Portal_p {
     }
     
     public func usageCallback(_ values: [Sensor_p]) {
-        DispatchQueue.main.async(execute: {
-            if self.window?.isVisible ?? false {
-                values.forEach { (s: Sensor_p) in
-                    if let v = self.list[s.key] as? ValueSensorView {
-                        v.update(s.formattedPopupValue)
-                    }
+        if self.window?.isVisible ?? false {
+            values.forEach { (s: Sensor_p) in
+                if let v = self.list[s.key] as? ValueSensorView {
+                    v.update(s.formattedPopupValue)
                 }
             }
-        })
+        }
     }
     
 }

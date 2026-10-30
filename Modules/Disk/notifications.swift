@@ -18,21 +18,14 @@ class Notifications: NotificationsWrapper {
     private var utilizationState: Bool = false
     private var utilization: Int = 80
     
-    public init(_ module: ModuleType) {
-        super.init(module, [self.utilizationID])
-        
-        if Store.shared.exist(key: "\(self.module)_notificationLevel") {
-            let value = Store.shared.string(key: "\(self.module)_notifications_free", defaultValue: "")
-            if let v = Double(value) {
-                Store.shared.set(key: "\(self.module)_notifications_utilization_state", value: true)
-                Store.shared.set(key: "\(self.module)_notifications_utilization_value", value: Int(v*100))
-                Store.shared.remove("\(self.module)_notificationLevel")
-            }
-        }
+    public override init(_ module: ModuleType) {
+        super.init(module)
         
         self.utilizationState = Store.shared.bool(key: "\(self.module)_notifications_utilization_state", defaultValue: self.utilizationState)
         self.utilization = Store.shared.int(key: "\(self.module)_notifications_utilization_value", defaultValue: self.utilization)
-        
+    }
+
+    public override func load() {
         self.addArrangedSubview(PreferencesSection([
             PreferencesRow(localizedString("Usage"), component: PreferencesSwitch(
                 action: self.toggleUtilization, state: self.utilizationState, with: StepperInput(self.utilization, callback: self.changeUtilization)
@@ -45,11 +38,10 @@ class Notifications: NotificationsWrapper {
     }
     
     internal func utilizationCallback(_ value: Double) {
-        let title = localizedString("Disk utilization threshold")
-        
         if self.utilizationState {
-            let subtitle = localizedString("Disk utilization is", "\(Int((value)*100))%")
-            self.checkDouble(id: self.utilizationID, value: value, threshold: Double(self.utilization)/100, title: title, subtitle: subtitle)
+            self.checkDouble(id: self.utilizationID, value: value, threshold: Double(self.utilization)/100,
+                             title: localizedString("Disk utilization threshold"),
+                             subtitle: localizedString("Disk utilization is", "\(Int((value)*100))%"))
         }
     }
     

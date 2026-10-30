@@ -11,138 +11,79 @@
 
 import Foundation
 
-private enum RepeaterState {
-    case paused
-    case running
-}
+// All repeaters live on the main queue. Repeaters with the same interval share one timer, and every timer is
+// phase-aligned to a common origin, so commensurate intervals (e.g. 3s and 15s) tick on the same wakeup.
+private enum Scheduler {
+    private static let origin = DispatchTime.now().uptimeNanoseconds
+    private static var timers: [Int: DispatchSourceTimer] = [:]
+    private static var callbacks: [Int: [ObjectIdentifier: () -> Void]] = [:]
 
-private final class WeakRepeater {
-    weak var value: Repeater?
+    static func add(_ id: ObjectIdentifier, seconds: Int, _ callback: @escaping () -> Void) {
+        self.callbacks[seconds, default: [:]][id] = callback
+        guard self.timers[seconds] == nil else { return }
 
-    init(_ value: Repeater) {
-        self.value = value
-    }
-}
+        let origin = self.origin
+        let period = UInt64(seconds) * NSEC_PER_SEC
+        let next = origin + ((DispatchTime.now().uptimeNanoseconds - origin) / period + 1) * period
 
-private final class RepeaterScheduler {
-    static let shared = RepeaterScheduler()
-
-    private let queue = DispatchQueue(label: "com.aravhawk.lite-stats.RepeaterScheduler", qos: .utility)
-    private var timers: [Int: DispatchSourceTimer] = [:]
-    private var repeaters: [Int: [ObjectIdentifier: WeakRepeater]] = [:]
-
-    func add(_ repeater: Repeater, seconds: Int) {
-        self.queue.async {
-            let interval = max(seconds, 1)
-            self.repeaters[interval, default: [:]][ObjectIdentifier(repeater)] = WeakRepeater(repeater)
-            self.ensureTimer(for: interval)
-        }
-    }
-
-    func remove(_ repeater: Repeater, seconds: Int) {
-        self.queue.async {
-            self.removeLocked(ObjectIdentifier(repeater), seconds: max(seconds, 1))
-        }
-    }
-
-    private func ensureTimer(for interval: Int) {
-        guard self.timers[interval] == nil else { return }
-
-        let timer = DispatchSource.makeTimerSource(queue: self.queue)
+        let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(
-            deadline: .now() + .seconds(interval),
-            repeating: .seconds(interval),
-            leeway: .milliseconds(min(max(interval * 250, 100), 1000))
+            deadline: DispatchTime(uptimeNanoseconds: next),
+            repeating: .seconds(seconds),
+            leeway: .milliseconds(min(seconds * 250, 1000))
         )
-        timer.setEventHandler { [weak self] in
-            self?.fire(interval)
+        timer.setEventHandler {
+            self.callbacks[seconds]?.values.forEach { $0() }
         }
-        self.timers[interval] = timer
+        self.timers[seconds] = timer
         timer.resume()
     }
 
-    private func fire(_ interval: Int) {
-        guard var entries = self.repeaters[interval], !entries.isEmpty else {
-            self.cancelTimer(for: interval)
-            return
-        }
-
-        for (id, entry) in entries {
-            guard let repeater = entry.value else {
-                entries.removeValue(forKey: id)
-                continue
-            }
-            repeater.fire()
-        }
-
-        if entries.isEmpty {
-            self.repeaters[interval] = nil
-            self.cancelTimer(for: interval)
-        } else {
-            self.repeaters[interval] = entries
-        }
-    }
-
-    private func removeLocked(_ id: ObjectIdentifier, seconds: Int) {
-        guard var entries = self.repeaters[seconds] else { return }
-        entries.removeValue(forKey: id)
-
-        if entries.isEmpty {
-            self.repeaters[seconds] = nil
-            self.cancelTimer(for: seconds)
-        } else {
-            self.repeaters[seconds] = entries
-        }
-    }
-
-    private func cancelTimer(for interval: Int) {
-        self.timers[interval]?.cancel()
-        self.timers[interval] = nil
+    static func remove(_ id: ObjectIdentifier, seconds: Int) {
+        self.callbacks[seconds]?[id] = nil
+        guard self.callbacks[seconds]?.isEmpty ?? true else { return }
+        self.callbacks[seconds] = nil
+        self.timers.removeValue(forKey: seconds)?.cancel()
     }
 }
 
-internal class Repeater {
-    private var callback: (() -> Void)
-    private var state: RepeaterState = .paused
+// settings can be imported from a file, so intervals are kept in a sane range
+private func boundedInterval(_ seconds: Int) -> Int {
+    min(max(seconds, 1), 3600)
+}
+
+internal final class Repeater {
+    private let callback: () -> Void
     private var seconds: Int
-    
-    internal init(seconds: Int, callback: @escaping (() -> Void)) {
+    private var running: Bool = false
+
+    internal init(seconds: Int, callback: @escaping () -> Void) {
         self.callback = callback
-        self.seconds = max(seconds, 1)
+        self.seconds = boundedInterval(seconds)
     }
-    
+
     deinit {
         self.pause()
     }
-    
+
     internal func start() {
-        guard self.state == .paused else { return }
-        
-        self.state = .running
-        RepeaterScheduler.shared.add(self, seconds: self.seconds)
-    }
-    
-    internal func pause() {
-        guard self.state == .running else { return }
-        
-        RepeaterScheduler.shared.remove(self, seconds: self.seconds)
-        self.state = .paused
-    }
-    
-    internal func reset(seconds: Int, restart: Bool = false) {
-        if self.state == .running {
-            self.pause()
-        }
-        
-        self.seconds = max(seconds, 1)
-        
-        if restart {
-            self.fire()
-            self.start()
-        }
+        guard !self.running else { return }
+        self.running = true
+        Scheduler.add(ObjectIdentifier(self), seconds: self.seconds) { [unowned self] in self.callback() }
     }
 
-    fileprivate func fire() {
-        self.callback()
+    internal func pause() {
+        guard self.running else { return }
+        self.running = false
+        Scheduler.remove(ObjectIdentifier(self), seconds: self.seconds)
+    }
+
+    internal func reset(seconds: Int) {
+        let running = self.running
+        self.pause()
+        self.seconds = boundedInterval(seconds)
+        if running {
+            self.start()
+        }
     }
 }

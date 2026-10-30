@@ -69,21 +69,12 @@ internal enum StackMode: String {
     case twoRows = "twoRows"
 }
 
-internal let SensorsWidgetValue: [KeyValue_t] = [
-    KeyValue_t(key: "oi", value: "output/input"),
-    KeyValue_t(key: "io", value: "input/output"),
-    KeyValue_t(key: "separator", value: "separator"),
-    KeyValue_t(key: "i", value: "input"),
-    KeyValue_t(key: "o", value: "output")
-]
-
 internal let SensorsWidgetMode: [KeyValue_t] = [
     KeyValue_t(key: StackMode.auto.rawValue, value: "Automatic"),
     KeyValue_t(key: "separator", value: "separator"),
     KeyValue_t(key: StackMode.oneRow.rawValue, value: "One row"),
     KeyValue_t(key: StackMode.twoRows.rawValue, value: "Two rows")
 ]
-
 
 public let ReaderUpdateIntervals: [KeyValue_t] = [
     KeyValue_t(key: "1", value: "1 sec"),
@@ -97,6 +88,10 @@ public let ReaderUpdateIntervals: [KeyValue_t] = [
 ]
 public let NumbersOfProcesses: [Int] = [0, 3, 5, 8, 10, 15]
 
+// number of top processes shown by a module, limited to the values offered in the settings
+public func numberOfProcesses(_ module: String, defaultValue: Int) -> Int {
+    min(max(Store.shared.int(key: "\(module)_processes", defaultValue: defaultValue), 0), NumbersOfProcesses.max() ?? 15)
+}
 
 internal let Alignments: [KeyValue_t] = [
     KeyValue_t(key: "left", value: "Left alignment", additional: NSTextAlignment.left),
@@ -115,70 +110,61 @@ public struct SColor: KeyValue_p, Equatable {
 }
 
 extension SColor: CaseIterable {
-    public static var utilization: SColor { return SColor(key: "utilization", value: "Based on utilization", additional: NSColor.black) }
-    public static var pressure: SColor { return SColor(key: "pressure", value: "Based on pressure", additional: NSColor.black) }
-    public static var cluster: SColor { return SColor(key: "cluster", value: "Based on cluster", additional: NSColor.controlAccentColor) }
+    public static let utilization = SColor(key: "utilization", value: "Based on utilization", additional: NSColor.black)
+    public static let pressure = SColor(key: "pressure", value: "Based on pressure", additional: NSColor.black)
+    public static let cluster = SColor(key: "cluster", value: "Based on cluster", additional: NSColor.controlAccentColor)
     
-    public static var separator1: SColor { return SColor(key: "separator_1", value: "separator_1", additional: NSColor.black) }
+    public static let separator1 = SColor(key: "separator_1", value: "separator_1", additional: NSColor.black)
     
-    public static var systemAccent: SColor { return SColor(key: "system", value: "System accent", additional: NSColor.controlAccentColor) }
-    public static var monochrome: SColor { return SColor(key: "monochrome", value: "Monochrome accent", additional: NSColor.textColor) }
+    public static let systemAccent = SColor(key: "system", value: "System accent", additional: NSColor.controlAccentColor)
+    public static let monochrome = SColor(key: "monochrome", value: "Monochrome accent", additional: NSColor.textColor)
     
-    public static var separator2: SColor { return SColor(key: "separator_2", value: "separator_2", additional: NSColor.black) }
+    public static let separator2 = SColor(key: "separator_2", value: "separator_2", additional: NSColor.black)
     
-    public static var clear: SColor { return SColor(key: "clear", value: "Clear", additional: NSColor.clear) }
-    public static var white: SColor { return SColor(key: "white", value: "White", additional: NSColor.white) }
-    public static var black: SColor { return SColor(key: "black", value: "Black", additional: NSColor.black) }
-    public static var gray: SColor { return SColor(key: "gray", value: "Gray", additional: NSColor.gray) }
-    public static var secondGray: SColor { return SColor(key: "secondGray", value: "Second gray", additional: NSColor.systemGray) }
-    public static var darkGray: SColor { return SColor(key: "darkGray", value: "Dark gray", additional: NSColor.darkGray) }
-    public static var lightGray: SColor { return SColor(key: "lightGray", value: "Light gray", additional: NSColor.lightGray) }
-    public static var red: SColor { return SColor(key: "red", value: "Red", additional: NSColor.red) }
-    public static var secondRed: SColor { return SColor(key: "secondRed", value: "Second red", additional: NSColor.systemRed) }
-    public static var green: SColor { return SColor(key: "green", value: "Green", additional: NSColor.green) }
-    public static var secondGreen: SColor { return SColor(key: "secondGreen", value: "Second green", additional: NSColor.systemGreen) }
-    public static var blue: SColor { return SColor(key: "blue", value: "Blue", additional: NSColor.blue) }
-    public static var secondBlue: SColor { return SColor(key: "secondBlue", value: "Second blue", additional: NSColor.systemBlue) }
-    public static var yellow: SColor { return SColor(key: "yellow", value: "Yellow", additional: NSColor.yellow) }
-    public static var secondYellow: SColor { return SColor(key: "secondYellow", value: "Second yellow", additional: NSColor.systemYellow) }
-    public static var orange: SColor { return SColor(key: "orange", value: "Orange", additional: NSColor.orange) }
-    public static var secondOrange: SColor { return SColor(key: "secondOrange", value: "Second orange", additional: NSColor.systemOrange) }
-    public static var purple: SColor { return SColor(key: "purple", value: "Purple", additional: NSColor.purple) }
-    public static var secondPurple: SColor { return SColor(key: "secondPurple", value: "Second purple", additional: NSColor.systemPurple) }
-    public static var brown: SColor { return SColor(key: "brown", value: "Brown", additional: NSColor.brown) }
-    public static var secondBrown: SColor { return SColor(key: "secondBrown", value: "Second brown", additional: NSColor.systemBrown) }
-    public static var cyan: SColor { return SColor(key: "cyan", value: "Cyan", additional: NSColor.cyan) }
-    public static var magenta: SColor { return SColor(key: "magenta", value: "Magenta", additional: NSColor.magenta) }
-    public static var pink: SColor { return SColor(key: "pink", value: "Pink", additional: NSColor.systemPink) }
-    public static var teal: SColor { return SColor(key: "teal", value: "Teal", additional: NSColor.systemTeal) }
-    public static var indigo: SColor { return SColor(key: "indigo", value: "Indigo", additional: NSColor.systemIndigo) }
+    public static let clear = SColor(key: "clear", value: "Clear", additional: NSColor.clear)
+    public static let white = SColor(key: "white", value: "White", additional: NSColor.white)
+    public static let black = SColor(key: "black", value: "Black", additional: NSColor.black)
+    public static let gray = SColor(key: "gray", value: "Gray", additional: NSColor.gray)
+    public static let secondGray = SColor(key: "secondGray", value: "Second gray", additional: NSColor.systemGray)
+    public static let darkGray = SColor(key: "darkGray", value: "Dark gray", additional: NSColor.darkGray)
+    public static let lightGray = SColor(key: "lightGray", value: "Light gray", additional: NSColor.lightGray)
+    public static let red = SColor(key: "red", value: "Red", additional: NSColor.red)
+    public static let secondRed = SColor(key: "secondRed", value: "Second red", additional: NSColor.systemRed)
+    public static let green = SColor(key: "green", value: "Green", additional: NSColor.green)
+    public static let secondGreen = SColor(key: "secondGreen", value: "Second green", additional: NSColor.systemGreen)
+    public static let blue = SColor(key: "blue", value: "Blue", additional: NSColor.blue)
+    public static let secondBlue = SColor(key: "secondBlue", value: "Second blue", additional: NSColor.systemBlue)
+    public static let yellow = SColor(key: "yellow", value: "Yellow", additional: NSColor.yellow)
+    public static let secondYellow = SColor(key: "secondYellow", value: "Second yellow", additional: NSColor.systemYellow)
+    public static let orange = SColor(key: "orange", value: "Orange", additional: NSColor.orange)
+    public static let secondOrange = SColor(key: "secondOrange", value: "Second orange", additional: NSColor.systemOrange)
+    public static let purple = SColor(key: "purple", value: "Purple", additional: NSColor.purple)
+    public static let secondPurple = SColor(key: "secondPurple", value: "Second purple", additional: NSColor.systemPurple)
+    public static let brown = SColor(key: "brown", value: "Brown", additional: NSColor.brown)
+    public static let secondBrown = SColor(key: "secondBrown", value: "Second brown", additional: NSColor.systemBrown)
+    public static let cyan = SColor(key: "cyan", value: "Cyan", additional: NSColor.cyan)
+    public static let magenta = SColor(key: "magenta", value: "Magenta", additional: NSColor.magenta)
+    public static let pink = SColor(key: "pink", value: "Pink", additional: NSColor.systemPink)
+    public static let teal = SColor(key: "teal", value: "Teal", additional: NSColor.systemTeal)
+    public static let indigo = SColor(key: "indigo", value: "Indigo", additional: NSColor.systemIndigo)
     
-    public static var allCases: [SColor] {
-        return [.utilization, .pressure, .cluster, separator1,
-                .systemAccent, .monochrome, separator2,
-                .clear, .white, .black, .gray, .secondGray, .darkGray, .lightGray,
-                .red, .secondRed, .green, .secondGreen, .blue, .secondBlue, .yellow, .secondYellow,
-                .orange, .secondOrange, .purple, .secondPurple, .brown, .secondBrown,
-                .cyan, .magenta, .pink, .teal, .indigo
-        ]
-    }
+    public static let allColors: [SColor] = [
+        .systemAccent, .monochrome, .separator2,
+        .clear, .white, .black, .gray, .secondGray, .darkGray, .lightGray,
+        .red, .secondRed, .green, .secondGreen, .blue, .secondBlue, .yellow, .secondYellow,
+        .orange, .secondOrange, .purple, .secondPurple, .brown, .secondBrown,
+        .cyan, .magenta, .pink, .teal, .indigo
+    ]
+    public static let allCases: [SColor] = [.utilization, .pressure, .cluster, .separator1] + allColors
     
-    public static var allColors: [SColor] {
-        return [.systemAccent, .monochrome, .separator2, .clear, .white, .black, .gray, .secondGray, .darkGray, .lightGray,
-                .red, .secondRed, .green, .secondGreen, .blue, .secondBlue, .yellow, .secondYellow,
-                .orange, .secondOrange, .purple, .secondPurple, .brown, .secondBrown,
-                .cyan, .magenta, .pink, .teal, .indigo
-        ]
+    // color stored under `key`, or `defaultValue` if unset/invalid
+    public static func stored(_ key: String, defaultValue: SColor) -> NSColor {
+        (self.fromString(Store.shared.string(key: key, defaultValue: defaultValue.key), defaultValue: defaultValue).additional as? NSColor) ?? .controlAccentColor
     }
     
     public static func fromString(_ key: String, defaultValue: SColor = .systemAccent) -> SColor {
         return SColor.allCases.first{ $0.key == key } ?? defaultValue
     }
-}
-
-internal class MonochromeColor {
-    static internal let red: NSColor = NSColor(red: (145), green: (145), blue: (145), alpha: 1)
-    static internal let blue: NSColor = NSColor(red: (113), green: (113), blue: (113), alpha: 1)
 }
 
 public typealias colorZones = (orange: Double, red: Double)
@@ -190,15 +176,13 @@ public extension Notification.Name {
     static let toggleWidget = Notification.Name("toggleWidget")
     static let openModuleSettings = Notification.Name("openModuleSettings")
     static let clickInSettings = Notification.Name("clickInSettings")
-    static let refreshPublicIP = Notification.Name("refreshPublicIP")
-    static let resetTotalNetworkUsage = Notification.Name("resetTotalNetworkUsage")
+    static let keyboardShortcutsChanged = Notification.Name("keyboardShortcutsChanged")
     static let toggleOneView = Notification.Name("toggleOneView")
     static let widgetRearrange = Notification.Name("widgetRearrange")
     static let moduleRearrange = Notification.Name("moduleRearrange")
     static let pause = Notification.Name("pause")
     static let combinedModulesPopup = Notification.Name("combinedModulesPopup")
 }
-
 
 public let notificationLevels: [KeyValue_t] = [
     KeyValue_t(key: "", value: "Disabled"),
@@ -236,18 +220,16 @@ public struct Scale: KeyValue_p, Equatable {
 }
 
 extension Scale: CaseIterable {
-    public static var none: Scale { return Scale(key: "none", value: "None") }
-    public static var separator: Scale { return Scale(key: "separator", value: "separator") }
-    public static var linear: Scale { return Scale(key: "linear", value: "Linear") }
-    public static var square: Scale { return Scale(key: "square", value: "Square") }
-    public static var cube: Scale { return Scale(key: "cube", value: "Cube") }
-    public static var logarithmic: Scale { return Scale(key: "logarithmic", value: "Logarithmic") }
-    public static var separator2: Scale { return Scale(key: "separator", value: "separator") }
-    public static var fixed: Scale { return Scale(key: "fixed", value: "Fixed scale") }
+    public static let none = Scale(key: "none", value: "None")
+    public static let separator = Scale(key: "separator", value: "separator")
+    public static let linear = Scale(key: "linear", value: "Linear")
+    public static let square = Scale(key: "square", value: "Square")
+    public static let cube = Scale(key: "cube", value: "Cube")
+    public static let logarithmic = Scale(key: "logarithmic", value: "Logarithmic")
+    public static let separator2 = Scale(key: "separator", value: "separator")
+    public static let fixed = Scale(key: "fixed", value: "Fixed scale")
     
-    public static var allCases: [Scale] {
-        return [.none, .separator, .linear, .square, .cube, .logarithmic, .separator2, .fixed]
-    }
+    public static let allCases: [Scale] = [.none, .separator, .linear, .square, .cube, .logarithmic, .separator2, .fixed]
     
     public static func fromString(_ key: String, defaultValue: Scale = .linear) -> Scale {
         return Scale.allCases.first{ $0.key == key } ?? defaultValue
@@ -281,33 +263,16 @@ public struct SizeUnit: KeyValue_p, Equatable {
 }
 
 extension SizeUnit: CaseIterable {
-    public static var byte: SizeUnit { return SizeUnit(key: "byte", value: "Bytes") }
-    public static var KB: SizeUnit { return SizeUnit(key: "KB", value: "KB") }
-    public static var MB: SizeUnit { return SizeUnit(key: "MB", value: "MB") }
-    public static var GB: SizeUnit { return SizeUnit(key: "GB", value: "GB") }
-    public static var TB: SizeUnit { return SizeUnit(key: "TB", value: "TB") }
+    public static let byte = SizeUnit(key: "byte", value: "Bytes")
+    public static let KB = SizeUnit(key: "KB", value: "KB")
+    public static let MB = SizeUnit(key: "MB", value: "MB")
+    public static let GB = SizeUnit(key: "GB", value: "GB")
+    public static let TB = SizeUnit(key: "TB", value: "TB")
     
-    public static var allCases: [SizeUnit] {
-        [.byte, .KB, .MB, .GB, .TB]
-    }
+    public static let allCases: [SizeUnit] = [.byte, .KB, .MB, .GB, .TB]
     
     public static func fromString(_ key: String, defaultValue: SizeUnit = .byte) -> SizeUnit {
         return SizeUnit.allCases.first{ $0.key == key } ?? defaultValue
-    }
-    
-    public func toBytes(_ value: Int) -> Int {
-        switch self {
-        case .KB:
-            return value * 1_000
-        case .MB:
-            return value * 1_000 * 1_000
-        case .GB:
-            return value * 1_000 * 1_000 * 1_000
-        case .TB:
-            return value * 1_000 * 1_000 * 1_000 * 1_000
-        default:
-            return value
-        }
     }
 }
 

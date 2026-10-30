@@ -27,7 +27,8 @@ var modules: [Module] = [
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
-    internal let settingsWindow: SettingsWindow = SettingsWindow()
+    // created on first use
+    internal lazy var settingsWindow: SettingsWindow = SettingsWindow()
     internal lazy var setupWindow: SetupWindow = SetupWindow()
     internal var clickInNotification: Bool = false
     internal var menuBarItem: NSStatusItem? = nil
@@ -53,19 +54,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         self.parseVersion()
         self.setup {
             modules.reversed().forEach{ $0.mount() }
-            self.settingsWindow.setModules()
+            // without any widget in the menu bar the settings are the only way to reach the app
+            if !self.pauseState && !modules.contains(where: { $0.enabled && $0.available && $0.menuBar.widgets.contains(where: { $0.isActive }) }) {
+                self.settingsWindow.openDefaultIfNeeded()
+                self.settingsWindow.setIsVisible(true)
+            }
         }
         self.defaultValues()
         self.icon()
         
         NotificationCenter.default.addObserver(self, selector: #selector(listenForAppPause), name: .pause, object: nil)
-        NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
-            self?.handleKeyEvent(event)
-        }
-        NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
-            self?.handleKeyEvent(event)
-            return event
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(toggleSettings), name: .toggleSettings, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(registerHotKeys), name: .keyboardShortcutsChanged, object: nil)
+        self.registerHotKeys()
         
         info("Lite Stats started in \((startingPoint.timeIntervalSinceNow * -1).rounded(toPlaces: 4)) seconds")
         self.startTS = Date()

@@ -86,7 +86,49 @@ public struct model_s {
     public let name: String
     public let year: Int
     public let type: deviceType
-    public var icon: NSImage = NSImage(named: NSImage.Name("imacPro"))!
+}
+
+extension model_s {
+    // resolved when displayed, model descriptions are plain data that can be built on any thread
+    public var icon: NSImage {
+        switch self.type {
+        case .macMini:
+            if self.year >= 2024 {
+                return NSImage(named: NSImage.Name("macMini2024"))!
+            }
+            if self.year >= 2020 && self.year <= 2023 {
+                return NSImage(named: NSImage.Name("macMini2020"))!
+            }
+            return NSImage(named: NSImage.Name("macMini"))!
+        case .macStudio:
+            return NSImage(named: NSImage.Name("macStudio"))!
+        case .iMacPro:
+            return NSImage(named: NSImage.Name("imacPro"))!
+        case .macPro:
+            switch self.year {
+            case 2019:
+                return NSImage(named: NSImage.Name("macPro2019"))!
+            default:
+                return NSImage(named: NSImage.Name("macPro"))!
+            }
+        case .iMac:
+            return NSImage(named: NSImage.Name("imac"))!
+        case .macbook:
+            return NSImage(named: NSImage.Name("macbookAir"))!
+        case .macbookAir:
+            if self.year >= 2022 {
+                return NSImage(named: NSImage.Name("macbookAir"))!
+            }
+            return NSImage(named: NSImage.Name("macbookAir4thGen"))!
+        case .macbookPro:
+            if self.year >= 2021 {
+                return NSImage(named: NSImage.Name("macbookPro5thGen"))!
+            }
+            return NSImage(named: NSImage.Name("macbookPro"))!
+        default:
+            return NSImage(named: NSImage.Name("imacPro"))!
+        }
+    }
 }
 
 public struct os_s {
@@ -129,7 +171,6 @@ public struct gpu_s: Codable {
     public var vendor: String? = nil
     public var vram: String? = nil
     public var cores: Int? = nil
-    public var frequencies: [Int32]? = nil
 }
 
 public struct disk_s: Codable {
@@ -154,9 +195,6 @@ public struct display_s: Codable {
 
 public struct info_s {
     public var cpu: cpu_s? = nil
-    public var ram: ram_s? = nil
-    public var gpu: [gpu_s]? = nil
-    public var disk: [disk_s]? = nil
 }
 
 public struct device_s {
@@ -172,26 +210,31 @@ public struct device_s {
     public var os: os_s? = nil
     public var info: info_s = info_s()
     public var platform: Platform? = nil
-    public var display: [display_s]? = nil
 }
 
 public class SystemKit {
     public static let shared = SystemKit()
     
-    public var device: device_s = device_s()
+    // written once in init; information that is expensive to collect is loaded on demand into the caches below
+    public private(set) var device: device_s = device_s()
     private let deviceLock = NSLock()
+    private var model: model_s? = nil
+    private var ram: ram_s?? = nil
+    private var gpus: [gpu_s]?? = nil
+    private var disks: [disk_s]?? = nil
+    private var displays: [display_s]?? = nil
     
     public init() {
         let (modelID, serialNumber) = self.modelAndSerialNumber()
         if let serialNumber {
             self.device.serialNumber = serialNumber
         }
-        if let modelName = modelID ?? self.getModelID(), let model = deviceDict[modelName] {
-            self.device.model = model
+        if let modelName = modelID ?? self.getModelID() {
             self.device.model.id = modelName
-            self.device.model.icon = self.getIcon(type: self.device.model.type, year: self.device.model.year)
-        } else if let model = self.getModel() {
-            self.device.model = model
+            if let model = deviceDict[modelName] {
+                self.device.model = model
+                self.device.model.id = modelName
+            }
         }
         
         self.device.arch = "arm64"
@@ -214,40 +257,51 @@ public class SystemKit {
         self.device.platform = self.getPlatform()
     }
 
+    // models newer than the built-in list are resolved with system_profiler, so only when they are displayed
+    public func modelInfo() -> model_s {
+        self.deviceLock.lock()
+        defer { self.deviceLock.unlock() }
+        if self.model == nil {
+            let model = self.device.model
+            self.model = deviceDict[model.id] == nil && model.type == .unknown ? self.getModel() ?? model : model
+        }
+        return self.model!
+    }
+    
     public func ramInfo() -> ram_s? {
         self.deviceLock.lock()
         defer { self.deviceLock.unlock() }
-        if self.device.info.ram == nil {
-            self.device.info.ram = self.getRamInfo()
+        if self.ram == nil {
+            self.ram = .some(self.getRamInfo())
         }
-        return self.device.info.ram
+        return self.ram!
     }
-
+    
     public func gpuInfo() -> [gpu_s]? {
         self.deviceLock.lock()
         defer { self.deviceLock.unlock() }
-        if self.device.info.gpu == nil {
-            self.device.info.gpu = self.getGPUInfo()
+        if self.gpus == nil {
+            self.gpus = .some(self.getGPUInfo())
         }
-        return self.device.info.gpu
+        return self.gpus!
     }
-
+    
     public func diskInfo() -> [disk_s]? {
         self.deviceLock.lock()
         defer { self.deviceLock.unlock() }
-        if self.device.info.disk == nil {
-            self.device.info.disk = self.getDiskInfo()
+        if self.disks == nil {
+            self.disks = .some(self.getDiskInfo())
         }
-        return self.device.info.disk
+        return self.disks!
     }
-
+    
     public func displayInfo() -> [display_s]? {
         self.deviceLock.lock()
         defer { self.deviceLock.unlock() }
-        if self.device.display == nil {
-            self.device.display = self.getDisplayInfo()
+        if self.displays == nil {
+            self.displays = .some(self.getDisplayInfo())
         }
-        return self.device.display
+        return self.displays!
     }
     
     public func getModelID() -> String? {
@@ -269,7 +323,7 @@ public class SystemKit {
     }
     
     func modelAndSerialNumber() -> (String?, String?) {
-        let service = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
         guard service != 0 else { return (nil, nil) }
         
         var modelIdentifier: String?
@@ -351,9 +405,9 @@ public class SystemKit {
     
     func getCPUCores() -> (Int32?, Int32?, [core_s])? {
         var iterator: io_iterator_t = io_iterator_t()
-        let result = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("AppleARMPE"), &iterator)
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("AppleARMPE"), &iterator)
         if result != kIOReturnSuccess {
-            print("Error find AppleARMPE: " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
+            error("find AppleARMPE: \(String(cString: mach_error_string(result)))")
             return nil
         }
         
@@ -390,19 +444,10 @@ public class SystemKit {
                         }
                     }
                     
-                    let rawCPUId = getIOProperty(child, "cpu-id") as? Data
-                    let id = rawCPUId?.withUnsafeBytes { pointer in
-                        return pointer.load(as: Int32.self)
-                    }
-                    
-                    list.append(core_s(id: id ?? -1, type: type))
+                    list.append(core_s(id: int32(getIOProperty(child, "cpu-id")) ?? -1, type: type))
                 } else if name.trimmed == "cpus" {
-                    eCores = (getIOProperty(child, "e-core-count") as? Data)?.withUnsafeBytes { pointer in
-                        return pointer.load(as: Int32.self)
-                    }
-                    pCores = (getIOProperty(child, "p-core-count") as? Data)?.withUnsafeBytes { pointer in
-                        return pointer.load(as: Int32.self)
-                    }
+                    eCores = int32(getIOProperty(child, "e-core-count"))
+                    pCores = int32(getIOProperty(child, "p-core-count"))
                 }
             }
         }
@@ -412,39 +457,20 @@ public class SystemKit {
     }
     
     private func getGPUInfo() -> [gpu_s]? {
-        guard let res = process(path: "/usr/sbin/system_profiler", arguments: ["SPDisplaysDataType", "-json"]) else {
-            return nil
-        }
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(kIOAcceleratorClassName), &iterator) == kIOReturnSuccess else { return nil }
+        defer { IOObjectRelease(iterator) }
         
         var list: [gpu_s] = []
-        var i = 0
-        do {
-            if let json = try JSONSerialization.jsonObject(with: Data(res.utf8), options: []) as? [String: Any] {
-                if let arr = json["SPDisplaysDataType"] as? [[String: Any]] {
-                    for obj in arr {
-                        var gpu: gpu_s = gpu_s()
-                        gpu.id = "\(i)"
-                        
-                        gpu.name = obj["sppci_model"] as? String
-                        gpu.vendor = obj["spdisplays_vendor"] as? String
-                        gpu.cores = Int(obj["sppci_cores"] as? String ?? "")
-                        
-                        if let vram = obj["spdisplays_vram_shared"] as? String {
-                            gpu.vram = vram
-                        } else if let vram = obj["spdisplays_vram"] as? String {
-                            gpu.vram = vram
-                        }
-                        
-                        list.append(gpu)
-                        i += 1
-                    }
-                }
-            }
-        } catch let err as NSError {
-            error("error to parse system_profiler SPDisplaysDataType: \(err.localizedDescription)")
-            return nil
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
+            var gpu = gpu_s()
+            gpu.id = "\(list.count)"
+            gpu.name = getIOProperty(service, "model") as? String
+            gpu.vendor = "Apple"
+            gpu.cores = getIOProperty(service, "gpu-core-count") as? Int
+            list.append(gpu)
         }
-        
         return list
     }
     
@@ -516,7 +542,7 @@ public class SystemKit {
                 }
             }
         } catch {
-            print("Error parsing diskutil output: \(error)")
+            Kit.error("parsing diskutil output: \(error)")
             return nil
         }
         
@@ -548,9 +574,9 @@ public class SystemKit {
     
     private func getFrequencies(cpuName: String) -> ([Int32], [Int32])? {
         var iterator = io_iterator_t()
-        let result = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceMatching("AppleARMIODevice"), &iterator)
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("AppleARMIODevice"), &iterator)
         if result != kIOReturnSuccess {
-            print("Error find AppleARMIODevice: " + (String(cString: mach_error_string(result), encoding: String.Encoding.ascii) ?? "unknown error"))
+            error("find AppleARMIODevice: \(String(cString: mach_error_string(result)))")
             return nil
         }
         let isM4: Bool = cpuName.lowercased().contains("m4")
@@ -622,47 +648,7 @@ public class SystemKit {
         
         return nil
     }
-    
-    private func getIcon(type: deviceType, year: Int) -> NSImage {
-        switch type {
-        case .macMini:
-            if year >= 2024 {
-                return NSImage(named: NSImage.Name("macMini2024"))!
-            }
-            if year >= 2020 && year <= 2023 {
-                return NSImage(named: NSImage.Name("macMini2020"))!
-            }
-            return NSImage(named: NSImage.Name("macMini"))!
-        case .macStudio:
-            return NSImage(named: NSImage.Name("macStudio"))!
-        case .iMacPro:
-            return NSImage(named: NSImage.Name("imacPro"))!
-        case .macPro:
-            switch year {
-            case 2019:
-                return NSImage(named: NSImage.Name("macPro2019"))!
-            default:
-                return NSImage(named: NSImage.Name("macPro"))!
-            }
-        case .iMac:
-            return NSImage(named: NSImage.Name("imac"))!
-        case .macbook:
-            return NSImage(named: NSImage.Name("macbookAir"))!
-        case .macbookAir:
-            if year >= 2022 {
-                return NSImage(named: NSImage.Name("macbookAir"))!
-            }
-            return NSImage(named: NSImage.Name("macbookAir4thGen"))!
-        case .macbookPro:
-            if year >= 2021 {
-                return NSImage(named: NSImage.Name("macbookPro5thGen"))!
-            }
-            return NSImage(named: NSImage.Name("macbookPro"))!
-        default:
-            return NSImage(named: NSImage.Name("imacPro"))!
-        }
-    }
-    
+
     private func getModel() -> model_s? {
         guard let res = process(path: "/usr/sbin/system_profiler", arguments: ["SPHardwareDataType", "-json"]) else {
             return nil
@@ -678,8 +664,7 @@ public class SystemKit {
                     id: model,
                     name: "\(name) (\(cpu.removedRegexMatches(pattern: "Apple ", replaceWith: "")))",
                     year: year,
-                    type: type,
-                    icon: self.getIcon(type: type, year: year)
+                    type: type
                 )
             }
         } catch let err as NSError {

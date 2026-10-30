@@ -150,7 +150,10 @@ internal class Settings: NSStackView, Settings_v {
     public func setList(_ list: [Sensor_p]?) {
         guard let list else { return }
         self.list = self.unknownSensorsState ? list : list.filter({ $0.group != .unknown })
-        self.load(widgets: [])
+        // otherwise the rows are built when the settings are displayed
+        if self.window != nil {
+            self.load(widgets: [])
+        }
     }
     
     @objc private func toggleSensor(_ sender: NSControl) {

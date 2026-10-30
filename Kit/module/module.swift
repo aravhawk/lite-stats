@@ -80,8 +80,6 @@ open class Module {
         get { Store.shared.int(key: "\(self.name)_position", defaultValue: 0) }
         set { Store.shared.set(key: "\(self.name)_position", value: newValue) }
     }
-    public var userDefaults: UserDefaults? = UserDefaults(suiteName: "\(Bundle.main.object(forInfoDictionaryKey: "TeamId") as! String).com.aravhawk.lite-stats.widgets")
-    
     public var popupKeyboardShortcut: [UInt16] { self.popupView?.keyboardShortcut ?? [] }
     
     private var moduleType: ModuleType
@@ -112,7 +110,6 @@ open class Module {
         self.menuBar = MenuBar(moduleName: self.config.name)
         self.available = self.isAvailable()
         self.enabled = Store.shared.bool(key: "\(self.config.name)_state", defaultValue: self.config.defaultState)
-        self.userDefaults?.set(self.enabled, forKey: "\(self.config.name)_state")
         
         if !self.available {
             debug("Module is not available", log: self.log)
@@ -151,10 +148,7 @@ open class Module {
     public func mount() {
         guard self.enabled else { return }
         self.willEnable()
-        self.readers.forEach { (reader: Reader_p) in
-            reader.initStoreValues(title: self.config.name)
-            reader.start()
-        }
+        self.readers.filter{ !$0.popup }.forEach{ $0.start() }
         self.menuBar.enable()
     }
     
@@ -190,12 +184,8 @@ open class Module {
         
         self.enabled = true
         Store.shared.set(key: "\(self.config.name)_state", value: true)
-        self.userDefaults?.set(true, forKey: "\(self.config.name)_state")
         self.willEnable()
-        self.readers.forEach { (reader: Reader_p) in
-            reader.initStoreValues(title: self.config.name)
-            reader.start()
-        }
+        self.readers.filter{ !$0.popup }.forEach{ $0.start() }
         self.menuBar.enable()
         self.settingsWrapper?.setState(self.enabled)
         debug("Module enabled", log: self.log)
@@ -208,7 +198,6 @@ open class Module {
         self.enabled = false
         if !self.pauseState { // omit saving the disable state when toggle by pause, need for resume state restoration
             Store.shared.set(key: "\(self.config.name)_state", value: false)
-            self.userDefaults?.set(false, forKey: "\(self.config.name)_state")
         }
         self.readers.forEach{ $0.stop() }
         self.menuBar.disable()
@@ -218,7 +207,7 @@ open class Module {
     }
     
     public func setReaders(_ list: [Reader_p?]) {
-        self.readers = list.filter({ $0 != nil }).map({ $0! as Reader_p })
+        self.readers = list.compactMap{ $0 }
     }
 
     private func ensureSettings() -> Settings_p? {
@@ -240,6 +229,7 @@ open class Module {
     private func ensurePopup() -> PopupWindow? {
         guard self.available else { return nil }
         if self.popup == nil {
+            self.popupView?.prepare()
             self.popup = PopupWindow(
                 title: self.config.name,
                 module: self.moduleType,
@@ -268,18 +258,14 @@ open class Module {
         }
     }
     
-    // call when popup appear/disappear
-    private func visibilityCallback(_ state: Bool) {
-        self.readers.filter{ $0.popup }.forEach { (reader: Reader_p) in
-            if state {
-                reader.unlock()
-                reader.start()
-            } else {
-                reader.pause()
-                reader.lock()
-            }
-        }
+    // popup readers only run while the popup is visible
+    open func visibilityCallback(_ state: Bool) {
+        guard self.enabled || !state else { return }
+        self.readers.filter{ $0.popup }.forEach{ state ? $0.start() : $0.stop() }
     }
+    
+    // called when the combined modules popup showing the module portal appears or disappears
+    open func portalVisibilityCallback(_ state: Bool) {}
     
     @objc private func listenForPopupToggle(_ notification: Notification) {
         guard let name = notification.userInfo?["module"] as? String,

@@ -44,7 +44,7 @@ internal class Popup: PopupWrapper {
     private var processes: ProcessesView? = nil
     
     private var numberOfProcesses: Int {
-        Store.shared.int(key: "\(self.title)_processes", defaultValue: 8)
+        Kit.numberOfProcesses(self.title, defaultValue: 8)
     }
     private var processesHeight: CGFloat {
         (self.processHeight*CGFloat(self.numberOfProcesses)) + (self.numberOfProcesses == 0 ? 0 : Constants.Popup.separatorHeight + 22)
@@ -65,6 +65,8 @@ internal class Popup: PopupWrapper {
     private var freeColor: NSColor { self.freeColorState.additional as? NSColor ?? NSColor.systemBlue }
     private var chartColorState: SColor = .systemAccent
     private var chartColor: NSColor { self.chartColorState.additional as? NSColor ?? NSColor.systemBlue }
+    
+    private var prepared: Bool = false
     
     public init(_ module: ModuleType) {
         super.init(module, frame: NSRect(
@@ -91,7 +93,8 @@ internal class Popup: PopupWrapper {
         gridView.addRow(with: [self.initDashboard()])
         gridView.addRow(with: [self.initChart()])
         gridView.addRow(with: [self.initDetails()])
-        gridView.addRow(with: [self.initProcesses()])
+        // the process list is built when the popup is first opened (prepare), until then a placeholder keeps its size
+        gridView.addRow(with: [NSView(frame: NSRect(x: 0, y: 0, width: self.frame.width, height: self.processesHeight))])
         
         gridView.row(at: 0).height = self.dashboardHeight
         gridView.row(at: 1).height = self.chartHeight
@@ -113,8 +116,16 @@ internal class Popup: PopupWrapper {
         self.processes?.setLock(false)
     }
     
+    public override func prepare() {
+        guard !self.prepared else { return }
+        self.prepared = true
+        self.grid?.row(at: 3).cell(at: 0).contentView?.removeFromSuperview()
+        self.grid?.removeRow(at: 3)
+        self.grid?.addRow(with: [self.initProcesses()])
+    }
+    
     public func numberOfProcessesUpdated() {
-        if self.processes?.count == self.numberOfProcesses { return }
+        guard self.prepared, self.processes?.count != self.numberOfProcesses else { return }
         
         DispatchQueue.main.async(execute: {
             let h: CGFloat = self.dashboardHeight + self.chartHeight + self.detailsHeight + self.processesHeight
@@ -213,72 +224,47 @@ internal class Popup: PopupWrapper {
         return view
     }
     
-    private func addFirstRow(mView: NSView, y: CGFloat, title: String, value: String) -> NSTextField {
-        let rowView: NSView = NSView(frame: NSRect(x: 0, y: y, width: mView.frame.width, height: 16))
-        
-        let labelWidth = title.widthOfString(usingFont: .systemFont(ofSize: 10, weight: .light)) + 4
-        let labelView: NSTextField = TextView(frame: NSRect(x: 0, y: 1.5, width: labelWidth, height: 13))
-        labelView.stringValue = title
-        labelView.alignment = .natural
-        labelView.font = NSFont.systemFont(ofSize: 10, weight: .light)
-        
-        let valueView: NSTextField = TextView(frame: NSRect(x: labelWidth, y: 1, width: mView.frame.width - labelWidth, height: 14))
-        valueView.stringValue = value
-        valueView.alignment = .right
-        valueView.font = NSFont.systemFont(ofSize: 11, weight: .medium)
-        
-        rowView.addSubview(labelView)
-        rowView.addSubview(valueView)
-        mView.addSubview(rowView)
-        
-        return valueView
-    }
-    
     public func loadCallback(_ value: RAM_Usage) {
-        DispatchQueue.main.async(execute: {
-            if (self.window?.isVisible ?? false) || !self.initialized {
-                self.appField?.stringValue = Units(bytes: Int64(value.app)).getReadableMemory(style: .memory)
-                self.inactiveField?.stringValue = Units(bytes: Int64(value.inactive)).getReadableMemory(style: .memory)
-                self.wiredField?.stringValue = Units(bytes: Int64(value.wired)).getReadableMemory(style: .memory)
-                self.compressedField?.stringValue = Units(bytes: Int64(value.compressed)).getReadableMemory(style: .memory)
-                self.swapField?.stringValue = Units(bytes: Int64(value.swap.used)).getReadableMemory(style: .memory)
-                
-                self.usedField?.stringValue = Units(bytes: Int64(value.used)).getReadableMemory(style: .memory)
-                self.freeField?.stringValue = Units(bytes: Int64(value.free)).getReadableMemory(style: .memory)
-                
-                self.circle?.toolTip = "\(localizedString("Memory usage")): \(Int(value.usage*100))%"
-                self.circle?.set(
-                    value: value.usage,
-                    segments: [
-                        circle_segment(value: value.app/value.total, color: self.appColor),
-                        circle_segment(value: value.wired/value.total, color: self.wiredColor),
-                        circle_segment(value: value.compressed/value.total, color: self.compressedColor)
-                    ],
-                    nonActiveSegmentColor: self.freeColor
-                )
-                self.level?.setValue(value.pressure)
-                self.level?.toolTip = "\(localizedString("Memory pressure")): \(value.pressure.value.rawValue)"
-                
-                self.initialized = true
-            }
-            self.chart?.addValue(value.usage)
-        })
+        if (self.window?.isVisible ?? false) || !self.initialized {
+            self.appField?.stringValue = Units(bytes: Int64(value.app)).getReadableMemory(style: .memory)
+            self.inactiveField?.stringValue = Units(bytes: Int64(value.inactive)).getReadableMemory(style: .memory)
+            self.wiredField?.stringValue = Units(bytes: Int64(value.wired)).getReadableMemory(style: .memory)
+            self.compressedField?.stringValue = Units(bytes: Int64(value.compressed)).getReadableMemory(style: .memory)
+            self.swapField?.stringValue = Units(bytes: Int64(value.swap.used)).getReadableMemory(style: .memory)
+            
+            self.usedField?.stringValue = Units(bytes: Int64(value.used)).getReadableMemory(style: .memory)
+            self.freeField?.stringValue = Units(bytes: Int64(value.free)).getReadableMemory(style: .memory)
+            
+            self.circle?.toolTip = "\(localizedString("Memory usage")): \(Int(value.usage*100))%"
+            self.circle?.set(
+                value: value.usage,
+                segments: [
+                    circle_segment(value: value.app/value.total, color: self.appColor),
+                    circle_segment(value: value.wired/value.total, color: self.wiredColor),
+                    circle_segment(value: value.compressed/value.total, color: self.compressedColor)
+                ],
+                nonActiveSegmentColor: self.freeColor
+            )
+            self.level?.setValue(value.pressure)
+            self.level?.toolTip = "\(localizedString("Memory pressure")): \(value.pressure.value.rawValue)"
+            
+            self.initialized = true
+        }
+        self.chart?.addValue(value.usage)
     }
     
     public func processCallback(_ list: [TopProcess]) {
-        DispatchQueue.main.async(execute: {
-            if !(self.window?.isVisible ?? false) && self.processesInitialized {
-                return
-            }
-            if list.count != self.processes?.count { self.processes?.clear() }
-            
-            for i in 0..<list.count {
-                let process = list[i]
-                self.processes?.set(i, process, [Units(bytes: Int64(process.usage)).getReadableMemory(style: .memory)])
-            }
-            
-            self.processesInitialized = true
-        })
+        if !(self.window?.isVisible ?? false) && self.processesInitialized {
+            return
+        }
+        if list.count != self.processes?.count { self.processes?.clear() }
+        
+        for i in 0..<list.count {
+            let process = list[i]
+            self.processes?.set(i, process, [Units(bytes: Int64(process.usage)).getReadableMemory(style: .memory)])
+        }
+        
+        self.processesInitialized = true
     }
     
     // MARK: - Settings

@@ -12,161 +12,49 @@
 import Cocoa
 import Kit
 
-public struct device {
-    public let model: String
-    public let pci: String
-    public var used: Bool
-}
-
 internal class InfoReader: Reader<GPUs> {
-    private var gpus: GPUs = GPUs()
-    private var displays: [gpu_s] = []
-    private var devices: [device] = []
+    // accelerator services are resolved once; each read only fetches their PerformanceStatistics
+    private var accelerators: [(service: io_registry_entry_t, info: GPU_Info)] = []
     
     public override func setup() {
-        if let list = SystemKit.shared.gpuInfo() {
-            self.displays = list
-        }
-        
-        guard let PCIdevices = fetchIOServiceProperties("IOPCIDevice", keys: ["IOName", "device-id", "vendor-id", "model"]) else {
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(kIOAcceleratorClassName), &iterator) == kIOReturnSuccess else {
+            error("accelerators not found", log: self.log)
             return
         }
-        let devices = PCIdevices.filter{ $0["IOName"] as? String == "display" }
+        defer { IOObjectRelease(iterator) }
         
-        devices.forEach { dict in
-            guard let deviceID = dict["device-id"] as? Data, let vendorID = dict["vendor-id"] as? Data else {
-                error("device-id or vendor-id not found", log: self.log)
-                return
-            }
-            let pci = "0x" + Data([deviceID[1], deviceID[0], vendorID[1], vendorID[0]]).map { String(format: "%02hhX", $0) }.joined().lowercased()
-            
-            guard let modelData = dict["model"] as? Data, let modelName = String(data: modelData, encoding: .ascii) else {
-                error("GPU model not found", log: self.log)
-                return
-            }
-            let model = modelName.replacingOccurrences(of: "\0", with: "")
-            
-            self.devices.append(device(
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            let model = getIOProperty(service, "model") as? String ?? "Apple Graphics"
+            self.accelerators.append((service, GPU_Info(
+                id: "\(model) #\(self.accelerators.count)",
+                IOClass: getIOProperty(service, "IOClass") as? String ?? "",
                 model: model,
-                pci: pci,
-                used: false
-            ))
+                cores: getIOProperty(service, "gpu-core-count") as? Int
+            )))
         }
     }
     
+    deinit {
+        self.accelerators.forEach { IOObjectRelease($0.service) }
+    }
+    
     public override func read() {
-        guard let accelerators = fetchIOServiceProperties(
-            kIOAcceleratorClassName,
-            keys: ["IOClass", "PerformanceStatistics", "IOPCIMatch", "IOPCIPrimaryMatch", "AGCInfo"]
-        ) else {
-            return
+        var gpus = GPUs()
+        for (service, var gpu) in self.accelerators {
+            guard let stats = getIOProperty(service, "PerformanceStatistics") as? [String: Any] else { continue }
+            func percentage(_ key: String) -> Double? {
+                (stats[key] as? Int).map { Double(min($0, 100)) / 100 }
+            }
+            gpu.utilization = percentage("Device Utilization %") ?? percentage("GPU Activity(%)")
+            gpu.renderUtilization = percentage("Renderer Utilization %")
+            gpu.tilerUtilization = percentage("Tiler Utilization %")
+            gpu.temperature = (stats["Temperature(C)"] as? Int).map(Double.init)
+            gpu.fanSpeed = stats["Fan Speed(%)"] as? Int
+            gpu.coreClock = stats["Core Clock(MHz)"] as? Int
+            gpu.memoryClock = stats["Memory Clock(MHz)"] as? Int
+            gpus.list.append(gpu)
         }
-        var devices = self.devices
-        
-        for (index, accelerator) in accelerators.enumerated() {
-            guard let IOClass = accelerator["IOClass"] as? String else {
-                error("IOClass not found", log: self.log)
-                return
-            }
-            
-            guard let stats = accelerator["PerformanceStatistics"] as? [String: Any] else {
-                error("PerformanceStatistics not found", log: self.log)
-                return
-            }
-            
-            var id: String = ""
-            var model: String = ""
-            var cores: Int? = nil
-            let accMatch = (accelerator["IOPCIMatch"] as? String ?? accelerator["IOPCIPrimaryMatch"] as? String ?? "").lowercased()
-            
-            for (i, device) in devices.enumerated() {
-                if accMatch.range(of: device.pci) != nil && !device.used {
-                    model = device.model
-                    id = "\(model) #\(index)"
-                    devices[i].used = true
-                    break
-                }
-            }
-            
-            let ioClass = IOClass.lowercased()
-            var predictModel = "Unknown"
-            var type: GPU_types = .unknown
-            
-            let utilization: Int? = stats["Device Utilization %"] as? Int ?? stats["GPU Activity(%)"] as? Int ?? nil
-            let renderUtilization: Int? = stats["Renderer Utilization %"] as? Int ?? nil
-            let tilerUtilization: Int? = stats["Tiler Utilization %"] as? Int ?? nil
-            let temperature: Int? = stats["Temperature(C)"] as? Int ?? nil
-            let fanSpeed: Int? = stats["Fan Speed(%)"] as? Int ?? nil
-            let coreClock: Int? = stats["Core Clock(MHz)"] as? Int ?? nil
-            let memoryClock: Int? = stats["Memory Clock(MHz)"] as? Int ?? nil
-            
-            if ioClass.contains("agx") { // apple
-                predictModel = stats["model"] as? String ?? "Apple Graphics"
-                if let display = self.displays.first(where: { $0.vendor == "sppci_vendor_Apple" }) {
-                    if let name = display.name {
-                        predictModel = name
-                    }
-                    if let num = display.cores {
-                        cores = num
-                    }
-                }
-                type = .integrated
-            }
-            
-            if model == "" {
-                model = predictModel
-            }
-            if self.gpus.list.first(where: { $0.id == id }) == nil {
-                self.gpus.list.append(GPU_Info(
-                    id: id,
-                    type: type.rawValue,
-                    IOClass: IOClass,
-                    vendor: nil,
-                    model: model,
-                    cores: cores
-                ))
-            }
-            guard let idx = self.gpus.list.firstIndex(where: { $0.id == id }) else {
-                return
-            }
-            
-            if let agcInfo = accelerator["AGCInfo"] as? [String: Int], let state = agcInfo["poweredOffByAGC"] {
-                self.gpus.list[idx].state = state == 0
-            }
-            
-            if var value = utilization {
-                if value > 100 {
-                    value = 100
-                }
-                self.gpus.list[idx].utilization = Double(value)/100
-            }
-            if var value = renderUtilization {
-                if value > 100 {
-                    value = 100
-                }
-                self.gpus.list[idx].renderUtilization = Double(value)/100
-            }
-            if var value = tilerUtilization {
-                if value > 100 {
-                    value = 100
-                }
-                self.gpus.list[idx].tilerUtilization = Double(value)/100
-            }
-            if let value = temperature {
-                self.gpus.list[idx].temperature = Double(value)
-            }
-            if let value = fanSpeed {
-                self.gpus.list[idx].fanSpeed = value
-            }
-            if let value = coreClock {
-                self.gpus.list[idx].coreClock = value
-            }
-            if let value = memoryClock {
-                self.gpus.list[idx].memoryClock = value
-            }
-        }
-        
-        self.gpus.list.sort{ !$0.state && $1.state }
-        self.callback(self.gpus)
+        self.callback(gpus)
     }
 }

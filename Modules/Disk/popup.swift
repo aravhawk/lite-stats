@@ -29,13 +29,14 @@ internal class Popup: PopupWrapper {
     private var processesInitialized: Bool = false
     
     private var numberOfProcesses: Int {
-        Store.shared.int(key: "\(self.title)_processes", defaultValue: 8)
+        Kit.numberOfProcesses(self.title, defaultValue: 8)
     }
     private var processesHeight: CGFloat {
         (22*CGFloat(self.numberOfProcesses)) + (self.numberOfProcesses == 0 ? 0 : Constants.Popup.separatorHeight + 22)
     }
     private var processes: ProcessesView? = nil
     private var processesView: NSView? = nil
+    private var prepared: Bool = false
     
     private let settingsSection = PreferencesSection(label: localizedString("Drives"))
     private var lastList: [String] = []
@@ -52,8 +53,19 @@ internal class Popup: PopupWrapper {
         self.spacing = 0
         
         self.addArrangedSubview(self.disks)
-        self.addArrangedSubview(self.initProcesses())
+        // the process list is built when the popup is first opened (prepare), until then a placeholder keeps its size
+        let placeholder = NSView(frame: NSRect(x: 0, y: 0, width: self.frame.width, height: self.processesHeight))
+        self.processesView = placeholder
+        self.addArrangedSubview(placeholder)
         
+        self.recalculateHeight()
+    }
+    
+    public override func prepare() {
+        guard !self.prepared else { return }
+        self.prepared = true
+        self.processesView?.removeFromSuperview()
+        self.addArrangedSubview(self.initProcesses())
         self.recalculateHeight()
     }
     
@@ -156,25 +168,23 @@ internal class Popup: PopupWrapper {
     }
     
     internal func processCallback(_ list: [Disk_process]) {
-        DispatchQueue.main.async(execute: {
-            if !(self.window?.isVisible ?? false) && self.processesInitialized {
-                return
-            }
-            if list.count != self.processes?.count { self.processes?.clear("-") }
-            
-            for i in 0..<list.count {
-                let process = list[i]
-                let write = Units(bytes: Int64(process.write)).getReadableSpeed(base: process.base)
-                let read = Units(bytes: Int64(process.read)).getReadableSpeed(base: process.base)
-                self.processes?.set(i, process, [read, write])
-            }
-            
-            self.processesInitialized = true
-        })
+        if !(self.window?.isVisible ?? false) && self.processesInitialized {
+            return
+        }
+        if list.count != self.processes?.count { self.processes?.clear("-") }
+        
+        for i in 0..<list.count {
+            let process = list[i]
+            let write = Units(bytes: Int64(process.write)).getReadableSpeed(base: process.base)
+            let read = Units(bytes: Int64(process.read)).getReadableSpeed(base: process.base)
+            self.processes?.set(i, process, [read, write])
+        }
+        
+        self.processesInitialized = true
     }
     
     internal func numberOfProcessesUpdated() {
-        if self.processes?.count == self.numberOfProcesses { return }
+        guard self.prepared, self.processes?.count != self.numberOfProcesses else { return }
         
         DispatchQueue.main.async(execute: {
             self.processesView?.removeFromSuperview()

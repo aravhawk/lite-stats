@@ -17,9 +17,10 @@ func main() {
     
     let pathComponents = (Bundle.main.bundlePath as NSString).pathComponents
     let mainPath = NSString.path(withComponents: Array(pathComponents[0...(pathComponents.count - 5)]))
-    NSWorkspace.shared.launchApplication(mainPath)
-    
-    exit(0)
+    NSWorkspace.shared.openApplication(at: URL(fileURLWithPath: mainPath), configuration: NSWorkspace.OpenConfiguration()) { _, _ in
+        exit(0)
+    }
+    dispatchMain()
 }
 
 main()

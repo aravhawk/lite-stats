@@ -3,19 +3,24 @@ name: build
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: macos-15
 
     steps:
-      - uses: actions/checkout@v4
-      - run: xcodebuild -scheme Stats -destination 'platform=macOS' -configuration Release archive CODE_SIGNING_ALLOWED=NO
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - run: xcodebuild -scheme "Lite Stats" -destination 'platform=macOS,arch=arm64' -configuration Release archive CODE_SIGNING_ALLOWED=NO

@@ -12,7 +12,7 @@
 import Cocoa
 import Kit
 
-public struct RAM_Usage: Codable {
+public struct RAM_Usage {
     var total: Double
     var used: Double
     var free: Double
@@ -36,13 +36,13 @@ public struct RAM_Usage: Codable {
     }
 }
 
-public struct Swap: Codable {
+public struct Swap {
     var total: Double
     var used: Double
     var free: Double
 }
 
-public struct Pressure: Codable {
+public struct Pressure {
     let level: Int
     let value: RAMPressure
 }
@@ -59,30 +59,9 @@ public class RAM: Module {
     private var splitValueState: Bool {
         return Store.shared.bool(key: "\(self.config.name)_splitValue", defaultValue: false)
     }
-    private var appColor: NSColor {
-        let color = SColor.secondBlue
-        let key = Store.shared.string(key: "\(self.config.name)_appColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
-    private var wiredColor: NSColor {
-        let color = SColor.secondOrange
-        let key = Store.shared.string(key: "\(self.config.name)_wiredColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
-    private var compressedColor: NSColor {
-        let color = SColor.pink
-        let key = Store.shared.string(key: "\(self.config.name)_compressedColor", defaultValue: color.key)
-        if let c = SColor.fromString(key).additional as? NSColor {
-            return c
-        }
-        return color.additional as! NSColor
-    }
+    private var appColor: NSColor { SColor.stored("\(self.config.name)_appColor", defaultValue: .secondBlue) }
+    private var wiredColor: NSColor { SColor.stored("\(self.config.name)_wiredColor", defaultValue: .secondOrange) }
+    private var compressedColor: NSColor { SColor.stored("\(self.config.name)_compressedColor", defaultValue: .pink) }
     
     private var textValue: String {
         Store.shared.string(key: "\(self.name)_textWidgetValue", defaultValue: "$mem.used/$mem.total ($pressure.value)")
@@ -104,10 +83,9 @@ public class RAM: Module {
         guard self.available else { return }
         
         self.settingsView.callback = { [weak self] in
-            self?.usageReader?.read()
+            self?.usageReader?.refresh()
         }
         self.settingsView.setInterval = { [weak self] value in
-            self?.processReader?.read()
             self?.usageReader?.setInterval(value)
         }
         self.settingsView.setTopInterval = { [weak self] value in
@@ -125,9 +103,7 @@ public class RAM: Module {
         
         self.settingsView.callbackWhenUpdateNumberOfProcesses = { [weak self] in
             self?.popupView.numberOfProcessesUpdated()
-            DispatchQueue.global(qos: .background).async {
-                self?.processReader?.read()
-            }
+            self?.processReader?.refresh()
         }
         
         self.setReaders([self.usageReader, self.processReader])

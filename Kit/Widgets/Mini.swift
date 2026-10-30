@@ -42,15 +42,6 @@ public class Mini: WidgetWrapper {
     }
 
     private func utilizationBucket(_ value: Double, zones: colorZones) -> Int {
-        let reversed = self.title == "BAT"
-        if reversed {
-            switch value {
-            case 0...zones.orange: return 2
-            case zones.orange...zones.red: return 1
-            default: return 0
-            }
-        }
-
         switch value {
         case 0...zones.orange: return 0
         case zones.orange...zones.red: return 1
@@ -108,8 +99,6 @@ public class Mini: WidgetWrapper {
             height: Constants.Widget.height - (2*Constants.Widget.margin.y)
         ))
         
-        self.canDrawConcurrently = true
-        
         if !preview {
             self.colorState = SColor.fromString(Store.shared.string(key: "\(self.title)_\(self.type.rawValue)_color", defaultValue: self.colorState.key))
             self.labelState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_label", defaultValue: self.labelState)
@@ -126,18 +115,11 @@ public class Mini: WidgetWrapper {
     public override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         
-        var value: Double = 0
-        var pressureLevel: RAMPressure = .normal
-        var colorZones: colorZones = (0.6, 0.8)
-        var label: String = ""
-        var suffix: String = ""
-        self.queue.sync {
-            value = self._value
-            pressureLevel = self._pressureLevel
-            colorZones = self._colorZones
-            label = self._label
-            suffix = self._suffix
-        }
+        let value = self._value
+        let pressureLevel = self._pressureLevel
+        let colorZones = self._colorZones
+        let label = self._label
+        let suffix = self._suffix
         
         let valueSize: CGFloat = self.labelState ? 12 : 14
         var origin: CGPoint = CGPoint(x: Constants.Widget.margin.x, y: (Constants.Widget.height-valueSize)/2)
@@ -163,7 +145,7 @@ public class Mini: WidgetWrapper {
         var color: NSColor = .controlAccentColor
         switch self.colorState {
         case .systemAccent: color = .controlAccentColor
-        case .utilization: color = value.usageColor(zones: colorZones, reversed: self.title == "BAT")
+        case .utilization: color = value.usageColor(zones: colorZones)
         case .pressure: color = pressureLevel.pressureColor()
         case .monochrome: color = (isDarkMode ? NSColor.white : NSColor.black)
         default: color = self.colorState.additional as? NSColor ?? .controlAccentColor
@@ -182,17 +164,13 @@ public class Mini: WidgetWrapper {
     public func setValue(_ newValue: Double) {
         guard self.displayKey(value: self._value, zones: self._colorZones) != self.displayKey(value: newValue, zones: self._colorZones) else { return }
         self._value = newValue
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     public func setPressure(_ newPressureLevel: RAMPressure) {
         guard self._pressureLevel != newPressureLevel else { return }
         self._pressureLevel = newPressureLevel
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     public func setTitle(_ newTitle: String?) {
@@ -202,25 +180,19 @@ public class Mini: WidgetWrapper {
         }
         guard self._label != title else { return }
         self._label = title
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     public func setColorZones(_ newColorZones: colorZones) {
         guard self._colorZones != newColorZones else { return }
         self._colorZones = newColorZones
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     public func setSuffix(_ newSuffix: String) {
         guard self._suffix != newSuffix else { return }
         self._suffix = newSuffix
-        DispatchQueue.main.async(execute: {
-            self.needsDisplay = true
-        })
+        self.needsDisplay = true
     }
     
     // MARK: - Settings

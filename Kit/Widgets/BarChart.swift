@@ -68,8 +68,6 @@ public class BarChart: WidgetWrapper {
             height: Constants.Widget.height - (2*Constants.Widget.margin.y)
         ))
         
-        self.canDrawConcurrently = true
-        
         if !preview {
             self.boxState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_box", defaultValue: self.boxState)
             self.frameState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_frame", defaultValue: self.frameState)
@@ -107,14 +105,9 @@ public class BarChart: WidgetWrapper {
     public override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         
-        var value: [[ColorValue]] = []
-        var pressureLevel: RAMPressure = .normal
-        var colorZones: colorZones = (0.6, 0.8)
-        self.queue.sync {
-            value = self._value
-            pressureLevel = self._pressureLevel
-            colorZones = self._colorZones
-        }
+        let value = self._value
+        let pressureLevel = self._pressureLevel
+        let colorZones = self._colorZones
         
         guard !value.isEmpty else {
             self.setWidth(0)
@@ -190,7 +183,7 @@ public class BarChart: WidgetWrapper {
                 if partitionValue.color == nil {
                     switch self.colorState {
                     case .systemAccent: NSColor.controlAccentColor.set()
-                    case .utilization: partitionValue.value.usageColor(zones: colorZones, reversed: self.title == "Battery").set()
+                    case .utilization: partitionValue.value.usageColor(zones: colorZones).set()
                     case .pressure: pressureLevel.pressureColor().set()
                     case .monochrome:
                         if self.boxState {
@@ -223,10 +216,11 @@ public class BarChart: WidgetWrapper {
     }
     
     public func setValue(_ newValue: [[ColorValue]]) {
-        let tolerance: CGFloat = 0.01
+        // redraw only when a bar changes by at least one device pixel
+        let pixels = max(self.frame.height * (self.window?.backingScaleFactor ?? 2), 1)
         let isDifferent = self._value.count != newValue.count || zip(self._value, newValue).contains { row1, row2 in
             row1.count != row2.count || zip(row1, row2).contains { val1, val2 in
-                abs(val1.value - val2.value) > tolerance || val1.color != val2.color
+                Int(val1.value * pixels) != Int(val2.value * pixels) || val1.color != val2.color
             }
         }
         guard isDifferent else { return }

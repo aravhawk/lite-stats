@@ -12,27 +12,7 @@
 import Cocoa
 import Kit
 
-private struct Sensor_t: KeyValue_p {
-    let key: String
-    let name: String?
-    
-    var value: String
-    var additional: Any?
-    
-    var index: Int {
-        get { Store.shared.int(key: "sensors_\(self.key)_index", defaultValue: -1) }
-        set { Store.shared.set(key: "sensors_\(self.key)_index", value: newValue) }
-    }
-    
-    init(key: String, value: String, name: String? = nil) {
-        self.key = key
-        self.value = value
-        self.name = name
-    }
-}
-
 internal class Popup: PopupWrapper {
-    internal var visibilityHandler: ((Bool) -> Void)?
     private var list: [String: NSView] = [:]
     
     private var unknownSensorsState: Bool { Store.shared.bool(key: "Sensors_unknown", defaultValue: false) }
@@ -73,21 +53,49 @@ internal class Popup: PopupWrapper {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // the sensor views are built when the popup is first opened, the settings when they are first displayed
+    private var prepared: Bool = false
+    private var settingsRequested: Bool = false
+    
     internal func setup(_ values: [Sensor_p]? = nil, reload: Bool = false) {
-        guard let values = reload ? self.sensors : values else { return }
-        let fans = values.filter({ $0.type == .fan && $0.popupState })
-        var sensors = values
-        if !self.unknownSensorsState {
-            sensors = sensors.filter({ $0.group != .unknown })
-        }
-        
-        self.subviews.forEach({ $0.removeFromSuperview() })
-        if !reload {
-            self.settingsView.subviews.filter({ $0.identifier == NSUserInterfaceItemIdentifier("sensor") }).forEach { v in
-                v.removeFromSuperview()
+        if !reload, let values {
+            self.sensors = values
+            if self.settingsRequested {
+                self.buildSettings()
             }
         }
+        if self.prepared {
+            self.buildViews()
+        }
+    }
+    
+    public override func prepare() {
+        guard !self.prepared else { return }
+        self.prepared = true
+        self.buildViews()
+    }
+    
+    private var visibleSensors: [Sensor_p] {
+        self.unknownSensorsState ? self.sensors : self.sensors.filter({ $0.group != .unknown })
+    }
+    
+    // sensors grouped by type and then by group, in the order they appear
+    private func grouped(_ sensors: [Sensor_p]) -> [(type: SensorType, sensors: [Sensor_p])] {
+        var types: [SensorType] = []
+        sensors.forEach { if !types.contains($0.type) { types.append($0.type) } }
+        return types.map { typ in
+            let filtered = sensors.filter { $0.type == typ }
+            var groups: [SensorGroup] = []
+            filtered.forEach { if !groups.contains($0.group) { groups.append($0.group) } }
+            return (typ, groups.flatMap { group in filtered.filter { $0.group == group } })
+        }
+    }
+    
+    private func buildViews() {
+        self.subviews.forEach({ $0.removeFromSuperview() })
+        self.list = [:]
         
+        let fans = self.sensors.compactMap({ $0 as? Fan }).filter({ $0.popupState })
         if !fans.isEmpty {
             self.addArrangedSubview(separatorView(localizedString("Fans"), width: self.frame.width))
             
@@ -95,12 +103,10 @@ internal class Popup: PopupWrapper {
             container.orientation = .vertical
             container.spacing = Constants.Popup.spacing
             
-            fans.forEach { (f: Sensor_p) in
-                if let fan = f as? Fan {
-                    let sensor = SensorView(fan, width: self.frame.width, toggleable: false) {}
-                    self.list[fan.key] = sensor
-                    container.addArrangedSubview(sensor)
-                }
+            fans.forEach { (fan: Fan) in
+                let sensor = SensorView(fan, width: self.frame.width, toggleable: false) {}
+                self.list[fan.key] = sensor
+                container.addArrangedSubview(sensor)
             }
             
             let h = container.arrangedSubviews.map({ $0.bounds.height + container.spacing }).reduce(0, +) - container.spacing
@@ -110,87 +116,61 @@ internal class Popup: PopupWrapper {
             self.addArrangedSubview(container)
         }
         
-        var types: [SensorType] = []
-        sensors.forEach { (s: Sensor_p) in
-            if !types.contains(s.type) {
-                types.append(s.type)
-            }
-        }
-        
-        types.forEach { (typ: SensorType) in
-            var filtered = sensors.filter{ $0.type == typ }
-            var groups: [SensorGroup] = []
-            filtered.forEach { (s: Sensor_p) in
-                if !groups.contains(s.group) {
-                    groups.append(s.group)
-                }
-            }
-            
-            if !reload {
-                let section = PreferencesSection(label: localizedString(typ.rawValue))
-                section.identifier = NSUserInterfaceItemIdentifier("sensor")
-                groups.forEach { (group: SensorGroup) in
-                    filtered.filter{ $0.group == group }.forEach { (s: Sensor_p) in
-                        let btn = switchView(
-                            action: #selector(self.toggleSensor),
-                            state: s.popupState
-                        )
-                        btn.identifier = NSUserInterfaceItemIdentifier(rawValue: s.key)
-                        section.add(PreferencesRow(localizedString(s.name), component: btn))
-                    }
-                }
-                self.settingsView.addArrangedSubview(section)
-            }
-            
-            if typ == .fan { return }
-            filtered = filtered.filter{ $0.popupState }
-            if filtered.isEmpty { return }
+        for (typ, sensors) in self.grouped(self.visibleSensors) where typ != .fan {
+            let filtered = sensors.filter{ $0.popupState }
+            if filtered.isEmpty { continue }
             
             self.addArrangedSubview(separatorView(localizedString(typ.rawValue), width: self.frame.width))
-            groups.forEach { (group: SensorGroup) in
-                filtered.filter{ $0.group == group }.forEach { (s: Sensor_p) in
-                    let sensor = SensorView(s, width: self.frame.width) { [weak self] in
-                        self?.recalculateHeight()
-                    }
-                    self.addArrangedSubview(sensor)
-                    self.list[s.key] = sensor
+            filtered.forEach { (s: Sensor_p) in
+                let sensor = SensorView(s, width: self.frame.width) { [weak self] in
+                    self?.recalculateHeight()
                 }
+                self.addArrangedSubview(sensor)
+                self.list[s.key] = sensor
             }
         }
         
-        if !reload {
-            self.sensors = values
-        }
         self.recalculateHeight()
     }
-
-    public override func appear() {
-        self.visibilityHandler?(true)
-    }
-
-    public override func disappear() {
-        self.visibilityHandler?(false)
-    }
     
+    private func buildSettings() {
+        self.settingsView.subviews.filter({ $0.identifier == NSUserInterfaceItemIdentifier("sensor") }).forEach { v in
+            v.removeFromSuperview()
+        }
+        
+        for (typ, sensors) in self.grouped(self.visibleSensors) {
+            let section = PreferencesSection(label: localizedString(typ.rawValue))
+            section.identifier = NSUserInterfaceItemIdentifier("sensor")
+            sensors.forEach { (s: Sensor_p) in
+                let btn = switchView(
+                    action: #selector(self.toggleSensor),
+                    state: s.popupState
+                )
+                btn.identifier = NSUserInterfaceItemIdentifier(rawValue: s.key)
+                section.add(PreferencesRow(localizedString(s.name), component: btn))
+            }
+            self.settingsView.addArrangedSubview(section)
+        }
+    }
+
     internal func usageCallback(_ values: [Sensor_p]) {
-        DispatchQueue.main.async(execute: {
-            values.filter({ $0 is Sensor }).forEach { (s: Sensor_p) in
-                if let sensor = self.list[s.key] as? SensorView {
-                    sensor.addHistoryPoint(s)
+        guard self.prepared else { return }
+        values.filter({ $0 is Sensor }).forEach { (s: Sensor_p) in
+            if let sensor = self.list[s.key] as? SensorView {
+                sensor.addHistoryPoint(s)
+            }
+        }
+        
+        if self.window?.isVisible ?? false {
+            values.forEach { (s: Sensor_p) in
+                switch self.list[s.key] {
+                case let sensor as SensorView:
+                    sensor.update(s)
+                case .none, .some:
+                    break
                 }
             }
-            
-            if self.window?.isVisible ?? false {
-                values.forEach { (s: Sensor_p) in
-                    switch self.list[s.key] {
-                    case let sensor as SensorView:
-                        sensor.update(s)
-                    case .none, .some:
-                        break
-                    }
-                }
-            }
-        })
+        }
     }
     
     private func recalculateHeight() {
@@ -204,7 +184,11 @@ internal class Popup: PopupWrapper {
     // MARK: - Settings
     
     public override func settings() -> NSView? {
-        self.settingsView
+        if !self.settingsRequested {
+            self.settingsRequested = true
+            self.buildSettings()
+        }
+        return self.settingsView
     }
     
     @objc private func toggleFanValue(_ sender: NSMenuItem) {

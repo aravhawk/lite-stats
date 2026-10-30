@@ -37,7 +37,7 @@ internal class Settings: NSStackView, Settings_v {
         self.splitValueState = Store.shared.bool(key: "\(self.title)_splitValue", defaultValue: self.splitValueState)
         self.updateIntervalValue = Store.shared.int(key: "\(self.title)_updateInterval", defaultValue: self.updateIntervalValue)
         self.updateTopIntervalValue = Store.shared.int(key: "\(self.title)_updateTopInterval", defaultValue: self.updateTopIntervalValue)
-        self.numberOfProcesses = Store.shared.int(key: "\(self.title)_processes", defaultValue: self.numberOfProcesses)
+        self.numberOfProcesses = Kit.numberOfProcesses(self.title, defaultValue: self.numberOfProcesses)
         self.clustersGroupState = Store.shared.bool(key: "\(self.title)_clustersGroup", defaultValue: self.clustersGroupState)
         
         super.init(frame: NSRect(x: 0, y: 0, width: 0, height: 0))

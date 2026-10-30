@@ -21,7 +21,6 @@ public enum widget_t: String {
     case memory = "memory"
     case label = "label"
     case tachometer = "tachometer"
-    case state = "state"
     case text = "text"
     
     public func new(module: String, config: NSDictionary, defaultWidget: widget_t) -> SWidget? {
@@ -56,9 +55,6 @@ public enum widget_t: String {
         case .tachometer:
             preview = Tachometer(title: module, preview: true)
             item = Tachometer(title: module, preview: false)
-        case .state:
-            preview = StateWidget(title: module, config: widgetConfig, preview: true)
-            item = StateWidget(title: module, config: widgetConfig, preview: false)
         case .text:
             preview = TextWidget(title: module, config: widgetConfig, preview: true)
             item = TextWidget(title: module, config: widgetConfig, preview: false)
@@ -114,7 +110,6 @@ public enum widget_t: String {
         case .memory: return localizedString("Memory widget")
         case .label: return localizedString("Label widget")
         case .tachometer: return localizedString("Tachometer widget")
-        case .state: return localizedString("State widget")
         case .text: return localizedString("Text widget")
         default: return ""
         }
@@ -135,13 +130,11 @@ open class WidgetWrapper: NSView, widget_p {
     public var widthHandler: (() -> Void)? = nil
     public var onClick: (() -> Void)? = nil
     public var shadowSize: CGSize
-    internal var queue: DispatchQueue
     
     public init(_ type: widget_t, title: String, frame: NSRect) {
         self.type = type
         self.title = title
         self.shadowSize = frame.size
-        self.queue = DispatchQueue(label: "com.aravhawk.lite-stats.WidgetWrapper.\(type.rawValue).\(title)")
         
         super.init(frame: frame)
     }
@@ -159,6 +152,7 @@ open class WidgetWrapper: NSView, widget_p {
         guard self.shadowSize.width != newWidth else { return }
         self.shadowSize.width = newWidth
         
+        // usually called while drawing, when the frame can't be changed
         DispatchQueue.main.async {
             self.setFrameSize(NSSize(width: newWidth, height: self.frame.size.height))
             self.widthHandler?()
@@ -188,9 +182,7 @@ open class WidgetWrapper: NSView, widget_p {
     }
     
     public func redraw() {
-        DispatchQueue.main.async { [weak self] in
-            self?.needsDisplay = true
-        }
+        self.needsDisplay = true
     }
     
     open func settings() -> NSView { return NSView() }
@@ -212,7 +204,15 @@ public class SWidget {
     public var item: widget_p
     
     public var isActive: Bool {
-        get { self.list.contains{ $0 == self.type } }
+        get {
+            let generation = Store.shared.generation
+            if let cache = self.activeCache, cache.generation == generation {
+                return cache.value
+            }
+            let value = self.list.contains{ $0 == self.type }
+            self.activeCache = (generation, value)
+            return value
+        }
         set {
             if newValue {
                 self.list.append(self.type)
@@ -221,6 +221,9 @@ public class SWidget {
             }
         }
     }
+    
+    // the active widgets are stored as a list shared by all widgets of the module, parsing it is cached until a setting changes
+    private var activeCache: (generation: Int, value: Bool)? = nil
     
     public var toggleCallback: ((widget_t, Bool) -> Void)? = nil
     public var sizeCallback: (() -> Void)? = nil
@@ -344,7 +347,6 @@ public class MenuBar {
     
     private var moduleName: String
     private var menuBarItem: NSStatusItem? = nil
-    private var queue: DispatchQueue
     
     private var combinedModules: Bool {
         Store.shared.bool(key: "CombinedModules", defaultValue: false)
@@ -361,17 +363,12 @@ public class MenuBar {
         }
     }
     
-    private var _active: Bool = false
     private var lastLayoutWidth: CGFloat = -1
     private var lastLayoutWidgets: [widget_t] = []
-    public var active: Bool {
-        get { self.queue.sync { self._active } }
-        set { self.queue.sync { self._active = newValue } }
-    }
+    public var active: Bool = false
     
     init(moduleName: String) {
         self.moduleName = moduleName
-        self.queue = DispatchQueue(label: "com.aravhawk.lite-stats.MenuBar.\(moduleName)")
         self.oneView = Store.shared.bool(key: "\(self.moduleName)_oneView", defaultValue: self.oneView)
         self.view.identifier = NSUserInterfaceItemIdentifier(rawValue: moduleName)
         
